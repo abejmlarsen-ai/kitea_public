@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../Kitea/assets"
+		},
+		{
+			"path": "../../Kitea/js"
+		},
+		{
+			"path": "../../Kitea/locations"
+		},
+		{
+			"path": "../../Kitea/node_modules"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "kitea_public"
+	}
+}
