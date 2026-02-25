@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
     const { data: tag, error: tagError } = await supabase
       .from('nfc_tags')
       .select('*, hunt_locations(*)')
-      .eq('tag_uid', tag_uid)
+      .or(`tag_uid.eq.${tag_uid},uid.eq.${tag_uid}`)
       .eq('is_active', true)
       .single()
-
+      
     if (tagError || !tag) {
       return NextResponse.json(
         { error: 'Tag not recognised. Make sure you are scanning an official Kitea tag.' },
