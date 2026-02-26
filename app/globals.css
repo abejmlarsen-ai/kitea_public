@@ -136,7 +136,7 @@ body {
   margin-bottom: 1rem;
 }
 .section_1 p {
-  font-size: clamp(0.5rem, 2vw, 1rem);
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
   font-family: var(--font-heading);
   display: inline-block;
   transition: transform 0.3s ease;
@@ -186,7 +186,7 @@ body {
   text-align: center;
 }
 .section_2 p {
-  font-size: clamp(0.5rem, 2vw, 1rem);
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
   font-family: var(--font-heading);
   display: block;
 }
@@ -1118,5 +1118,237 @@ body {
   .shop-cart-toggle {
     bottom: 1.5rem;
     right: 1.5rem;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — mobile-first overrides
+   Breakpoints:
+     768px  tablets & phones (primary)
+     480px  small phones (secondary)
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* ─── Design tokens ─────────────────────────────────────── */
+  :root {
+    --section-padding: 3rem;
+  }
+
+  /* ─── Container — safe edge margins on every screen ──────── */
+  .container {
+    padding: 0 1.1rem;
+  }
+
+  /* ─── Header / Navigation ────────────────────────────────── */
+  /* Keep header absolute so hero images still show through;
+     wrap links onto a second row when they don't fit           */
+  .site-header {
+    padding: 0.875rem 0;
+  }
+  .header-inner {
+    flex-wrap: wrap;
+    gap: 0.4rem 0;
+  }
+  .logo {
+    font-size: 1.3rem;
+  }
+  .main-nav {
+    width: 100%;
+  }
+  .main-nav ul {
+    flex-wrap: wrap;
+    gap: 0.5rem 1.1rem;
+    justify-content: flex-start;
+  }
+  .main-nav a {
+    font-size: 0.9rem;
+  }
+
+  /* ─── Logo hero band ─────────────────────────────────────── */
+  .logo-hero {
+    min-height: 36vh;
+    padding: 2rem 1.1rem;
+  }
+  .logo-hero img {
+    max-width: 260px;
+    max-height: 30vh;
+  }
+
+  /* ─── Section 1 (shared hero) ────────────────────────────── */
+  .section_1 {
+    padding: 3rem 1.1rem;
+    font-size: clamp(1.3rem, 6vw, 2rem);
+  }
+  .section_1 h2 {
+    font-size: clamp(1.3rem, 6vw, 2rem);
+  }
+
+  /* ─── Section 2 (Vision) ─────────────────────────────────── */
+  .section_2 {
+    padding: 3rem 1.1rem;
+    font-size: clamp(1.3rem, 6vw, 2rem);
+  }
+
+  /* ─── Section 3 (Values circles) ────────────────────────── */
+  .section_3 {
+    padding: 3rem 1.1rem;
+  }
+  /* value circle cards already handled above this block;
+     just ensure the width is right on narrow phones         */
+  .value {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    min-height: 120px;
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  .value h4 {
+    position: static;
+    transform: none;
+    font-size: 1.2rem;
+  }
+  .value p {
+    position: static;
+    transform: none;
+    opacity: 1;
+    width: 100%;
+    font-size: 0.9rem;
+    margin-top: 0.4rem;
+  }
+  .value:hover { width: 100%; height: auto; transform: none; }
+  .value:hover h4 { transform: none; }
+
+  /* ─── CTA ────────────────────────────────────────────────── */
+  .cta {
+    padding: 3rem 1.1rem;
+  }
+  .cta p {
+    font-size: 0.95rem;
+  }
+
+  /* ─── Footer ─────────────────────────────────────────────── */
+  .site-footer {
+    padding: 2rem 1.1rem;
+  }
+
+  /* ─── Login ──────────────────────────────────────────────── */
+  .login-section {
+    padding: 1.1rem;
+    align-items: flex-start;
+    padding-top: 5rem;
+  }
+  .login-container {
+    padding: 2rem 1.25rem;
+    max-width: 100%;
+  }
+
+  /* ─── Signup ─────────────────────────────────────────────── */
+  .signup-section {
+    padding: 5rem 1.1rem 2rem;
+    align-items: flex-start;
+  }
+  .signup-container {
+    padding: 2rem 1.25rem;
+    max-width: 100%;
+  }
+  /* Stack first/last name side-by-side fields vertically */
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ─── Map ────────────────────────────────────────────────── */
+  .map-container {
+    flex-direction: column;
+    padding: 80px 1.1rem 1.1rem;
+    gap: 12px;
+    min-height: 100vh;
+  }
+  .map-sidebar {
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .map-sidebar h3 {
+    font-size: 0.9rem;
+  }
+  #map-wrapper {
+    height: 60vh;
+    min-height: 320px;
+  }
+
+  /* ─── Location pages ─────────────────────────────────────── */
+  .location-photo-section {
+    padding: 2rem 1.1rem 1rem;
+  }
+  .location-content {
+    padding: 2rem 1.1rem 3rem;
+  }
+  .location-body p {
+    font-size: 1rem;
+  }
+
+  /* ─── Scan page ──────────────────────────────────────────── */
+  .scan-page {
+    padding: 1.1rem;
+    align-items: flex-start;
+    padding-top: 5rem;
+  }
+  .scan-container {
+    padding: 2.5rem 1.5rem;
+  }
+
+  /* ─── Shop ───────────────────────────────────────────────── */
+  .shop-hero {
+    padding: 5.5rem 1.1rem 2rem;
+  }
+  .shop-layout {
+    padding: 0 1.1rem 3rem;
+  }
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 1rem;
+  }
+  .shop-cart-toggle {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    font-size: 1rem;
+    padding: 0.65rem 1.1rem;
+  }
+  .shop-result-container {
+    padding: 2rem 1.25rem;
+  }
+}
+
+/* ─── Extra-small phones (< 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.9rem;
+  }
+  .logo {
+    font-size: 1.2rem;
+  }
+  .main-nav a {
+    font-size: 0.82rem;
+  }
+  .shop-grid {
+    /* Single column on very small screens */
+    grid-template-columns: 1fr;
+  }
+  .logo-hero img {
+    max-width: 200px;
+  }
+  .section_1,
+  .section_2 {
+    font-size: clamp(1.1rem, 7vw, 1.6rem);
+  }
+  .section_1 h2 {
+    font-size: clamp(1.1rem, 7vw, 1.6rem);
+  }
+  .value {
+    max-width: 280px;
   }
 }

@@ -79,11 +79,22 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Step 4 — Create the Stripe checkout session
-    // This generates a secure payment page hosted by Stripe
-    const siteUrl =
+    // Step 4 — Resolve the site URL with scheme guaranteed.
+    // NEXT_PUBLIC_SITE_URL may be missing on Vercel Preview, or set without
+    // the https:// prefix. VERCEL_URL is always a bare hostname (no scheme).
+    const rawSiteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
+    // Normalise: ensure there is always a scheme so Stripe doesn't reject the URL.
+    const siteUrl = rawSiteUrl.startsWith('http') ? rawSiteUrl : `https://${rawSiteUrl}`
+
+    console.log('[checkout] siteUrl debug', {
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      VERCEL_URL: process.env.VERCEL_URL,
+      rawSiteUrl,
+      siteUrl,
+    })
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
