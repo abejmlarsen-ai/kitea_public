@@ -9,8 +9,10 @@
 //
 // NORMAL mode (NEXT_PUBLIC_UNDER_CONSTRUCTION=false / unset)
 // ──────────────────────────────────────────────────────────
-//   /library, /shop, /map, /scan  → require login, else → /login
-//   /login, /signup               → logged-in users → /library
+//   /library, /shop, /map, /scan, /admin  → require login, else → /login
+//   /login, /signup                       → logged-in users → /library
+//   NOTE: /admin additionally requires is_admin=true, which is enforced
+//         in app/admin/page.tsx (server component) — not here.
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -50,7 +52,7 @@ export async function proxy(request: NextRequest) {
 
   // ── Under-construction mode ───────────────────────────────────────────────
   if (UNDER_CONSTRUCTION) {
-    // Logged-in users bypass the lockdown entirely
+    // Logged-in users bypass the lockdown entirely (including /admin)
     if (user) {
       // Still redirect away from /login — they're already authenticated
       if (pathname === '/login') {
@@ -79,7 +81,8 @@ export async function proxy(request: NextRequest) {
   // ── Normal mode ───────────────────────────────────────────────────────────
 
   // Protected routes — require a valid session
-  const protectedPaths = ['/library', '/shop', '/map', '/scan']
+  // /admin is included here; the is_admin check lives in app/admin/page.tsx.
+  const protectedPaths = ['/library', '/shop', '/map', '/scan', '/admin']
   if (protectedPaths.some(p => pathname.startsWith(p)) && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
