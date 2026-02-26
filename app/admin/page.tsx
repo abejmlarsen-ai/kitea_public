@@ -1,7 +1,8 @@
 // ─── Admin Page (Server Component) ───────────────────────────────────────────
-// 1. Middleware already blocked unauthenticated users, but we double-check here.
-// 2. We additionally verify is_admin=true on the user's profiles row.
-//    If either check fails we redirect — no error message is shown to non-admins.
+// 1. Double-checks auth (proxy.ts already guards the route).
+// 2. Verifies is_admin=true on the profiles row — redirects silently if not.
+// 3. Reads ?tab= from the URL and passes it as initialTab to AdminClient
+//    so clicking a dropdown item opens the correct tab immediately.
 
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -10,32 +11,41 @@ import AdminClient from './AdminClient'
 
 export const metadata: Metadata = { title: 'Admin' }
 
-export default async function AdminPage() {
+type Tab = 'locations' | 'products' | 'nfc_tags' | 'orders' | 'users' | 'stats'
+const VALID_TABS: Tab[] = ['locations', 'products', 'nfc_tags', 'orders', 'users', 'stats']
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
   const supabase = await createClient()
 
-  // Auth check (belt-and-suspenders in case middleware is bypassed)
+  // Auth check
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
 
-  // is_admin check — the column exists in the DB but was added after the last
-  // types generation, so we cast to access it safely.
+  // is_admin check — column added after last type generation, cast to access it
   const { data: profileRaw } = await supabase
     .from('profiles')
-    .select('*')
+    .select('is_admin')
     .eq('id', user.id)
     .single()
 
   const isAdmin =
     (profileRaw as Record<string, unknown> | null)?.is_admin === true
 
-  if (!isAdmin) {
-    redirect('/')
-  }
+  if (!isAdmin) redirect('/')
 
-  return <AdminClient />
+  // Resolve tab from query params (Next.js 16: searchParams is a Promise)
+  const params     = await searchParams
+  const tabParam   = params.tab
+  const initialTab: Tab = VALID_TABS.includes(tabParam as Tab)
+    ? (tabParam as Tab)
+    : 'locations'
+
+  return <AdminClient initialTab={initialTab} />
 }

@@ -1,16 +1,29 @@
 // ─── Site Header (Server Component) ─────────────────────────────────────────
-// Reads Supabase session server-side so the Library/Shop links appear
-// instantly for authenticated users without any client-side flash.
+// Reads Supabase session server-side so auth-dependent nav links appear
+// instantly without any client-side flash.
+// Also checks is_admin to conditionally render the Admin dropdown.
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import AdminDropdown from './AdminDropdown'
 
 export default async function Header() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Check is_admin — column was added after last type generation, so we cast.
+  let isAdmin = false
+  if (user) {
+    const { data: profileRaw } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    isAdmin =
+      (profileRaw as Record<string, unknown> | null)?.is_admin === true
+  }
 
   return (
     <header className="site-header">
@@ -29,6 +42,7 @@ export default async function Header() {
               <>
                 <li><Link href="/library">Library</Link></li>
                 <li><Link href="/shop">Shop</Link></li>
+                {isAdmin && <AdminDropdown />}
               </>
             ) : (
               <li><Link href="/login">Login</Link></li>
