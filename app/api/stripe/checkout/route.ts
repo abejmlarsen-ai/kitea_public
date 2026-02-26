@@ -81,12 +81,16 @@ export async function POST(request: NextRequest) {
 
     // Step 4 — Create the Stripe checkout session
     // This generates a secure payment page hosted by Stripe
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/shop`,
+      success_url: `${siteUrl}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/shop`,
       metadata: {
         user_id: user_id,
       },
