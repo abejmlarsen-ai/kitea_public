@@ -2,6 +2,15 @@
 // Reads Supabase session server-side so auth-dependent nav links appear
 // instantly without any client-side flash.
 // Also checks is_admin to conditionally render the Admin dropdown.
+//
+// NOTE: is_admin is NOT in the generated TypeScript types (it was added to the
+// DB after the last type generation run).  We therefore:
+//   • use .select('*') — consistent with app/admin/page.tsx which is confirmed
+//     working; using .select('is_admin') on an untyped column can silently
+//     return null with the typed Supabase client.
+//   • cast the result to Record<string,unknown> before reading the field.
+//   • use !! (truthy) instead of === true so both boolean true and integer 1
+//     are accepted.
 
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -9,20 +18,33 @@ import AdminDropdown from './AdminDropdown'
 
 export default async function Header() {
   const supabase = await createClient()
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Check is_admin — column was added after last type generation, so we cast.
   let isAdmin = false
+
   if (user) {
-    const { data: profileRaw } = await supabase
+    const { data: profileRaw, error: profileError } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('*')                    // must be * — is_admin not in TS types
       .eq('id', user.id)
       .single()
-    isAdmin =
-      (profileRaw as Record<string, unknown> | null)?.is_admin === true
+
+    if (profileError) {
+      console.error('[Header] profiles query error:', profileError.message)
+    }
+
+    const raw = profileRaw as Record<string, unknown> | null
+    isAdmin   = !!raw?.is_admin       // handles true (bool) and 1 (int)
+
+    console.log('[Header] isAdmin debug:', {
+      userId:   user.id,
+      is_admin: raw?.is_admin,
+      isAdmin,
+      profileError: profileError?.message ?? null,
+    })
   }
 
   return (
