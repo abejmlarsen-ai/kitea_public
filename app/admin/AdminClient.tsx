@@ -90,9 +90,9 @@ const TAB_LABELS: Record<Tab, string> = {
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function AdminClient() {
+export default function AdminClient({ initialTab = 'locations' }: { initialTab?: Tab }) {
   // Tab
-  const [activeTab, setActiveTab] = useState<Tab>('locations')
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 
   // Data per tab
   const [locations, setLocations] = useState<Location[]>([])
