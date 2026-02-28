@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import ThirdwebAppProvider from '@/components/providers/ThirdwebProvider'
 
 export const metadata: Metadata = {
   title: {
@@ -26,9 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="theme-dark">
-        <Header />
-        {children}
-        <Footer />
+        <ThirdwebAppProvider>
+          <Header />
+          {children}
+          <Footer />
+        </ThirdwebAppProvider>
       </body>
     </html>
   )

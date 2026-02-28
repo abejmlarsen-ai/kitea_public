@@ -5,8 +5,21 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from '@/components/auth/LogoutButton'
+import WalletButton from '@/components/wallet/WalletButton'
+import LibraryClient from './LibraryClient'
 
 export const metadata: Metadata = { title: 'Library' }
+
+export type MintedNFT = {
+  id: string
+  token_id: number
+  edition_number: number
+  hunt_location_id: string | null
+  status: string
+  transaction_hash: string | null
+  minted_at: string | null
+  hunt_locations: { name: string } | null
+}
 
 export default async function LibraryPage() {
   const supabase = await createClient()
@@ -28,6 +41,21 @@ export default async function LibraryPage() {
       'there'
   }
 
+  // Fetch minted NFTs for this user
+  let nfts: MintedNFT[] = []
+  if (user) {
+    const { data } = await supabase
+      .from('nft_tokens')
+      .select(
+        'id, token_id, edition_number, hunt_location_id, status, transaction_hash, minted_at, hunt_locations(name)'
+      )
+      .eq('user_id', user.id)
+      .eq('status', 'minted')
+      .order('minted_at', { ascending: false })
+
+    if (data) nfts = data as unknown as MintedNFT[]
+  }
+
   return (
     <>
       <section className="logo-hero logo-hero--home">
@@ -45,7 +73,10 @@ export default async function LibraryPage() {
         <div className="container">
           <p id="user-greeting">Welcome back, {firstName}!</p>
           <h2>Library</h2>
-          <p>Your NFT collection will appear here.</p>
+          <div className="nft-wallet-area">
+            <WalletButton />
+          </div>
+          <LibraryClient nfts={nfts} />
         </div>
         <LogoutButton />
       </section>

@@ -1,16 +1,14 @@
-// ─── NFC Scan Verification ────────────────────────────────────────────────────
+// ─── NFC Scan Verification ────────────────────────────────────────────────────────────────────────────────────
 // POST /api/nfc/scan
 // Verifies a scanned NFC tag UID and records the scan in the database.
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
-    // ── Step 1 — Parse the incoming scan data ────────────────────────────────
+    // ── Step 1 — Parse the incoming scan data ────────────────────────────────────────────────────────────────────────
     const body = await request.json()
     const { tag_uid } = body
-
     console.log('[scan] incoming tag_uid:', tag_uid)
 
     if (!tag_uid) {
@@ -20,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Step 2 — Service-role Supabase client (bypasses RLS) ─────────────────
+    // ── Step 2 — Service-role Supabase client (bypasses RLS) ───────────────────────────────────────────────
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -38,7 +36,6 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: userError } = await supabase.auth.getUser(token)
-
     console.log('[scan] user:', user?.id ?? null, '| userError:', userError?.message ?? null)
 
     if (userError || !user) {
@@ -48,11 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Step 4 — Look up the NFC tag ─────────────────────────────────────────
-    // Match on either uid or tag_uid column (both store the same value).
-    // Use !hunt_location_id to explicitly tell Supabase which FK column
-    // joins nfc_tags → hunt_locations (without this hint the join silently
-    // returns null when the FK column name is not the Supabase default).
+    // ── Step 4 — Look up the NFC tag ─────────────────────────────────────────────────────────────────────────────────
     const { data: tag, error: tagError } = await supabase
       .from('nfc_tags')
       .select('*, hunt_locations!hunt_location_id(*)')
@@ -72,10 +65,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // hunt_location_id is the FK that joins to hunt_locations
     const huntLocationId = tag.hunt_location_id
 
-    // ── Step 5 — Check if this user has already scanned this location ─────────
+    // ── Step 5 — Check if this user has already scanned this location ─────────────────
     const { data: existingScan, error: existingError } = await supabase
       .from('scans')
       .select('id, scan_number')
@@ -96,7 +88,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── Step 6 — Get current scan count to assign a scan number ──────────────
+    // ── Step 6 — Get current scan count to assign a scan number ────────────────────────
     const { data: locationData, error: locationError } = await supabase
       .from('hunt_locations')
       .select('total_scans, name')
@@ -108,8 +100,8 @@ export async function POST(request: NextRequest) {
 
     const scan_number = (locationData?.total_scans ?? 0) + 1
 
-    // ── Step 7 — Record the scan ──────────────────────────────────────────────
-    const { error: scanError } = await supabase
+    // ── Step 7 — Record the scan ─────────────────────────────────────────────────────────────────────────────────────────
+    const { data: scanData, error: scanError } = await supabase
       .from('scans')
       .insert({
         user_id: user.id,
@@ -118,6 +110,8 @@ export async function POST(request: NextRequest) {
         scan_number: scan_number,
         scanned_at: new Date().toISOString()
       })
+      .select('id')
+      .single()
 
     console.log('[scan] scanError:', scanError?.message ?? null)
 
@@ -129,7 +123,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Step 8 — Return success ───────────────────────────────────────────────
+    // ── Step 8 — Fire background mint (do not await) ────────────────────────────────────────────────
+    const mintPayload = {
+      user_id: user.id,
+      hunt_location_id: huntLocationId,
+      scan_number: scan_number,
+      scan_id: scanData.id,
+    }
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/nft/mint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mintPayload),
+    }).catch((err) => console.error('[scan] background mint failed:', err))
+
+    // ── Step 9 — Return success ──────────────────────────────────────────────────────────────────────────────────────────
     console.log('[scan] success — scan_number:', scan_number)
     return NextResponse.json({
       success: true,
@@ -137,7 +144,6 @@ export async function POST(request: NextRequest) {
       scan_number: scan_number,
       location: tag.hunt_locations
     })
-
   } catch (error) {
     console.error('[scan] unexpected error:', error)
     return NextResponse.json(

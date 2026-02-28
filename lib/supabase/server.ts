@@ -3,6 +3,7 @@
 // Reads/writes cookies from Next.js headers() so the session stays fresh.
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Database } from '@/lib/types/database'
 
@@ -28,5 +29,15 @@ export async function createClient() {
         },
       },
     }
+  )
+}
+
+// ─── Service-role client (bypasses RLS) ───────────────────────────────────────
+// Use ONLY in trusted server-side code (API routes, background jobs).
+// Never expose or call this from client components.
+export function createServiceRoleClient() {
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 }

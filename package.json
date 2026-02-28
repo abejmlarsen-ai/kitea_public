@@ -17,7 +17,8 @@
     "next": "^16.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "stripe": "^20.3.1"
+    "stripe": "^20.3.1",
+    "thirdweb": "^5.119.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.14",

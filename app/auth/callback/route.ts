@@ -31,6 +31,36 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // ── Founder NFT: fire on every auth (mint route is idempotent) ──
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // Upsert profile row — no-op if it already exists
+        await supabase
+          .from('profiles')
+          .upsert({ id: user.id }, { onConflict: 'id', ignoreDuplicates: true })
+
+        // Count all profiles to determine this user's founder number
+        const { count } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+
+        const founderNumber = count ?? 1
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? origin
+
+        // Fire-and-forget — do not block the redirect
+        fetch(`${siteUrl}/api/nft/mint`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user.id,
+            hunt_location_id: null,
+            scan_number: founderNumber,
+            scan_id: null,
+            is_founder: true,
+          }),
+        }).catch((err) => console.error('[auth/callback] founder mint failed:', err))
+      }
+
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
