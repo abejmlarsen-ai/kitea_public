@@ -1,46 +1,42 @@
 'use client'
+// ─── WalletButton ─────────────────────────────────────────────────────────────
+// Shows a subtle dark pill with the connected wallet address.
+// Renders nothing if no wallet is active (WalletAutoConnect handles creation).
 
-import { ConnectButton } from 'thirdweb/react'
-import { inAppWallet, createWallet } from 'thirdweb/wallets'
-import { createClient } from '@/lib/supabase/client'
-import { thirdwebClient } from '@/lib/thirdweb/client'
-import type { Wallet } from 'thirdweb/wallets'
-
-const wallets = [
-  inAppWallet({ auth: { options: ['email', 'google'] } }),
-  createWallet('io.metamask'),
-  createWallet('com.coinbase.wallet'),
-]
+import { useState } from 'react'
+import { useActiveAccount } from 'thirdweb/react'
 
 export default function WalletButton() {
-  async function handleConnect(wallet: Wallet) {
-    const address = wallet.getAccount()?.address
-    if (!address) return
+  const account = useActiveAccount()
+  const [copied, setCopied] = useState(false)
 
+  if (!account?.address) return null
+
+  const address = account.address
+  const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`
+
+  const handleCopy = async () => {
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      await fetch('/api/user/wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ wallet_address: address }),
-      })
-    } catch (err) {
-      console.error('[WalletButton] Failed to save wallet address:', err)
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard API not available
     }
   }
 
   return (
-    <ConnectButton
-      client={thirdwebClient}
-      wallets={wallets}
-      theme="dark"
-      onConnect={handleConnect}
-    />
+    <div className="wallet-display">
+      <span className="wallet-display__icon">✦</span>
+      <span className="wallet-display__address">{truncated}</span>
+      <button
+        className="wallet-display__copy"
+        onClick={handleCopy}
+        title={copied ? 'Copied!' : 'Copy wallet address'}
+        aria-label={copied ? 'Address copied' : 'Copy wallet address'}
+      >
+        {copied ? '✓' : '⧉'}
+      </button>
+    </div>
   )
 }

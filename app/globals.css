@@ -1996,3 +1996,80 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Wallet Display (address pill) ─────────────────────────────────────────── */
+
+.wallet-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(0, 1, 4, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  padding: 0.28rem 0.8rem;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(8px);
+  user-select: none;
+}
+
+.wallet-display__icon {
+  color: #c9a227;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.wallet-display__address {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.03em;
+}
+
+.wallet-display__copy {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 0;
+  font-size: 0.74rem;
+  line-height: 1;
+  transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
+}
+
+.wallet-display__copy:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ─── Wallet Toast (creation notification) ──────────────────────────────────── */
+
+.wallet-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(6, 6, 10, 0.93);
+  border: 1px solid rgba(201, 162, 39, 0.38);
+  border-radius: 10px;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.45), 0 0 14px rgba(201, 162, 39, 0.12);
+  pointer-events: none;
+  animation: kitea-toast-in 0.32s ease forwards,
+             kitea-toast-out 0.48s ease 3.6s forwards;
+}
+
+@keyframes kitea-toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+@keyframes kitea-toast-out {
+  from { opacity: 1; transform: translateY(0)   scale(1);    }
+  to   { opacity: 0; transform: translateY(8px)  scale(0.97); }
+}

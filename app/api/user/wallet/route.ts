@@ -5,6 +5,7 @@ import { mintNFT } from '@/lib/thirdweb/mint'
 export async function POST(req: NextRequest) {
   try {
     const { wallet_address } = (await req.json()) as { wallet_address: string }
+    console.log('[user/wallet] called with address:', wallet_address)
 
     // ── 1. Authenticate user from Authorization header ───────────────────────────────────────────────
     const authHeader = req.headers.get('authorization')

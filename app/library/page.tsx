@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from '@/components/auth/LogoutButton'
 import WalletButton from '@/components/wallet/WalletButton'
+import WalletAutoConnect from '@/components/wallet/WalletAutoConnect'
 import LibraryClient from './LibraryClient'
 
 export const metadata: Metadata = { title: 'Library' }
@@ -23,22 +24,32 @@ export type MintedNFT = {
 
 export default async function LibraryPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // Fetch first name for personalised greeting
+  // Fetch profile — first name + existing wallet address
   let firstName = 'there'
+  let walletAddress: string | null = null
+
   if (user) {
     const result = await supabase
       .from('profiles')
-      .select('first_name')
+      .select('first_name, wallet_address')
       .eq('id', user.id)
       .maybeSingle()
 
-    const profile = result.data as { first_name?: string } | null
+    const profile = result.data as {
+      first_name?: string
+      wallet_address?: string | null
+    } | null
+
     firstName =
       profile?.first_name ??
       (user.user_metadata?.first_name as string | undefined) ??
       'there'
+
+    walletAddress = profile?.wallet_address ?? null
   }
 
   // Fetch minted NFTs for this user
@@ -73,9 +84,17 @@ export default async function LibraryPage() {
         <div className="container">
           <p id="user-greeting">Welcome back, {firstName}!</p>
           <h2>Library</h2>
+
           <div className="nft-wallet-area">
+            {/* Always show address pill once wallet is connected */}
             <WalletButton />
+
+            {/* Auto-create wallet on first visit — skipped if address already saved */}
+            {!walletAddress && user?.email && (
+              <WalletAutoConnect userEmail={user.email} userId={user.id} />
+            )}
           </div>
+
           <LibraryClient nfts={nfts} />
         </div>
         <LogoutButton />
