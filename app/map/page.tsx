@@ -1,6 +1,4 @@
 // ─── Map Page (Protected) ────────────────────────────────────────────────────
-// MapWrapper is a Client Component that loads Leaflet dynamically with ssr:false.
-
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import MapWrapper from '@/components/map/MapWrapper'
@@ -14,17 +12,17 @@ export default function MapPage() {
         <Image
           src="/images/Kitea Logo Only.png"
           alt="Kitea logo"
-          width={300}
-          height={300}
+          width={400}
+          height={400}
           priority
-          style={{ objectFit: 'contain', maxHeight: '40vh', width: 'auto' }}
+          style={{ objectFit: 'contain', width: 'auto' }}
         />
       </section>
 
       <section className="section_1 section_1--map">
         <div className="container">
-          <h2>Map</h2>
-          <p>Explore the world</p>
+          <h2>Hunt Locations</h2>
+          <p>Find a Kitea tag near you.</p>
         </div>
       </section>
 

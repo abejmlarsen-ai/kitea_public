@@ -1,20 +1,8 @@
 // ─── Site Header (Server Component) ─────────────────────────────────────────
-// Reads Supabase session server-side so auth-dependent nav links appear
-// instantly without any client-side flash.
-// Also checks is_admin to conditionally render the Admin dropdown.
-//
-// NOTE: is_admin is NOT in the generated TypeScript types (it was added to the
-// DB after the last type generation run).  We therefore:
-//   • use .select('*') — consistent with app/admin/page.tsx which is confirmed
-//     working; using .select('is_admin') on an untyped column can silently
-//     return null with the typed Supabase client.
-//   • cast the result to Record<string,unknown> before reading the field.
-//   • use !! (truthy) instead of === true so both boolean true and integer 1
-//     are accepted.
-
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import AdminDropdown from './AdminDropdown'
+import LogoutButton from '@/components/auth/LogoutButton'
 
 export default async function Header() {
   const supabase = await createClient()
@@ -28,7 +16,7 @@ export default async function Header() {
   if (user) {
     const { data: profileRaw, error: profileError } = await supabase
       .from('profiles')
-      .select('*')                    // must be * — is_admin not in TS types
+      .select('*')
       .eq('id', user.id)
       .single()
 
@@ -37,14 +25,7 @@ export default async function Header() {
     }
 
     const raw = profileRaw as Record<string, unknown> | null
-    isAdmin   = !!raw?.is_admin       // handles true (bool) and 1 (int)
-
-    console.log('[Header] isAdmin debug:', {
-      userId:   user.id,
-      is_admin: raw?.is_admin,
-      isAdmin,
-      profileError: profileError?.message ?? null,
-    })
+    isAdmin   = !!raw?.is_admin
   }
 
   return (
@@ -65,6 +46,7 @@ export default async function Header() {
                 <li><Link href="/library">Library</Link></li>
                 <li><Link href="/shop">Shop</Link></li>
                 {isAdmin && <AdminDropdown />}
+                <li><LogoutButton /></li>
               </>
             ) : (
               <li><Link href="/login">Login</Link></li>

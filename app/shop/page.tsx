@@ -1,14 +1,10 @@
 // ─── Shop Page ────────────────────────────────────────────────────────────────
-// Server Component — fetches products + unlock state, then hands off to client.
-
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import ShopClient from './ShopClient'
 
 export const metadata: Metadata = { title: 'Shop' }
 
-// The DB has a `price` column that was added after types were last generated.
-// We add it here via a local augmented type + runtime cast.
 export type ShopProduct = {
   id: string
   name: string
@@ -18,7 +14,11 @@ export type ShopProduct = {
   price: number
 }
 
-// Raw row shape returned from Supabase — typed as unknown so we can cast safely.
+export type HuntLocation = {
+  id: string
+  name: string
+}
+
 type RawProduct = {
   id: string
   name: string
@@ -31,13 +31,18 @@ type RawProduct = {
   [key: string]: unknown
 }
 
+type RawLocation = {
+  id: string
+  name: string
+  [key: string]: unknown
+}
+
 export default async function ShopPage() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Fetch all active products — cast to unknown first to escape generated types.
   const { data: rawProducts } = await supabase
     .from('products')
     .select('*')
@@ -53,7 +58,17 @@ export default async function ShopPage() {
     price: p.price ?? 0,
   }))
 
-  // Fetch products this user has unlocked via scanning
+  const { data: rawLocations } = await supabase
+    .from('hunt_locations')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('name')
+
+  const locations: HuntLocation[] = ((rawLocations as unknown as RawLocation[]) ?? []).map((l) => ({
+    id: l.id,
+    name: l.name,
+  }))
+
   let unlockedProductIds: string[] = []
   if (user) {
     const { data: unlocks } = await supabase
@@ -70,6 +85,7 @@ export default async function ShopPage() {
       products={products}
       userId={user?.id ?? null}
       unlockedProductIds={unlockedProductIds}
+      locations={locations}
     />
   )
 }

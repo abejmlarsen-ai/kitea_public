@@ -28,7 +28,6 @@ export default async function LibraryPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Fetch profile — first name + existing wallet address
   let firstName = 'there'
   let walletAddress: string | null = null
 
@@ -52,7 +51,6 @@ export default async function LibraryPage() {
     walletAddress = profile?.wallet_address ?? null
   }
 
-  // Fetch minted NFTs for this user
   let nfts: MintedNFT[] = []
   if (user) {
     const { data } = await supabase
@@ -73,10 +71,10 @@ export default async function LibraryPage() {
         <Image
           src="/images/Kitea Logo Only.png"
           alt="Kitea logo"
-          width={300}
-          height={300}
+          width={400}
+          height={400}
           priority
-          style={{ objectFit: 'contain', maxHeight: '60vh', width: 'auto' }}
+          style={{ objectFit: 'contain', width: 'auto' }}
         />
       </section>
 
@@ -86,18 +84,21 @@ export default async function LibraryPage() {
           <h2>Library</h2>
 
           <div className="nft-wallet-area">
-            {/* Always show address pill once wallet is connected */}
             <WalletButton />
-
-            {/* Auto-create wallet on first visit — skipped if address already saved */}
             {!walletAddress && user?.email && (
               <WalletAutoConnect userEmail={user.email} userId={user.id} />
             )}
           </div>
 
+          <LogoutButton />
+        </div>
+      </section>
+
+      {/* Library content — white paper on site-blue background */}
+      <section className="library-section">
+        <div className="container">
           <LibraryClient nfts={nfts} />
         </div>
-        <LogoutButton />
       </section>
     </>
   )

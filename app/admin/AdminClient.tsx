@@ -508,7 +508,10 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
   return (
     <div className="admin-page">
       <header className="admin-header">
-        <h1>Admin Panel</h1>
+        <div className="admin-header-inner">
+          <h1>Admin Panel</h1>
+          <a href="/" className="admin-home-link">← Back to Home</a>
+        </div>
       </header>
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}

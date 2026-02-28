@@ -1,11 +1,11 @@
 'use client'
 
 // ─── Shop Client Component ────────────────────────────────────────────────────
-// Handles product grid, cart state, and Stripe checkout redirect.
+// Renders products grouped into coloured rows by hunt location.
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ShopProduct } from './page'
+import type { ShopProduct, HuntLocation } from './page'
 
 type CartItem = {
   product_id: string
@@ -18,9 +18,20 @@ type Props = {
   products: ShopProduct[]
   userId: string | null
   unlockedProductIds: string[]
+  locations: HuntLocation[]
 }
 
-export default function ShopClient({ products, userId, unlockedProductIds }: Props) {
+// Row colour palette — index maps to hunt order
+const ROW_COLORS = [
+  { header: '#0169aa', light: '#e8f4fc' },  // Hunt 1 — blue
+  { header: '#c9a227', light: '#fdf6e3' },  // Hunt 2 — gold
+  { header: '#27ae60', light: '#e8f8f0' },  // Hunt 3 — green
+  { header: '#8e44ad', light: '#f4e8fc' },  // Hunt 4 — purple
+  { header: '#e74c3c', light: '#fce8e8' },  // Hunt 5 — red
+  { header: '#16a085', light: '#e8f8f5' },  // Hunt 6 — teal
+]
+
+export default function ShopClient({ products, userId, unlockedProductIds, locations }: Props) {
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
@@ -29,7 +40,6 @@ export default function ShopClient({ products, userId, unlockedProductIds }: Pro
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
   const cartTotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
-  // A product is locked if it is tied to a hunt location and not yet unlocked.
   function isLocked(product: ShopProduct): boolean {
     if (!product.hunt_location_id) return false
     return !unlockedProductIds.includes(product.id)
@@ -97,15 +107,72 @@ export default function ShopClient({ products, userId, unlockedProductIds }: Pro
     }
   }
 
+  // ── Group products ──────────────────────────────────────────────────────────
+
+  // Separate general (no hunt) products from hunt-specific ones
+  const generalProducts = products.filter((p) => !p.hunt_location_id)
+
+  // Build hunt groups in the order locations are sorted
+  const huntGroups = locations
+    .map((loc) => ({
+      location: loc,
+      products: products.filter((p) => p.hunt_location_id === loc.id),
+    }))
+    .filter((g) => g.products.length > 0)
+
+  // ── Product card renderer ───────────────────────────────────────────────────
+
+  function ProductCard({ product, bgLight }: { product: ShopProduct; bgLight?: string }) {
+    const locked = isLocked(product)
+    return (
+      <article
+        className={`shop-card${locked ? ' shop-card--locked' : ''}`}
+        style={bgLight ? { background: bgLight } : undefined}
+      >
+        {product.image_url ? (
+          <div className="shop-card-image-wrapper">
+            <img src={product.image_url} alt={product.name} className="shop-card-image" />
+            {locked && <div className="shop-card-lock">🔒</div>}
+          </div>
+        ) : (
+          <div className="shop-card-image-placeholder">
+            {locked ? '🔒' : '✦'}
+          </div>
+        )}
+
+        <div className="shop-card-body">
+          <h3 className="shop-card-name">{product.name}</h3>
+          {product.description && (
+            <p className="shop-card-desc">{product.description}</p>
+          )}
+          {locked ? (
+            <p className="shop-card-locked-msg">Scan the location to unlock</p>
+          ) : (
+            <p className="shop-card-price">
+              {product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free'}
+            </p>
+          )}
+          <button
+            className="shop-card-btn"
+            disabled={locked || product.price === 0}
+            onClick={() => !locked && addToCart(product)}
+          >
+            {locked ? 'Locked' : 'Add to Cart'}
+          </button>
+        </div>
+      </article>
+    )
+  }
+
   return (
     <div className="shop-page">
-      {/* ── Hero ────────────────────────────────────────────────────────────── */}
+      {/* Hero */}
       <section className="shop-hero">
         <h1>Shop</h1>
         <p>Exclusive items — some unlocked by your adventures.</p>
       </section>
 
-      {/* ── Floating cart toggle ─────────────────────────────────────────────── */}
+      {/* Floating cart toggle */}
       {cartCount > 0 && (
         <button
           className="shop-cart-toggle"
@@ -117,78 +184,52 @@ export default function ShopClient({ products, userId, unlockedProductIds }: Pro
       )}
 
       <div className="shop-layout">
-        {/* ── Product grid ──────────────────────────────────────────────────── */}
-        <main className="shop-grid">
+        {/* Hunt rows */}
+        <main className="shop-hunt-rows">
           {products.length === 0 && (
             <p className="shop-empty">No products available yet — check back soon.</p>
           )}
 
-          {products.map((product) => {
-            const locked = isLocked(product)
+          {/* General / always-available products */}
+          {generalProducts.length > 0 && (
+            <div className="hunt-row">
+              <div className="hunt-row-header" style={{ background: '#2d3142' }}>
+                <h2 className="hunt-row-title">General</h2>
+                <span className="hunt-row-subtitle">Available to everyone</span>
+              </div>
+              <div className="hunt-row-body">
+                {generalProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
 
+          {/* Hunt-specific rows */}
+          {huntGroups.map((group, idx) => {
+            const color = ROW_COLORS[idx % ROW_COLORS.length]
             return (
-              <article
-                key={product.id}
-                className={`shop-card${locked ? ' shop-card--locked' : ''}`}
-              >
-                {/* Image */}
-                {product.image_url ? (
-                  <div className="shop-card-image-wrapper">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="shop-card-image"
-                    />
-                    {locked && <div className="shop-card-lock">🔒</div>}
-                  </div>
-                ) : (
-                  <div className="shop-card-image-placeholder">
-                    {locked ? '🔒' : '✦'}
-                  </div>
-                )}
-
-                {/* Text */}
-                <div className="shop-card-body">
-                  <h3 className="shop-card-name">{product.name}</h3>
-
-                  {product.description && (
-                    <p className="shop-card-desc">{product.description}</p>
-                  )}
-
-                  {locked ? (
-                    <p className="shop-card-locked-msg">Scan the location to unlock</p>
-                  ) : (
-                    <p className="shop-card-price">
-                      {product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free'}
-                    </p>
-                  )}
-
-                  <button
-                    className="shop-card-btn"
-                    disabled={locked || product.price === 0}
-                    onClick={() => !locked && addToCart(product)}
-                  >
-                    {locked ? 'Locked' : 'Add to Cart'}
-                  </button>
+              <div key={group.location.id} className="hunt-row">
+                <div className="hunt-row-header" style={{ background: color.header }}>
+                  <h2 className="hunt-row-title">{group.location.name}</h2>
+                  <span className="hunt-row-subtitle">Scan the tag to unlock</span>
                 </div>
-              </article>
+                <div className="hunt-row-body">
+                  {group.products.map((p) => (
+                    <ProductCard key={p.id} product={p} bgLight={color.light} />
+                  ))}
+                </div>
+              </div>
             )
           })}
         </main>
 
-        {/* ── Cart sidebar ──────────────────────────────────────────────────── */}
+        {/* Cart sidebar */}
         {cartOpen && (
           <aside className="shop-cart">
             <div className="shop-cart-header">
               <h2>Your Cart</h2>
-              <button
-                className="shop-cart-close"
-                onClick={() => setCartOpen(false)}
-                aria-label="Close cart"
-              >
-                ✕
-              </button>
+              <button className="shop-cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">✕</button>
             </div>
 
             {cart.length === 0 ? (
@@ -200,31 +241,13 @@ export default function ShopClient({ products, userId, unlockedProductIds }: Pro
                     <li key={item.product_id} className="shop-cart-item">
                       <div className="shop-cart-item-info">
                         <span className="shop-cart-item-name">{item.name}</span>
-                        <span className="shop-cart-item-price">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </span>
+                        <span className="shop-cart-item-price">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                       <div className="shop-cart-item-qty">
-                        <button
-                          onClick={() => updateQuantity(item.product_id, -1)}
-                          aria-label="Decrease quantity"
-                        >
-                          −
-                        </button>
+                        <button onClick={() => updateQuantity(item.product_id, -1)} aria-label="Decrease">−</button>
                         <span>{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.product_id, 1)}
-                          aria-label="Increase quantity"
-                        >
-                          +
-                        </button>
-                        <button
-                          className="shop-cart-item-remove"
-                          onClick={() => removeFromCart(item.product_id)}
-                          aria-label="Remove item"
-                        >
-                          ✕
-                        </button>
+                        <button onClick={() => updateQuantity(item.product_id, 1)} aria-label="Increase">+</button>
+                        <button className="shop-cart-item-remove" onClick={() => removeFromCart(item.product_id)} aria-label="Remove">✕</button>
                       </div>
                     </li>
                   ))}
@@ -235,11 +258,7 @@ export default function ShopClient({ products, userId, unlockedProductIds }: Pro
                     <span>Total</span>
                     <span>${cartTotal.toFixed(2)} AUD</span>
                   </div>
-                  <button
-                    className="shop-cart-checkout-btn"
-                    onClick={handleCheckout}
-                    disabled={isCheckingOut}
-                  >
+                  <button className="shop-cart-checkout-btn" onClick={handleCheckout} disabled={isCheckingOut}>
                     {isCheckingOut ? 'Redirecting…' : 'Checkout →'}
                   </button>
                 </div>
