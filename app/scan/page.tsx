@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-// ─── Inner component ─────────────────────────────────────────────────────────
+// ─── Inner component ─────────────────────────────────────────────────────
 // useSearchParams() must live inside a component wrapped by <Suspense>.
 // Next.js requires this for static build compatibility.
 
@@ -16,6 +16,7 @@ function ScanContent() {
   const [scanNumber, setScanNumber] = useState<number | null>(null)
   const [locationName, setLocationName] = useState('')
 
+  // ── Process the scan on mount ────────────────────────────────────────────
   useEffect(() => {
     async function processScan() {
       // Get the tag ID from the URL
@@ -74,6 +75,17 @@ function ScanContent() {
     processScan()
   }, [searchParams, router])
 
+  // ── Auto-redirect to library after 2 s on success ───────────────────────
+  useEffect(() => {
+    if (status !== 'success' || !locationName || scanNumber === null) return
+    const timer = setTimeout(() => {
+      router.push(
+        `/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`
+      )
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [status, locationName, scanNumber, router])
+
   return (
     <div className="scan-page">
       <div className="scan-container">
@@ -94,7 +106,11 @@ function ScanContent() {
             <p className="scan-location">{locationName}</p>
             <button
               className="scan-btn"
-              onClick={() => router.push('/library')}
+              onClick={() =>
+                router.push(
+                  `/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`
+                )
+              }
             >
               View Your Library
             </button>
@@ -135,7 +151,7 @@ function ScanContent() {
   )
 }
 
-// ─── Page export ─────────────────────────────────────────────────────────────
+// ─── Page export ─────────────────────────────────────────────────────
 // Wraps ScanContent in Suspense so Next.js can statically build this route
 // while still reading dynamic search params at runtime.
 
