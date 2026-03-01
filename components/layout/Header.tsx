@@ -30,7 +30,7 @@ export default async function Header() {
 
   return (
     <header className="site-header">
-      <div className="container header-inner">
+      <div className="header-inner">
         <Link href="/" className="logo">
           Kitea
         </Link>

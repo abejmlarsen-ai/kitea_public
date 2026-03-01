@@ -1,4 +1,3 @@
-// ─── Map Page (Protected) ────────────────────────────────────────────────────
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import MapWrapper from '@/components/map/MapWrapper'
@@ -7,7 +6,7 @@ export const metadata: Metadata = { title: 'Map' }
 
 export default function MapPage() {
   return (
-    <>
+    <div className="page-theme page-theme--map">
       <section className="logo-hero logo-hero--map">
         <Image
           src="/images/Kitea Logo Only.png"
@@ -27,6 +26,6 @@ export default function MapPage() {
       </section>
 
       <MapWrapper />
-    </>
+    </div>
   )
 }

@@ -1,10 +1,7 @@
 // ─── Library Page (Protected) ────────────────────────────────────────────────
-// Middleware redirects unauthenticated users to /login before this renders.
-
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
-import LogoutButton from '@/components/auth/LogoutButton'
 import WalletButton from '@/components/wallet/WalletButton'
 import WalletAutoConnect from '@/components/wallet/WalletAutoConnect'
 import LibraryClient from './LibraryClient'
@@ -66,8 +63,8 @@ export default async function LibraryPage() {
   }
 
   return (
-    <>
-      <section className="logo-hero logo-hero--home">
+    <div className="page-theme page-theme--library">
+      <section className="logo-hero logo-hero--library">
         <Image
           src="/images/Kitea Logo Only.png"
           alt="Kitea logo"
@@ -78,28 +75,24 @@ export default async function LibraryPage() {
         />
       </section>
 
-      <section className="section_1 section_1--home">
+      <section className="section_1 section_1--library">
         <div className="container">
           <p id="user-greeting">Welcome back, {firstName}!</p>
           <h2>Library</h2>
-
           <div className="nft-wallet-area">
             <WalletButton />
             {!walletAddress && user?.email && (
               <WalletAutoConnect userEmail={user.email} userId={user.id} />
             )}
           </div>
-
-          <LogoutButton />
         </div>
       </section>
 
-      {/* Library content — white paper on site-blue background */}
       <section className="library-section">
         <div className="container">
           <LibraryClient nfts={nfts} />
         </div>
       </section>
-    </>
+    </div>
   )
 }

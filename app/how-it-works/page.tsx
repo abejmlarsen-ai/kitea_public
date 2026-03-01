@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: 'How It Works' }
 
 export default function HowItWorksPage() {
   return (
-    <>
+    <div className="page-theme page-theme--hiw">
       <section className="logo-hero logo-hero--hiw">
         <Image
           src="/images/Kitea Logo Only.png"
@@ -32,7 +32,7 @@ export default function HowItWorksPage() {
               <div className="flow-step-number">01</div>
               <div className="flow-step-icon">👕</div>
               <h3>Get Your Kitea</h3>
-              <p>Purchase a Kitea garment from our shop. Each piece comes embedded with a unique NFC tag.</p>
+              <p>Purchase a Kitea garment. Each piece is embedded with a unique NFC tag linked to your adventure.</p>
             </div>
             <div className="flow-connector">→</div>
             <div className="flow-step">
@@ -114,7 +114,7 @@ export default function HowItWorksPage() {
             </details>
             <details className="faq-item">
               <summary>How do I scan the tag?</summary>
-              <p>Most modern smartphones support NFC scanning natively. Simply open your camera app or NFC scanning feature, hold your phone near the Kitea tag on your garment, and follow the link.</p>
+              <p>Most modern smartphones support NFC scanning natively. Simply open your camera app or NFC scanning feature, hold your phone near the Kitea tag, and follow the link.</p>
             </details>
             <details className="faq-item">
               <summary>Where are the hunt locations?</summary>
@@ -127,6 +127,6 @@ export default function HowItWorksPage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

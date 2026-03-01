@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: 'About' }
 
 export default function AboutPage() {
   return (
-    <>
+    <div className="page-theme page-theme--about">
       <section className="logo-hero logo-hero--about">
         <Image
           src="/images/Kitea Logo Only.png"
@@ -30,7 +30,7 @@ export default function AboutPage() {
           <div className="bucket-grid">
             <div className="bucket">
               <h3>Who</h3>
-              <p>Kitea is for the curious — the explorers, the dreamers, the people who believe that every journey holds a story worth telling. We are built for those who move through the world with intention and wonder.</p>
+              <p>Kitea is for the curious — the explorers, the dreamers, the people who believe that every journey holds a story worth telling. We&apos;re built for those who move through the world with intention and wonder.</p>
             </div>
             <div className="bucket">
               <h3>What</h3>
@@ -44,6 +44,20 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Vision — moved from home */}
+      <section className="section_2 about-vision">
+        <div className="container">
+          <h2>Vision</h2>
+          <div className="vision-text">
+            <p>A world where clothing empowers people to step into stories bigger than themselves.</p>
+            <p>Where every journey deepens our connection to each other, the planet, and the stories that shaped us.</p>
+            <p>We exist because curiosity and connection move us forward.</p>
+            <p>By transforming branding and technology into a platform for storytelling,</p>
+            <p>We break patterns and open pathways to exploration, creativity, and impact beyond the everyday.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Narrative */}
       <section className="about-narrative">
         <div className="container">
@@ -51,8 +65,8 @@ export default function AboutPage() {
           <div className="narrative-text">
             <p>It started with a simple idea: what if your clothing could take you somewhere?</p>
             <p>Not just in style, but in experience — adventures that begin the moment you put on a Kitea piece and step out the door.</p>
-            <p>We built Kitea at the intersection of fashion, technology, and storytelling. Every garment is a gateway. Every scan is a step forward. Every collection tells a chapter of a larger story that is still being written — by you.</p>
-            <p>We are not just making clothes. We are building a community of people who believe that life is better when it is lived as an adventure.</p>
+            <p>We built Kitea at the intersection of fashion, technology, and storytelling. Every garment is a gateway. Every scan is a step forward. Every collection tells a chapter of a larger story that&apos;s still being written — by you.</p>
+            <p>We&apos;re not just making clothes. We&apos;re building a community of people who believe that life is better when it&apos;s lived as an adventure.</p>
           </div>
         </div>
       </section>
@@ -79,6 +93,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

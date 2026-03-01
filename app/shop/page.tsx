@@ -31,12 +31,6 @@ type RawProduct = {
   [key: string]: unknown
 }
 
-type RawLocation = {
-  id: string
-  name: string
-  [key: string]: unknown
-}
-
 export default async function ShopPage() {
   const supabase = await createClient()
   const {
@@ -58,16 +52,14 @@ export default async function ShopPage() {
     price: p.price ?? 0,
   }))
 
+  // Fetch active hunt locations for grouping
   const { data: rawLocations } = await supabase
     .from('hunt_locations')
     .select('id, name')
     .eq('is_active', true)
     .order('name')
 
-  const locations: HuntLocation[] = ((rawLocations as unknown as RawLocation[]) ?? []).map((l) => ({
-    id: l.id,
-    name: l.name,
-  }))
+  const locations: HuntLocation[] = ((rawLocations as unknown as HuntLocation[]) ?? [])
 
   let unlockedProductIds: string[] = []
   if (user) {
@@ -81,11 +73,13 @@ export default async function ShopPage() {
   }
 
   return (
-    <ShopClient
-      products={products}
-      userId={user?.id ?? null}
-      unlockedProductIds={unlockedProductIds}
-      locations={locations}
-    />
+    <div className="page-theme page-theme--shop">
+      <ShopClient
+        products={products}
+        userId={user?.id ?? null}
+        unlockedProductIds={unlockedProductIds}
+        locations={locations}
+      />
+    </div>
   )
 }

@@ -14,7 +14,7 @@ export default function HomePage() {
   }
 
   return (
-    <>
+    <div className="page-theme page-theme--home">
       {/* Brand Logo */}
       <section className="logo-hero logo-hero--home">
         <Image
@@ -27,25 +27,11 @@ export default function HomePage() {
         />
       </section>
 
-      {/* Brand Statement */}
+      {/* Purpose */}
       <section className="section_1 section_1--home">
         <div className="container">
           <h2>Kitea</h2>
           <p>Inspire adventure and connection through stories and shared journeys.</p>
-        </div>
-      </section>
-
-      {/* Vision */}
-      <section className="section_2">
-        <div className="container">
-          <h2>Vision</h2>
-          <div className="vision-text">
-            <p>A world where clothing empowers people to step into stories bigger than themselves.</p>
-            <p>Where every journey deepens our connection to each other, the planet, and the stories that shaped us.</p>
-            <p>We exist because curiosity and connection move us forward.</p>
-            <p>By transforming branding and technology into a platform for storytelling,</p>
-            <p>We break patterns and open pathways to exploration, creativity, and impact beyond the everyday.</p>
-          </div>
         </div>
       </section>
 
@@ -57,6 +43,6 @@ export default function HomePage() {
           <Link href="/contact" className="btn-secondary">Join the Adventure</Link>
         </div>
       </section>
-    </>
+    </div>
   )
 }

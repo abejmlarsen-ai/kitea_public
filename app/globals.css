@@ -2592,3 +2592,476 @@ body {
   border-color: #4a9eff;
   background: rgba(74, 158, 255, 0.08);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ROUND 2 — SEAMLESS GRADIENT THEMING SYSTEM
+   Each page wraps its content in .page-theme.page-theme--X.
+   A single top→bottom gradient covers the full page; child sections are
+   transparent so the gradient flows through uninterrupted.
+   Footer colour is matched via CSS :has() — no JS needed.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Header Inner (edge-to-edge layout) ─────────────────────────────────────── */
+/* Replaces old .site-header .container — logo at far left, nav at far right     */
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 1.5rem;
+}
+
+/* ─── Page-Theme Base ────────────────────────────────────────────────────────── */
+.page-theme {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ── Home: muted blue (light → deep navy) ───── */
+.page-theme--home {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(220, 236, 248, 0.97)  0%,
+      rgba(165, 210, 238, 0.97) 18%,
+      rgba(90,  165, 220, 0.97) 42%,
+      rgba(30,   85, 148, 0.97) 72%,
+      rgba(4,    40,  72, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ── About: muted pink → purple ─────────────── */
+.page-theme--about {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(252, 240, 255, 0.97)  0%,
+      rgba(232, 195, 248, 0.97) 20%,
+      rgba(180, 120, 218, 0.97) 48%,
+      rgba(105,  40, 158, 0.97) 76%,
+      rgba(55,   12,  82, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ── How It Works: muted forest green ───────── */
+.page-theme--hiw {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(225, 248, 238, 0.97)  0%,
+      rgba(175, 228, 205, 0.97) 20%,
+      rgba(80,  175, 135, 0.97) 48%,
+      rgba(18,   98,  62, 0.97) 76%,
+      rgba(6,    58,  36, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ── Map: muted amber-gold ───────────────────── */
+.page-theme--map {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 252, 238, 0.98)  0%,
+      rgba(248, 228, 175, 0.97) 20%,
+      rgba(210, 158,  68, 0.97) 48%,
+      rgba(140,  85,  12, 0.97) 76%,
+      rgba(82,   48,   4, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ── Library: muted navy ─────────────────────── */
+.page-theme--library {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(220, 230, 252, 0.97)  0%,
+      rgba(168, 188, 238, 0.97) 20%,
+      rgba(75,  108, 195, 0.97) 48%,
+      rgba(18,   44, 118, 0.97) 76%,
+      rgba(6,    18,  60, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ── Shop: muted crimson red ─────────────────── */
+.page-theme--shop {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 235, 235, 0.97)  0%,
+      rgba(240, 182, 182, 0.97) 20%,
+      rgba(200,  85,  85, 0.97) 48%,
+      rgba(128,  22,  22, 0.97) 76%,
+      rgba(68,    6,   6, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ── Contact: muted teal ─────────────────────── */
+.page-theme--contact {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(220, 248, 252, 0.97)  0%,
+      rgba(172, 228, 238, 0.97) 20%,
+      rgba(68,  172, 198, 0.97) 48%,
+      rgba(8,    88, 112, 0.97) 76%,
+      rgba(3,    50,  65, 0.97) 100%
+    ),
+    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+}
+
+/* ─── Transparent overrides inside any page-theme ────────────────────────────── */
+/* Every child section becomes transparent so the page gradient shows through.   */
+.page-theme .logo-hero,
+.page-theme .logo-hero--home,
+.page-theme .logo-hero--about,
+.page-theme .logo-hero--hiw,
+.page-theme .logo-hero--map,
+.page-theme .logo-hero--library,
+.page-theme .logo-hero--shop,
+.page-theme .logo-hero--contact,
+.page-theme .section_1,
+.page-theme .section_1--home,
+.page-theme .section_1--about,
+.page-theme .section_1--hiw,
+.page-theme .section_1--map,
+.page-theme .section_1--library,
+.page-theme .section_1--shop,
+.page-theme .section_1--contact,
+.page-theme .section_1--construction,
+.page-theme .section_2,
+.page-theme .section_3,
+.page-theme .cta,
+.page-theme .about-buckets,
+.page-theme .about-narrative,
+.page-theme .hiw-flow,
+.page-theme .hiw-opportunities,
+.page-theme .hiw-faqs,
+.page-theme .map-section,
+.page-theme .library-section,
+.page-theme .shop-page,
+.page-theme .contact-section {
+  background: transparent !important;
+}
+
+/* ─── Per-page footer theming via :has() ─────────────────────────────────────── */
+/* Footer background matches each page's gradient end-colour for seamlessness.   */
+body:has(.page-theme--home)    .site-footer {
+  background: rgb(4,  40,  72);
+  border-top-color: rgba(90, 165, 220, 0.2);
+}
+body:has(.page-theme--about)   .site-footer {
+  background: rgb(55,  12,  82);
+  border-top-color: rgba(180, 120, 218, 0.2);
+}
+body:has(.page-theme--hiw)     .site-footer {
+  background: rgb(6,   58,  36);
+  border-top-color: rgba(80, 175, 135, 0.2);
+}
+body:has(.page-theme--map)     .site-footer {
+  background: rgb(82,  48,   4);
+  border-top-color: rgba(210, 158,  68, 0.2);
+}
+body:has(.page-theme--library) .site-footer {
+  background: rgb(6,   18,  60);
+  border-top-color: rgba(75, 108, 195, 0.2);
+}
+body:has(.page-theme--shop)    .site-footer {
+  background: rgb(68,   6,   6);
+  border-top-color: rgba(200, 85,  85, 0.2);
+}
+body:has(.page-theme--contact) .site-footer {
+  background: rgb(3,   50,  65);
+  border-top-color: rgba(68, 172, 198, 0.2);
+}
+
+/* Text colour: always white when a page-theme is active */
+body:has(.page-theme) .site-footer,
+body:has(.page-theme) .site-footer p,
+body:has(.page-theme) .site-footer a {
+  color: rgba(255, 255, 255, 0.82);
+}
+body:has(.page-theme) .site-footer a:hover {
+  color: #fff;
+}
+
+/* ─── Footer Layout & Social Links ───────────────────────────────────────────── */
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.82;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.footer-social-link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.footer-social-link svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.footer-copy {
+  font-size: 0.8rem;
+  opacity: 0.55;
+  text-align: center;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.footer-nav a {
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.82;
+  transition: opacity 0.2s ease;
+}
+.footer-nav a:hover { opacity: 1; }
+
+@media (max-width: 768px) {
+  .footer-inner {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  .footer-copy {
+    order: 3;
+    white-space: normal;
+  }
+}
+
+/* ─── Map Sidebar — Accordion Countries ──────────────────────────────────────── */
+.sidebar-country {
+  margin-bottom: 5px;
+}
+
+.sidebar-country-btn {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: #e8f4fb;
+  border: 1px solid #cce4f7;
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0169aa;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.sidebar-country-btn:hover {
+  background: #c0dff5;
+}
+.sidebar-country-btn--open {
+  background: #0169aa;
+  color: white;
+  border-color: #0169aa;
+}
+
+.sidebar-arrow {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  line-height: 1;
+  /* rotation handled by open/closed state via character change */
+}
+
+.sidebar-country-items {
+  margin-top: 4px;
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Map X marker variant for hunt locations */
+.map-x-marker--hunt {
+  color: #c9a227;
+  text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000,
+               -1.5px  1.5px 0 #000, 1.5px  1.5px 0 #000;
+}
+
+/* ─── Contact Form ────────────────────────────────────────────────────────────── */
+.contact-section {
+  padding: 4rem 0 6rem;
+  min-height: 50vh;
+}
+
+.contact-form {
+  background: rgba(255, 255, 255, 0.93);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 2.75rem 2.5rem;
+  max-width: 580px;
+  margin: 0 auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.contact-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.contact-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.contact-form-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contact-form-group input,
+.contact-form-group select,
+.contact-form-group textarea {
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid #dde4ea;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: #0a0a0a;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.contact-form-group input:focus,
+.contact-form-group select:focus,
+.contact-form-group textarea:focus {
+  border-color: #0169aa;
+  box-shadow: 0 0 0 3px rgba(1, 105, 170, 0.12);
+}
+.contact-form-group textarea {
+  resize: vertical;
+  min-height: 130px;
+  line-height: 1.6;
+}
+
+.contact-btn {
+  width: 100%;
+  padding: 0.9rem;
+  background: #0169aa;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  margin-top: 0.25rem;
+}
+.contact-btn:hover:not(:disabled) {
+  background: #015a91;
+  transform: scale(1.02);
+  box-shadow: 0 4px 18px rgba(1, 105, 170, 0.35);
+}
+.contact-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success state — card wrapper */
+.contact-success {
+  background: rgba(255, 255, 255, 0.93);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 3rem 2.5rem;
+  max-width: 580px;
+  margin: 0 auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.contact-success-icon {
+  font-size: 2.8rem;
+  color: #27ae60;
+  line-height: 1;
+}
+.contact-success h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0a0a0a;
+  margin: 0;
+}
+.contact-success p {
+  color: #555;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.contact-error {
+  padding: 0.7rem 1rem;
+  background: rgba(231, 76, 60, 0.1);
+  color: #b52a1a;
+  border: 1px solid rgba(231, 76, 60, 0.25);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .contact-section {
+    padding: 3rem 0 4rem;
+  }
+  .contact-form,
+  .contact-success {
+    padding: 2rem 1.25rem;
+    border-radius: 12px;
+    margin: 0 0.5rem;
+  }
+  .contact-form-row {
+    grid-template-columns: 1fr;
+  }
+}
