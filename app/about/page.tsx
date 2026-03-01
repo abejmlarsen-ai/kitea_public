@@ -29,16 +29,17 @@ export default function AboutPage() {
         <div className="container">
           <div className="bucket-grid">
             <div className="bucket">
-              <h3>Who</h3>
-              <p>Kitea is for the curious — the explorers, the dreamers, the people who believe that every journey holds a story worth telling. We&apos;re built for those who move through the world with intention and wonder.</p>
+              <h3>Why Kitea</h3>
+              <p> Kitea comes from the NZ native language of Te Reo Maori and is the passive form of the verb kite, which means to see, perceive, or find. So kitea is usually translated as seen, found or discovered. Kitea can also mean; to have something revealed, to be found after being hidden, to become known or perceived.</p>
+              <p> He tangata kite nui, he tangata whakaaro nui.”  ~ A person who sees much is a person of great understanding.</p>
             </div>
             <div className="bucket">
-              <h3>What</h3>
-              <p>We create adventure clothing embedded with NFC technology. Each piece connects to a real-world experience — scan a tag, earn a digital collectible, unlock exclusive items, and become part of something bigger.</p>
+              <h3>What Does this mean to me?</h3>
+              <p> To me this represents not only finding the answer but the idea of finding a purpose, finding a connection and finding the inspiration to dream. To find something means it has to be lost in the first place. KITEA represents a means to helping people find something they are missing. Be that energy, connection or a break from routine.</p>
             </div>
             <div className="bucket">
-              <h3>Why</h3>
-              <p>Because clothing should be more than fabric. We believe in the power of shared journeys to build connection — between people, places, and the stories that shape us. Kitea is a platform for that connection.</p>
+              <h3> Kitea Ao</h3>
+              <p> Kitea Ao takes the meaning one step further adding the Te Reo Maori word Ao, meaning world. This not only speaks to the aim to share this vision with the whole world but also links to the idea of exploring the big wide world and the limitless stories within it.</p>
             </div>
           </div>
         </div>
@@ -63,10 +64,14 @@ export default function AboutPage() {
         <div className="container">
           <h2>Our Narrative</h2>
           <div className="narrative-text">
-            <p>It started with a simple idea: what if your clothing could take you somewhere?</p>
-            <p>Not just in style, but in experience — adventures that begin the moment you put on a Kitea piece and step out the door.</p>
-            <p>We built Kitea at the intersection of fashion, technology, and storytelling. Every garment is a gateway. Every scan is a step forward. Every collection tells a chapter of a larger story that&apos;s still being written — by you.</p>
-            <p>We&apos;re not just making clothes. We&apos;re building a community of people who believe that life is better when it&apos;s lived as an adventure.</p>
+            <p>This brand started from a feeling. A feeling of being lost, uninspired by the monotony of daily routine. An internal search for purpose and a community to feel at home in was not so easily located in a world that is so overconnected it is disconnected. We are all living in the same world, yet oblivious to one another, oblivious to our environment, oblivious to our history, and losing our culture.</p>
+            <p>A brand cannot reconnect communities and inspire people all on its own, but it can provide a platform that challenges people to break routines — to go somewhere they would not normally go, to learn something new, or to plant the seed of a dream. It can facilitate a conversation and connect people across borders and barriers. That platform is our business model: clothing and design as a gateway into stories, experiences, and community.And it lives through our values: </p>
+            <p>We nurture growth by building experiences that enrich both people and place. Our products unlock journeys that deepen connection to culture, history, and environment — planting seeds of curiosity that grow into knowledge and action. Through the creation of opportunities for ongoing sustainable choices, we nurture the planet as well.</p>
+            <p>Unlock your freedom. Every moment is an invitation to step beyond the ordinary. By tying KITEA to discovery, we remind people to recognise the freedom they already have — to move, to explore, to create. And with each challenge comes new freedoms: of thought, of imagination, of possibility.</p>
+            <p> In a world that can sometimes be isolating, KITEA and the experience behind it breaks down walls to connection. Sharing discoveries brings people together — with each other, with their communities, and with the environments they pass through. In a disconnected world, we turn experiences into threads of reconnection.</p>
+            <p> KITEA exists to kickstart dreams. By embedding hidden stories in everyday moments we spark imaginations and open doors to adventure. KITEA facilitates that one small step, plants that on little seed of a dream. The seed may be small but once planted it can take you anywhere. </p>
+            <p> KITEA is built to challenge — to challenge the routine that numbs us to the beauty of the world around us, the habits that null curiosity and the fear of change. Each moment is an opportunity and KITEA aims to nudge people outside their comfort zone, where growth and transformation live.</p>
+            <p> This brand is more than clothing. It is a catalyst — a way to nurture growth, inspire freedom, foster connection, ignite dreams, and challenge the ordinary. Through our business model, every garment becomes a gateway: not to more consumption, but to more life. </p>
           </div>
         </div>
       </section>
