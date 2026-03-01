@@ -20,47 +20,42 @@ export default function HowItWorksPage() {
       <section className="section_1 section_1--hiw">
         <div className="container">
           <h2>How It Works</h2>
-          <p>Five simple steps to unlock your adventure.</p>
+          <p>Six simple steps to unlock your adventure.</p>
         </div>
       </section>
 
       {/* Flow Diagram */}
       <section className="hiw-flow">
         <div className="container">
-          <div className="flow-steps">
-            <div className="flow-step">
-              <div className="flow-step-number">01</div>
-              <div className="flow-step-icon">👕</div>
-              <h3>Get Your Kitea</h3>
-              <p>Purchase a Kitea garment. Each piece is embedded with a unique NFC tag linked to your adventure.</p>
+          <div className="hiw-step-flow">
+            <div className="hiw-step-box">
+              <div className="hiw-step-num">01</div>
+              <div className="hiw-step-text">Login to your Kitea Account</div>
             </div>
-            <div className="flow-connector">→</div>
-            <div className="flow-step">
-              <div className="flow-step-number">02</div>
-              <div className="flow-step-icon">📱</div>
-              <h3>Scan the Tag</h3>
-              <p>Visit a Kitea hunt location and tap your phone to the NFC tag hidden at the site.</p>
+            <div className="hiw-step-arrow" aria-hidden="true">→</div>
+            <div className="hiw-step-box">
+              <div className="hiw-step-num">02</div>
+              <div className="hiw-step-text">Select a Hunt</div>
             </div>
-            <div className="flow-connector">→</div>
-            <div className="flow-step">
-              <div className="flow-step-number">03</div>
-              <div className="flow-step-icon">✨</div>
-              <h3>Earn an NFT</h3>
-              <p>A unique digital collectible is minted to your Kitea wallet — proof of your adventure.</p>
+            <div className="hiw-step-arrow" aria-hidden="true">→</div>
+            <div className="hiw-step-box">
+              <div className="hiw-step-num">03</div>
+              <div className="hiw-step-text">Solve the clue to find and scan the Kitea NFC tag</div>
             </div>
-            <div className="flow-connector">→</div>
-            <div className="flow-step">
-              <div className="flow-step-number">04</div>
-              <div className="flow-step-icon">🔓</div>
-              <h3>Unlock Items</h3>
-              <p>Completing hunts unlocks exclusive merchandise and experiences in the Kitea shop.</p>
+            <div className="hiw-step-arrow" aria-hidden="true">→</div>
+            <div className="hiw-step-box">
+              <div className="hiw-step-num">04</div>
+              <div className="hiw-step-text">Check your Library for your hunt completion NFT and view your collection</div>
             </div>
-            <div className="flow-connector">→</div>
-            <div className="flow-step">
-              <div className="flow-step-number">05</div>
-              <div className="flow-step-icon">🌍</div>
-              <h3>Join the Community</h3>
-              <p>Become part of a growing community of adventurers sharing stories from around the world.</p>
+            <div className="hiw-step-arrow" aria-hidden="true">→</div>
+            <div className="hiw-step-box">
+              <div className="hiw-step-num">05</div>
+              <div className="hiw-step-text">Unlock the ability to purchase the hunt related merch in your personalised shop</div>
+            </div>
+            <div className="hiw-step-arrow" aria-hidden="true">→</div>
+            <div className="hiw-step-box">
+              <div className="hiw-step-num">06</div>
+              <div className="hiw-step-text">Repeat</div>
             </div>
           </div>
         </div>

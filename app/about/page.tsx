@@ -20,7 +20,6 @@ export default function AboutPage() {
       <section className="section_1 section_1--about">
         <div className="container">
           <h2>What is Kitea</h2>
-          <p>Adventure clothing that unlocks stories.</p>
         </div>
       </section>
 
@@ -31,7 +30,7 @@ export default function AboutPage() {
             <div className="bucket">
               <h3>Why Kitea</h3>
               <p> Kitea comes from the NZ native language of Te Reo Maori and is the passive form of the verb kite, which means to see, perceive, or find. So kitea is usually translated as seen, found or discovered. Kitea can also mean; to have something revealed, to be found after being hidden, to become known or perceived.</p>
-              <p> He tangata kite nui, he tangata whakaaro nui.”  ~ A person who sees much is a person of great understanding.</p>
+              <p> He tangata kite nui, he tangata whakaaro nui."  ~ A person who sees much is a person of great understanding.</p>
             </div>
             <div className="bucket">
               <h3>What Does this mean to me?</h3>
@@ -62,7 +61,7 @@ export default function AboutPage() {
       {/* Narrative */}
       <section className="about-narrative">
         <div className="container">
-          <h2>Our Narrative</h2>
+          <h2>Our Story</h2>
           <div className="narrative-text">
             <p>This brand started from a feeling. A feeling of being lost, uninspired by the monotony of daily routine. An internal search for purpose and a community to feel at home in was not so easily located in a world that is so overconnected it is disconnected. We are all living in the same world, yet oblivious to one another, oblivious to our environment, oblivious to our history, and losing our culture.</p>
             <p>A brand cannot reconnect communities and inspire people all on its own, but it can provide a platform that challenges people to break routines — to go somewhere they would not normally go, to learn something new, or to plant the seed of a dream. It can facilitate a conversation and connect people across borders and barriers. That platform is our business model: clothing and design as a gateway into stories, experiences, and community.And it lives through our values: </p>

@@ -3356,3 +3356,144 @@ body:has(.page-theme) .site-footer a:hover {
   .nft-modal-image   { padding: 2rem 1.5rem 1rem; }
   .nft-modal-body    { padding: 0.5rem 1.25rem 0; }
 }
+
+
+/* ============================================================
+   TASK 3 — Login / About / HIW / Footer additions
+   ============================================================ */
+
+/* ── Login: split layout (logo left, form right) ──────────── */
+.login-section--split {
+  align-items: stretch;
+}
+
+.login-logo-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 360px;
+  padding: 2.5rem 2rem;
+}
+
+.login-logo-side img {
+  max-height: 60vh;
+  width: auto;
+}
+
+/* ── Login page footer gradient ───────────────────────────── */
+body:has(.login-section) .site-footer {
+  background: linear-gradient(to bottom, rgba(60, 70, 200, 0.95), rgba(20, 25, 90, 0.97));
+  color: #fff;
+}
+
+body:has(.login-section) .site-footer a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+body:has(.login-section) .site-footer a:hover {
+  color: #fff;
+}
+
+/* ── About: collapse gap between section_1 and buckets ───── */
+.page-theme--about .section_1--about {
+  padding-bottom: 0.75rem;
+}
+
+.page-theme--about .about-buckets {
+  padding-top: 0.75rem;
+}
+
+/* ── About: values bubbles — purple gradient (opposite dir) ─ */
+.page-theme--about .value {
+  background: linear-gradient(
+    to bottom,
+    rgba(75, 15, 95, 0.95),
+    rgba(230, 180, 255, 0.8)
+  ) !important;
+}
+
+/* ── About: normalise Vision + Our Story heading sizes ────── */
+.about-vision h2,
+.about-narrative h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+}
+
+/* ── HIW: normalise all section heading sizes ─────────────── */
+.page-theme--hiw .section_1 h2,
+.hiw-opportunities h2,
+.hiw-faqs h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* ── HIW: new 6-step flow diagram ─────────────────────────── */
+.hiw-step-flow {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0;
+  padding: 2.5rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hiw-step-box {
+  flex: 1;
+  min-width: 110px;
+  background: rgba(8, 20, 15, 0.72);
+  border: 1px solid rgba(80, 175, 135, 0.22);
+  border-radius: 0.75rem;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.hiw-step-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(80, 175, 135, 0.9);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.hiw-step-text {
+  font-size: 0.875rem;
+  color: rgba(220, 235, 225, 0.9);
+  line-height: 1.45;
+}
+
+.hiw-step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0 0.4rem;
+  font-size: 1.35rem;
+  color: rgba(80, 175, 135, 0.65);
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .hiw-step-flow {
+    flex-direction: column;
+    overflow-x: visible;
+    padding: 1.5rem 0;
+    gap: 0;
+  }
+
+  .hiw-step-arrow {
+    align-self: center;
+    padding: 0.3rem 0;
+    transform: rotate(90deg);
+  }
+
+  .hiw-step-box {
+    min-width: unset;
+    width: 100%;
+  }
+}

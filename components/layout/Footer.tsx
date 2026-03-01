@@ -1,4 +1,4 @@
-// ─── Site Footer ─────────────────────────────────────────────────────────────
+// ─── Site Footer ────────────────────────────────────────────────────────────────────────────────────
 // Per-page theming is handled in globals.css via body:has(.page-theme--X)
 
 export default function Footer() {
@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="footer-inner">
         <div className="footer-social">
           <a
-            href="https://www.instagram.com/kiteaau"
+            href="https://www.instagram.com/kitea_ao/"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-social-link"

@@ -1,4 +1,3 @@
-
 'use client'
 // ─── Login Form (Client Component) ───────────────────────────────────────────
 
@@ -37,16 +36,16 @@ export default function LoginForm() {
   }
 
   return (
-    <section className="login-section">
+    <section className="login-section login-section--split">
       {/* Brand Logo */}
-      <div className="logo-hero">
+      <div className="login-logo-side">
         <Image
           src="/images/Kitea Logo Only.png"
           alt="Kitea logo"
-          width={200}
-          height={200}
+          width={400}
+          height={400}
           priority
-          style={{ objectFit: 'contain', maxHeight: '40vh', width: 'auto' }}
+          style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
         />
       </div>
 
