@@ -23,7 +23,7 @@ export default function Footer() {
           </a>
         </div>
 
-        <p className="footer-copy">© 2026 Kitea. All rights reserved.</p>
+        <p className="footer-copy">© 2026 Kitea Ao. All rights reserved.</p>
 
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/contact">Contact</a>
