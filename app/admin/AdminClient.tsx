@@ -1,6 +1,6 @@
 'use client'
 // ─── Admin Client ─────────────────────────────────────────────────────────────
-// Full admin UI: 6 tabs (Locations, Products, NFC Tags, Orders, Users, Stats).
+// Full admin UI: 7 tabs (Locations, Hunts, Products, NFC Tags, Orders, Users, Stats).
 //
 // All Supabase queries use an `any`-cast client.  This is intentional:
 //  • Several tables (orders) and columns (price, tag_uid, is_admin,
@@ -16,7 +16,7 @@ import { createClient } from '@/lib/supabase/client'
 
 // ── Local types ────────────────────────────────────────────────────────────────
 
-type Tab = 'locations' | 'products' | 'nfc_tags' | 'orders' | 'users' | 'stats'
+type Tab = 'locations' | 'hunts' | 'products' | 'nfc_tags' | 'orders' | 'users' | 'stats'
 
 type Location = {
   id: string
@@ -79,8 +79,38 @@ type Stats = {
 
 type FormValues = Record<string, string | boolean | number | null | undefined>
 
+// ── Hunt tab types ─────────────────────────────────────────────────────────────
+
+type HuntClue = {
+  id:             string
+  image_url:      string | null
+  text_content:   string | null
+  code_type_hint: string | null
+}
+
+type HuntQuestion = {
+  id:                  string
+  order_index:         number
+  question_text:       string
+  hint_text:           string | null
+  hint_after_attempts: number | null
+}
+
+type HuntReveal = {
+  id:                string
+  reveal_image_url:  string | null
+  reveal_directions: string | null
+}
+
+type ClueForm   = { image_url: string; text_content: string; code_type_hint: string }
+type RevealForm = { reveal_image_url: string; reveal_directions: string }
+type NewQForm   = { question_text: string; answer_normalised: string; hint_text: string; hint_after_attempts: string }
+
+// ── Tab labels ─────────────────────────────────────────────────────────────────
+
 const TAB_LABELS: Record<Tab, string> = {
   locations: 'Locations',
+  hunts:     'Hunts',
   products:  'Products',
   nfc_tags:  'NFC Tags',
   orders:    'Orders',
@@ -121,6 +151,18 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
 
   // Admin toggle per-row loading state
   const [togglingUser, setTogglingUser] = useState<string | null>(null)
+
+  // ── Hunts tab state ──────────────────────────────────────────────────────────
+  const [expandedHuntId, setExpandedHuntId] = useState<string | null>(null)
+  const [huntLoadedIds,  setHuntLoadedIds]  = useState<Set<string>>(new Set())
+  const [huntClues,      setHuntClues]      = useState<Record<string, HuntClue | null>>({})
+  const [huntQuestions,  setHuntQuestions]  = useState<Record<string, HuntQuestion[]>>({})
+  const [huntReveals,    setHuntReveals]    = useState<Record<string, HuntReveal | null>>({})
+  const [clueForms,      setClueForms]      = useState<Record<string, ClueForm>>({})
+  const [revealForms,    setRevealForms]    = useState<Record<string, RevealForm>>({})
+  const [newQForms,      setNewQForms]      = useState<Record<string, NewQForm>>({})
+  const [huntSavingKey,  setHuntSavingKey]  = useState<string | null>(null)
+  const [huntErrors,     setHuntErrors]     = useState<Record<string, string | null>>({})
 
   // Single any-cast client — avoids TS errors for columns / tables that were
   // added to the DB after the last `supabase gen types` run.
@@ -252,9 +294,73 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setLoading(false)
   }, [db])
 
+  // ── Hunt data fetcher — called on expand ────────────────────────────────────
+
+  const fetchHuntData = useCallback(async (locId: string) => {
+    const [clueRes, qRes, revealRes] = await Promise.all([
+      db.from('hunt_clues').select('*').eq('hunt_location_id', locId).maybeSingle(),
+      db.from('hunt_questions').select('*').eq('hunt_location_id', locId).order('order_index'),
+      db.from('hunt_reveals').select('*').eq('hunt_location_id', locId).maybeSingle(),
+    ])
+
+    const clueRow:   any   = clueRes.data
+    const qRows:     any[] = qRes.data ?? []
+    const revealRow: any   = revealRes.data
+
+    setHuntClues(prev => ({
+      ...prev,
+      [locId]: clueRow ? {
+        id:             clueRow.id,
+        image_url:      clueRow.image_url      ?? null,
+        text_content:   clueRow.text_content   ?? null,
+        code_type_hint: clueRow.code_type_hint ?? null,
+      } : null,
+    }))
+
+    setClueForms(prev => ({
+      ...prev,
+      [locId]: {
+        image_url:      clueRow?.image_url      ?? '',
+        text_content:   clueRow?.text_content   ?? '',
+        code_type_hint: clueRow?.code_type_hint ?? '',
+      },
+    }))
+
+    setHuntQuestions(prev => ({
+      ...prev,
+      [locId]: qRows.map((q: any) => ({
+        id:                  q.id,
+        order_index:         q.order_index,
+        question_text:       q.question_text,
+        hint_text:           q.hint_text           ?? null,
+        hint_after_attempts: q.hint_after_attempts ?? null,
+      })),
+    }))
+
+    setHuntReveals(prev => ({
+      ...prev,
+      [locId]: revealRow ? {
+        id:                revealRow.id,
+        reveal_image_url:  revealRow.reveal_image_url  ?? null,
+        reveal_directions: revealRow.reveal_directions ?? null,
+      } : null,
+    }))
+
+    setRevealForms(prev => ({
+      ...prev,
+      [locId]: {
+        reveal_image_url:  revealRow?.reveal_image_url  ?? '',
+        reveal_directions: revealRow?.reveal_directions ?? '',
+      },
+    }))
+
+    setHuntLoadedIds(prev => new Set([...prev, locId]))
+  }, [db])
+
   // ── Load on tab change ──────────────────────────────────────────────────────
   useEffect(() => {
     if      (activeTab === 'locations') fetchLocations()
+    else if (activeTab === 'hunts')     fetchLocations()   // hunts list = locations list
     else if (activeTab === 'products')  fetchProducts()
     else if (activeTab === 'nfc_tags')  fetchNfcTags()
     else if (activeTab === 'orders')    fetchOrders()
@@ -394,6 +500,122 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setTogglingUser(null)
   }
 
+  // ── Hunts tab handlers ──────────────────────────────────────────────────────
+
+  async function handleExpandHunt(locId: string) {
+    if (expandedHuntId === locId) { setExpandedHuntId(null); return }
+    setExpandedHuntId(locId)
+    if (!newQForms[locId]) {
+      setNewQForms(prev => ({
+        ...prev,
+        [locId]: { question_text: '', answer_normalised: '', hint_text: '', hint_after_attempts: '3' },
+      }))
+    }
+    await fetchHuntData(locId)
+  }
+
+  async function handleSaveClue(locId: string) {
+    const f        = clueForms[locId]
+    const key      = `${locId}-clue`
+    setHuntSavingKey(key)
+    setHuntErrors(prev => ({ ...prev, [key]: null }))
+    const existing = huntClues[locId]
+    const payload  = {
+      hunt_location_id: locId,
+      image_url:        f.image_url      || null,
+      text_content:     f.text_content   || null,
+      code_type_hint:   f.code_type_hint || null,
+    }
+    const { error } = existing?.id
+      ? await db.from('hunt_clues').update(payload).eq('id', existing.id)
+      : await db.from('hunt_clues').insert(payload)
+    if (error) setHuntErrors(prev => ({ ...prev, [key]: error.message }))
+    else       await fetchHuntData(locId)
+    setHuntSavingKey(null)
+  }
+
+  async function handleSaveReveal(locId: string) {
+    const f        = revealForms[locId]
+    const key      = `${locId}-reveal`
+    setHuntSavingKey(key)
+    setHuntErrors(prev => ({ ...prev, [key]: null }))
+    const existing = huntReveals[locId]
+    const payload  = {
+      hunt_location_id:  locId,
+      reveal_image_url:  f.reveal_image_url  || null,
+      reveal_directions: f.reveal_directions || null,
+    }
+    const { error } = existing?.id
+      ? await db.from('hunt_reveals').update(payload).eq('id', existing.id)
+      : await db.from('hunt_reveals').insert(payload)
+    if (error) setHuntErrors(prev => ({ ...prev, [key]: error.message }))
+    else       await fetchHuntData(locId)
+    setHuntSavingKey(null)
+  }
+
+  async function handleAddQuestion(locId: string) {
+    const f = newQForms[locId]
+    if (!f?.question_text?.trim()) return
+    const key = `${locId}-newq`
+    setHuntSavingKey(key)
+    setHuntErrors(prev => ({ ...prev, [key]: null }))
+    const qs      = huntQuestions[locId] ?? []
+    const nextIdx = qs.length > 0 ? Math.max(...qs.map(q => q.order_index)) + 1 : 0
+    const { error } = await db.from('hunt_questions').insert({
+      hunt_location_id:    locId,
+      question_text:       f.question_text.trim(),
+      answer_normalised:   (f.answer_normalised ?? '').trim().toLowerCase(),
+      hint_text:           f.hint_text?.trim() || null,
+      hint_after_attempts: f.hint_after_attempts ? parseInt(f.hint_after_attempts, 10) : 3,
+      order_index:         nextIdx,
+    })
+    if (error) {
+      setHuntErrors(prev => ({ ...prev, [key]: error.message }))
+    } else {
+      setNewQForms(prev => ({
+        ...prev,
+        [locId]: { question_text: '', answer_normalised: '', hint_text: '', hint_after_attempts: '3' },
+      }))
+      await fetchHuntData(locId)
+    }
+    setHuntSavingKey(null)
+  }
+
+  async function handleDeleteQuestion(locId: string, qId: string) {
+    const key = `${locId}-del-${qId}`
+    setHuntSavingKey(key)
+    setHuntErrors(prev => ({ ...prev, [key]: null }))
+    const { error } = await db.from('hunt_questions').delete().eq('id', qId)
+    if (error) setHuntErrors(prev => ({ ...prev, [key]: error.message }))
+    else       await fetchHuntData(locId)
+    setHuntSavingKey(null)
+  }
+
+  async function handleReorderQuestion(locId: string, qId: string, dir: 'up' | 'down') {
+    const qs      = huntQuestions[locId] ?? []
+    const idx     = qs.findIndex(q => q.id === qId)
+    if (idx < 0) return
+    const swapIdx = dir === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= qs.length) return
+    const a   = qs[idx]
+    const b   = qs[swapIdx]
+    const key = `${locId}-reorder-${qId}`
+    setHuntSavingKey(key)
+    const [r1, r2] = await Promise.all([
+      db.from('hunt_questions').update({ order_index: b.order_index }).eq('id', a.id),
+      db.from('hunt_questions').update({ order_index: a.order_index }).eq('id', b.id),
+    ])
+    if (r1.error || r2.error) {
+      setHuntErrors(prev => ({
+        ...prev,
+        [key]: (r1.error ?? r2.error)?.message ?? 'Reorder failed',
+      }))
+    } else {
+      await fetchHuntData(locId)
+    }
+    setHuntSavingKey(null)
+  }
+
   // ── Form field helpers ──────────────────────────────────────────────────────
 
   function fi(
@@ -510,11 +732,11 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
       <header className="admin-header">
         <div className="admin-header-inner">
           <h1>Admin Panel</h1>
-          <a href="/" className="admin-home-link">← Back to Home</a>
+          <a href="/" className="admin-home-link">\u2190 Back to Home</a>
         </div>
       </header>
 
-      {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
+      {/* Tab bar */}
       <nav className="admin-tabs" aria-label="Admin sections">
         {(Object.keys(TAB_LABELS) as Tab[]).map((tab) => (
           <button
@@ -541,7 +763,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           </p>
         )}
 
-        {/* ── LOCATIONS ─────────────────────────────────────────────────────── */}
+        {/* LOCATIONS */}
         {activeTab === 'locations' && !loading && (
           <section>
             <div className="admin-toolbar">
@@ -598,7 +820,253 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           </section>
         )}
 
-        {/* ── PRODUCTS ──────────────────────────────────────────────────────── */}
+        {/* HUNTS */}
+        {activeTab === 'hunts' && !loading && (
+          <section>
+            <div className="admin-toolbar"><h2>Hunts</h2></div>
+
+            {locations.length === 0 ? (
+              <p className="admin-empty">No hunt locations yet. Add one in Locations.</p>
+            ) : (
+              <div className="admin-hunt-list">
+                {locations.map(loc => {
+                  const isExpanded = expandedHuntId === loc.id
+                  const isLoaded   = huntLoadedIds.has(loc.id)
+                  const clue       = huntClues[loc.id]
+                  const questions  = huntQuestions[loc.id] ?? []
+                  const reveal     = huntReveals[loc.id]
+                  const cForm      = clueForms[loc.id]   ?? { image_url: '', text_content: '', code_type_hint: '' }
+                  const rForm      = revealForms[loc.id] ?? { reveal_image_url: '', reveal_directions: '' }
+                  const nqForm     = newQForms[loc.id]   ?? { question_text: '', answer_normalised: '', hint_text: '', hint_after_attempts: '3' }
+                  const savingClue   = huntSavingKey === `${loc.id}-clue`
+                  const savingReveal = huntSavingKey === `${loc.id}-reveal`
+                  const savingNewQ   = huntSavingKey === `${loc.id}-newq`
+                  const clueErr      = huntErrors[`${loc.id}-clue`]   ?? null
+                  const revealErr    = huntErrors[`${loc.id}-reveal`] ?? null
+                  const newQErr      = huntErrors[`${loc.id}-newq`]   ?? null
+
+                  return (
+                    <div key={loc.id} className="admin-hunt-card">
+
+                      {/* Toggle header */}
+                      <button
+                        className="admin-hunt-toggle"
+                        onClick={() => handleExpandHunt(loc.id)}
+                      >
+                        <span className="admin-hunt-name">{loc.name}</span>
+                        <span>{isExpanded ? '\u25b2' : '\u25bc'}</span>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="admin-hunt-body">
+                          {!isLoaded ? (
+                            <p className="admin-loading">Loading…</p>
+                          ) : (
+                            <>
+                              {/* Section A: Initial Clue */}
+                              <div className="admin-hunt-section">
+                                <h3 className="admin-hunt-section-title">A — Initial Clue</h3>
+                                {clue ? (
+                                  <div className="admin-hunt-current">
+                                    <p><strong>Image URL:</strong> {clue.image_url ?? '—'}</p>
+                                    <p><strong>Text:</strong> {clue.text_content ?? '—'}</p>
+                                    <p><strong>Code hint:</strong> {clue.code_type_hint ?? '—'}</p>
+                                  </div>
+                                ) : (
+                                  <p className="admin-empty admin-empty--inline">No clue set yet.</p>
+                                )}
+                                <div className="admin-hunt-form">
+                                  <div className="admin-form-group">
+                                    <label>Image URL</label>
+                                    <input
+                                      type="text"
+                                      value={cForm.image_url}
+                                      onChange={e => setClueForms(prev => ({ ...prev, [loc.id]: { ...cForm, image_url: e.target.value } }))}
+                                      placeholder="https://…"
+                                    />
+                                  </div>
+                                  <div className="admin-form-group">
+                                    <label>Clue Text</label>
+                                    <textarea
+                                      rows={3}
+                                      value={cForm.text_content}
+                                      onChange={e => setClueForms(prev => ({ ...prev, [loc.id]: { ...cForm, text_content: e.target.value } }))}
+                                      placeholder="The clue hunters will see…"
+                                    />
+                                  </div>
+                                  <div className="admin-form-group">
+                                    <label>Code Type Hint</label>
+                                    <input
+                                      type="text"
+                                      value={cForm.code_type_hint}
+                                      onChange={e => setClueForms(prev => ({ ...prev, [loc.id]: { ...cForm, code_type_hint: e.target.value } }))}
+                                      placeholder="e.g. QR Code"
+                                    />
+                                  </div>
+                                  {clueErr && <p className="admin-error admin-error--form">{clueErr}</p>}
+                                  <button
+                                    className="admin-btn admin-btn--primary admin-btn--small"
+                                    onClick={() => handleSaveClue(loc.id)}
+                                    disabled={savingClue}
+                                  >
+                                    {savingClue ? 'Saving…' : 'Save Clue'}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Section B: Questions */}
+                              <div className="admin-hunt-section">
+                                <h3 className="admin-hunt-section-title">B — Questions</h3>
+                                {questions.length === 0 && (
+                                  <p className="admin-empty admin-empty--inline">No questions yet.</p>
+                                )}
+                                {questions.map((q, qi) => {
+                                  const isFirst = qi === 0
+                                  const isLast  = qi === questions.length - 1
+                                  const delKey  = `${loc.id}-del-${q.id}`
+                                  const isDel   = huntSavingKey === delKey
+                                  const qErr    = huntErrors[delKey] ?? null
+                                  return (
+                                    <div key={q.id} className="admin-hunt-question">
+                                      <div className="admin-hunt-question-header">
+                                        <span className="admin-hunt-q-num">Q{q.order_index + 1}</span>
+                                        <div className="admin-hunt-q-actions">
+                                          <button
+                                            className="admin-btn admin-btn--small"
+                                            onClick={() => handleReorderQuestion(loc.id, q.id, 'up')}
+                                            disabled={isFirst || !!huntSavingKey}
+                                            title="Move up"
+                                          >\u2191</button>
+                                          <button
+                                            className="admin-btn admin-btn--small"
+                                            onClick={() => handleReorderQuestion(loc.id, q.id, 'down')}
+                                            disabled={isLast || !!huntSavingKey}
+                                            title="Move down"
+                                          >\u2193</button>
+                                          <button
+                                            className="admin-btn admin-btn--small admin-btn--danger"
+                                            onClick={() => handleDeleteQuestion(loc.id, q.id)}
+                                            disabled={isDel || !!huntSavingKey}
+                                          >
+                                            {isDel ? '…' : 'Delete'}
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <p className="admin-hunt-q-text">{q.question_text}</p>
+                                      <p className="admin-hunt-q-meta">
+                                        Hint: {q.hint_text ?? '—'} · Show after {q.hint_after_attempts ?? 3} wrong
+                                      </p>
+                                      {qErr && <p className="admin-error admin-error--form">{qErr}</p>}
+                                    </div>
+                                  )
+                                })}
+
+                                {/* Add question form */}
+                                <div className="admin-hunt-form admin-hunt-form--addq">
+                                  <h4 className="admin-hunt-form-title">Add Question</h4>
+                                  <div className="admin-form-group">
+                                    <label>Question</label>
+                                    <textarea
+                                      rows={2}
+                                      value={nqForm.question_text}
+                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, question_text: e.target.value } }))}
+                                      placeholder="What is…?"
+                                    />
+                                  </div>
+                                  <div className="admin-form-group">
+                                    <label>
+                                      Answer{' '}
+                                      <span className="admin-field-note">(stored normalised — lowercase, trimmed)</span>
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={nqForm.answer_normalised}
+                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, answer_normalised: e.target.value } }))}
+                                      placeholder="correct answer"
+                                    />
+                                  </div>
+                                  <div className="admin-form-group">
+                                    <label>Hint text</label>
+                                    <input
+                                      type="text"
+                                      value={nqForm.hint_text}
+                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, hint_text: e.target.value } }))}
+                                      placeholder="Optional hint"
+                                    />
+                                  </div>
+                                  <div className="admin-form-group">
+                                    <label>Show hint after # attempts</label>
+                                    <input
+                                      type="number"
+                                      value={nqForm.hint_after_attempts}
+                                      min={1}
+                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, hint_after_attempts: e.target.value } }))}
+                                    />
+                                  </div>
+                                  {newQErr && <p className="admin-error admin-error--form">{newQErr}</p>}
+                                  <button
+                                    className="admin-btn admin-btn--primary admin-btn--small"
+                                    onClick={() => handleAddQuestion(loc.id)}
+                                    disabled={savingNewQ || !nqForm.question_text.trim()}
+                                  >
+                                    {savingNewQ ? 'Adding…' : '+ Add Question'}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Section C: Location Reveal */}
+                              <div className="admin-hunt-section">
+                                <h3 className="admin-hunt-section-title">C — Location Reveal</h3>
+                                {reveal ? (
+                                  <div className="admin-hunt-current">
+                                    <p><strong>Reveal Image URL:</strong> {reveal.reveal_image_url ?? '—'}</p>
+                                    <p><strong>Directions:</strong> {reveal.reveal_directions ?? '—'}</p>
+                                  </div>
+                                ) : (
+                                  <p className="admin-empty admin-empty--inline">No reveal set yet.</p>
+                                )}
+                                <div className="admin-hunt-form">
+                                  <div className="admin-form-group">
+                                    <label>Reveal Image URL</label>
+                                    <input
+                                      type="text"
+                                      value={rForm.reveal_image_url}
+                                      onChange={e => setRevealForms(prev => ({ ...prev, [loc.id]: { ...rForm, reveal_image_url: e.target.value } }))}
+                                      placeholder="https://…"
+                                    />
+                                  </div>
+                                  <div className="admin-form-group">
+                                    <label>Reveal Directions</label>
+                                    <textarea
+                                      rows={3}
+                                      value={rForm.reveal_directions}
+                                      onChange={e => setRevealForms(prev => ({ ...prev, [loc.id]: { ...rForm, reveal_directions: e.target.value } }))}
+                                      placeholder="Walk to the north side…"
+                                    />
+                                  </div>
+                                  {revealErr && <p className="admin-error admin-error--form">{revealErr}</p>}
+                                  <button
+                                    className="admin-btn admin-btn--primary admin-btn--small"
+                                    onClick={() => handleSaveReveal(loc.id)}
+                                    disabled={savingReveal}
+                                  >
+                                    {savingReveal ? 'Saving…' : 'Save Reveal'}
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* PRODUCTS */}
         {activeTab === 'products' && !loading && (
           <section>
             <div className="admin-toolbar">
@@ -625,7 +1093,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                     <tr key={p.id}>
                       <td>{p.name}</td>
                       <td>{fmt.currency(p.price)}</td>
-                      <td>{p.stock_quantity ?? '∞'}</td>
+                      <td>{p.stock_quantity ?? '\u221e'}</td>
                       <td>{fmt.bool(p.is_active)}</td>
                       <td>{fmt.bool(p.requires_scan)}</td>
                       <td>{locations.find((l) => l.id === p.hunt_location_id)?.name ?? '—'}</td>
@@ -657,7 +1125,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           </section>
         )}
 
-        {/* ── NFC TAGS ──────────────────────────────────────────────────────── */}
+        {/* NFC TAGS */}
         {activeTab === 'nfc_tags' && !loading && (
           <section>
             <div className="admin-toolbar">
@@ -712,7 +1180,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           </section>
         )}
 
-        {/* ── ORDERS (read-only) ────────────────────────────────────────────── */}
+        {/* ORDERS (read-only) */}
         {activeTab === 'orders' && !loading && (
           <section>
             <div className="admin-toolbar">
@@ -754,7 +1222,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           </section>
         )}
 
-        {/* ── USERS ─────────────────────────────────────────────────────────── */}
+        {/* USERS */}
         {activeTab === 'users' && !loading && (
           <section>
             <div className="admin-toolbar"><h2>Users</h2></div>
@@ -792,7 +1260,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           </section>
         )}
 
-        {/* ── STATS ─────────────────────────────────────────────────────────── */}
+        {/* STATS */}
         {activeTab === 'stats' && !loading && stats && (
           <section>
             <div className="admin-toolbar"><h2>Stats</h2></div>
@@ -817,7 +1285,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
               </div>
               {stats.topLocation && (
                 <div className="admin-stat-card admin-stat-card--wide">
-                  <div className="admin-stat-value">📍 {stats.topLocation}</div>
+                  <div className="admin-stat-value">\ud83d\udccd {stats.topLocation}</div>
                   <div className="admin-stat-label">Most Scanned Location</div>
                 </div>
               )}
@@ -830,7 +1298,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
         )}
       </main>
 
-      {/* ── Add / Edit modal ─────────────────────────────────────────────────── */}
+      {/* Add / Edit modal */}
       {modalOpen && (
         <div className="admin-modal-overlay" onClick={closeModal}>
           <div
@@ -844,7 +1312,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                 {modalMode === 'add' ? 'Add' : 'Edit'} {TAB_LABELS[modalTab]}
               </h3>
               <button className="admin-modal-close" onClick={closeModal} aria-label="Close">
-                ✕
+                \u2715
               </button>
             </div>
             <div className="admin-modal-body">
@@ -871,7 +1339,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
         </div>
       )}
 
-      {/* ── Delete confirmation ───────────────────────────────────────────────── */}
+      {/* Delete confirmation */}
       {deleteId && (
         <div
           className="admin-modal-overlay"
