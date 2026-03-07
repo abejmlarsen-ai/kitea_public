@@ -142,6 +142,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `You are number ${scan_number} to scan ${locationData?.name}!`,
       scan_number: scan_number,
+      hunt_location_id: huntLocationId,
       location: tag.hunt_locations
     })
   } catch (error) {

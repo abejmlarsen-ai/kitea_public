@@ -15,6 +15,7 @@ function ScanContent() {
   const [message, setMessage] = useState('')
   const [scanNumber, setScanNumber] = useState<number | null>(null)
   const [locationName, setLocationName] = useState('')
+  const [huntLocationId, setHuntLocationId] = useState<string | null>(null)
 
   // ── Process the scan on mount ────────────────────────────────────────────
   useEffect(() => {
@@ -57,6 +58,7 @@ function ScanContent() {
           setMessage(result.message)
           setScanNumber(result.scan_number)
           setLocationName(result.location?.name || '')
+          setHuntLocationId(result.hunt_location_id || null)
         } else if (result.already_scanned) {
           setStatus('already_scanned')
           setMessage(result.message)
@@ -75,16 +77,18 @@ function ScanContent() {
     processScan()
   }, [searchParams, router])
 
-  // ── Auto-redirect to library after 2 s on success ───────────────────────
+  // ── Auto-redirect to hunt page after 2 s on success ────────────────────
   useEffect(() => {
-    if (status !== 'success' || !locationName || scanNumber === null) return
+    if (status !== 'success' || scanNumber === null) return
     const timer = setTimeout(() => {
-      router.push(
-        `/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`
-      )
+      if (huntLocationId) {
+        router.push(`/hunts/${huntLocationId}?scanned=true&edition=${scanNumber}`)
+      } else {
+        router.push(`/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`)
+      }
     }, 2000)
     return () => clearTimeout(timer)
-  }, [status, locationName, scanNumber, router])
+  }, [status, huntLocationId, locationName, scanNumber, router])
 
   return (
     <div className="scan-page">
@@ -107,12 +111,12 @@ function ScanContent() {
             <button
               className="scan-btn"
               onClick={() =>
-                router.push(
-                  `/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`
-                )
+                huntLocationId
+                  ? router.push(`/hunts/${huntLocationId}?scanned=true&edition=${scanNumber}`)
+                  : router.push(`/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`)
               }
             >
-              View Your Library
+              View Your Collection
             </button>
           </div>
         )}
