@@ -3570,3 +3570,111 @@ body:has(.login-section) .site-footer a:hover {
   background: rgba(200, 150, 12, 0.15);
   color: rgb(200, 150, 12);
 }
+
+
+/* ── Hunts page cards ────────────────────────────────────────────────────── */
+.hunts-section {
+  padding: 1.5rem 1rem 4rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.hunts-section-heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin: 0 0 1rem;
+}
+
+.hunts-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.hunts-card-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  margin: 0 0 0.25rem;
+}
+
+.hunts-card-meta {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 0.75rem;
+}
+
+.hunts-card-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  margin-bottom: 1rem;
+}
+
+.hunts-card-badge--completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.hunts-card-badge--in-progress {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+}
+
+.hunts-card-badge--not-started {
+  background: rgba(120, 120, 120, 0.15);
+  color: #888;
+}
+
+.hunts-card-action {
+  margin-top: 0.5rem;
+}
+
+.hunts-card-signin {
+  font-size: 0.875rem;
+  color: #888;
+  margin: 0;
+}
+
+.hunts-card-signin a {
+  color: #C9A84C;
+  text-decoration: none;
+}
+
+.hunts-card-signin a:hover {
+  text-decoration: underline;
+}
+
+/* ── Hunt answer shake animation ────────────────────────────────────────── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-8px); }
+  40%     { transform: translateX(8px); }
+  60%     { transform: translateX(-6px); }
+  80%     { transform: translateX(6px); }
+}
+
+.shake { animation: shake 0.6s ease; }
+
+/* ── Hunt reveal pulse animation ────────────────────────────────────────── */
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.7; transform: scale(1.05); }
+}
+
+.pulse { animation: pulse 2s ease-in-out infinite; }
+
+/* ── Hunt post-scan gold glow animation ─────────────────────────────────── */
+@keyframes goldGlow {
+  0%,100% { filter: drop-shadow(0 0 8px #C9A84C); }
+  50%     { filter: drop-shadow(0 0 24px #C9A84C); }
+}
+
+.gold-glow { animation: goldGlow 2s ease-in-out infinite; }

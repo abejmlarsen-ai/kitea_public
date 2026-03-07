@@ -21,6 +21,7 @@
     "nodemailer": "^8.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-leaflet": "^5.0.0",
     "resend": "^6.9.3",
     "stripe": "^20.3.1",
     "thirdweb": "^5.119.0"
