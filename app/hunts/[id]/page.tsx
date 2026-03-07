@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import dynamic from 'next/dynamic'
-
-const HuntClient = dynamic(() => import('./HuntClient'), { ssr: false })
+import HuntPageClient from './HuntPageClient'
 
 export default async function HuntPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
@@ -26,7 +24,7 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
   const progressData = progressRes.ok ? await progressRes.json() : null
 
   return (
-    <HuntClient
+    <HuntPageClient
       huntLocation={huntLocation}
       userId={user.id}
       progressData={progressData}
