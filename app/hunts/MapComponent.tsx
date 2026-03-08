@@ -4,37 +4,37 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 
-const kiteaIcon = L.icon({
-  iconUrl:      '/icons/map-marker.png',
-  iconSize:     [32, 32],
-  iconAnchor:   [16, 32],
-  popupAnchor:  [0, -32],
-  shadowUrl:    undefined,
-  className:    'kitea-marker',
+// Fix default leaflet marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: '/icons/map-marker.svg',
+  iconUrl: '/icons/map-marker.svg',
+  shadowUrl: '',
 })
 
 interface Location {
-  id:        string
-  name:      string
-  latitude:  number
+  id: string
+  name: string
+  latitude: number
   longitude: number
+  total_scans: number
 }
 
 interface Props {
-  locations:     Location[]
-  onMarkerClick: (id: string) => void
+  locations: Location[]
 }
 
 export default function MapComponent({ locations }: Props) {
   const centre: [number, number] = locations.length > 0
     ? [Number(locations[0].latitude), Number(locations[0].longitude)]
-    : [-36.8485, 174.7633]
+    : [-33.8688, 151.2093]
 
   return (
     <MapContainer
       center={centre}
       zoom={13}
-      style={{ height: '300px', width: '100%' }}
+      style={{ height: '60vh', width: '100%' }}
+      scrollWheelZoom={true}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -44,21 +44,26 @@ export default function MapComponent({ locations }: Props) {
         <Marker
           key={loc.id}
           position={[Number(loc.latitude), Number(loc.longitude)]}
-          icon={kiteaIcon}
         >
           <Popup>
-            <div style={{ textAlign: 'center', minWidth: '140px' }}>
-              <strong style={{ display: 'block', marginBottom: '8px' }}>{loc.name}</strong>
+            <div style={{ textAlign: 'center', minWidth: '160px', padding: '4px' }}>
+              <strong style={{ display: 'block', marginBottom: '4px', fontSize: '15px' }}>
+                {loc.name}
+              </strong>
+              <span style={{ display: 'block', color: '#666', fontSize: '13px', marginBottom: '10px' }}>
+                {loc.total_scans} explorers
+              </span>
               <a
                 href={`/hunts/${loc.id}`}
                 style={{
-                  display:        'inline-block',
-                  padding:        '6px 16px',
-                  background:     '#2a9d8f',
-                  color:          'white',
-                  borderRadius:   '4px',
+                  display: 'inline-block',
+                  padding: '7px 18px',
+                  background: '#2a9d8f',
+                  color: 'white',
+                  borderRadius: '5px',
                   textDecoration: 'none',
-                  fontSize:       '14px',
+                  fontSize: '14px',
+                  fontWeight: 600,
                 }}
               >
                 Open Hunt →
