@@ -24,6 +24,16 @@
   --max-width:       1200px;
   --section-padding: 6rem;
 }
+/* ─── Kitea surfy palette ───────────────────────────────────────────────── */
+:root {
+  --kitea-teal:  #2a9d8f;
+  --kitea-ocean: #457b9d;
+  --kitea-sand:  #e9c46a;
+  --kitea-warm:  #f4a261;
+  --kitea-light: #f1faee;
+  --kitea-dark:  #1d3557;
+}
+
 
 /* ─── Reset ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after {
