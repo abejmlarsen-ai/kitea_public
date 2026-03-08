@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 const HuntClient = dynamic(() => import('./HuntClient'), { ssr: false })
 
 interface Props {
-  huntLocation: { id: string; name: string; description: string; total_scans: number }
+  huntLocation: { id: string; name: string; description: string; total_scans: number; latitude: number; longitude: number }
   userId: string
   progressData: any
 }

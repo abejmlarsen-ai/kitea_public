@@ -10,7 +10,7 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
 
   const { data: huntLocation } = await supabase
     .from('hunt_locations')
-    .select('id, name, description, total_scans')
+    .select('id, name, description, total_scans, latitude, longitude')
     .eq('id', params.id)
     .single()
 

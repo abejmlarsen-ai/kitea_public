@@ -44,7 +44,7 @@ export default async function Header() {
             {user ? (
               <>
                 <li><Link href="/library">Library</Link></li>
-                <li><Link href="/hunts">Hunts</Link></li>
+                <li><Link href="/map">Hunts</Link></li>
                 <li><Link href="/shop">Shop</Link></li>
                 {isAdmin && <AdminDropdown />}
                 <li><LogoutButton /></li>
