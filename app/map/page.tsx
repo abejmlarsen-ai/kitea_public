@@ -10,7 +10,7 @@ export default async function MapPage() {
 
   const { data: locations } = await supabase
     .from('hunt_locations')
-    .select('id, name, description, latitude, longitude, total_scans')
+    .select('id, name, description, latitude, longitude, total_scans, region, city')
     .eq('is_active', true)
 
   const { data: progressList } = user
