@@ -2,8 +2,8 @@
 
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import React, { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Tooltip, Marker, useMap } from 'react-leaflet'
+import React, { useEffect, useRef, useState } from 'react'
+import { MapContainer, TileLayer, CircleMarker, Popup, Marker, useMap } from 'react-leaflet'
 
 // ── Leaflet default-icon fix ───────────────────────────────────────────────
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -62,10 +62,13 @@ const REGIONS = [
 
 function FlyTo({ centre, zoom, trigger }: FlyProps) {
   const map = useMap()
+  const prevTrigger = useRef(0)
   useEffect(() => {
-    if (trigger > 0) map.flyTo(centre, zoom, { duration: 1.2 })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trigger])
+    if (trigger !== prevTrigger.current) {
+      prevTrigger.current = trigger
+      map.flyTo(centre, zoom, { duration: 1.2 })
+    }
+  }, [trigger, centre, zoom, map])
   return null
 }
 
@@ -89,12 +92,18 @@ export default function MapComponent({ locations }: Props) {
       : [-33.8688, 151.2093]
 
   const [flyTarget, setFlyTarget] = useState<FlyProps | null>(null)
-  const [openRegion, setOpenRegion] = useState<string | null>(null)
+  const [expandedRegion, setExpandedRegion] = useState<string | null>(null)
 
-  function flyTo(centre: [number, number], zoom: number) {
-    setFlyTarget(prev => ({
-      centre,
-      zoom,
+  const handleRegion = (region: typeof REGIONS[0]) => {
+    setExpandedRegion((prev) => {
+      if (prev === region.label) {
+        return null
+      }
+      return region.label
+    })
+    setFlyTarget((prev) => ({
+      centre: region.centre,
+      zoom: region.zoom,
       trigger: (prev?.trigger ?? 0) + 1,
     }))
   }
@@ -106,7 +115,7 @@ export default function MapComponent({ locations }: Props) {
       gap:                 '1rem',
       width:               '100%',
       height:              '70vh',
-      marginTop:           '1.5rem',
+      marginTop:           '1rem',
     }}>
 
       {/* ── Left sidebar: region / city nav ─────────────────────────── */}
@@ -119,13 +128,27 @@ export default function MapComponent({ locations }: Props) {
         flexDirection:'column',
         gap:          '0.5rem',
       }}>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h2 style={{
+            fontSize:   '16px',
+            fontWeight: 700,
+            color:      '#1d3557',
+            margin:     '0 0 0.25rem 0',
+          }}>
+            Regions
+          </h2>
+          <p style={{
+            fontSize: '12px',
+            color:    '#457b9d',
+            margin:   0,
+          }}>
+            Select an area to explore
+          </p>
+        </div>
         {REGIONS.map(region => (
           <div key={region.label}>
             <button
-              onClick={() => {
-                flyTo(region.centre, region.zoom)
-                setOpenRegion(openRegion === region.label ? null : region.label)
-              }}
+              onClick={() => handleRegion(region)}
               style={{
                 width:        '100%',
                 textAlign:    'left',
@@ -143,12 +166,16 @@ export default function MapComponent({ locations }: Props) {
               {region.label}
             </button>
 
-            {openRegion === region.label && (
+            {expandedRegion === region.label && (
               <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {region.cities.map(city => (
                   <button
                     key={city.label}
-                    onClick={() => flyTo(city.centre, city.zoom)}
+                    onClick={() => setFlyTarget((prev) => ({
+                      centre: city.centre,
+                      zoom: city.zoom,
+                      trigger: (prev?.trigger ?? 0) + 1,
+                    }))}
                     style={{
                       textAlign:    'left',
                       padding:      '0.35rem 0.5rem',
@@ -207,14 +234,51 @@ export default function MapComponent({ locations }: Props) {
                 position={[loc.latitude, loc.longitude]}
                 icon={kiteaIcon}
               >
-                <Tooltip direction="top" offset={[0, -36]} permanent={false} opacity={0.95}>
-                  <div style={{ textAlign: 'center', minWidth: 130 }}>
-                    <strong style={{ display: 'block', fontSize: 14 }}>{loc.name}</strong>
-                    <span style={{ fontSize: 12, color: '#555' }}>
-                      {loc.total_scans} {loc.total_scans === 1 ? 'explorer' : 'explorers'}
+                <Popup
+                  closeButton={true}
+                  closeOnClick={false}
+                  autoClose={false}
+                >
+                  <div style={{
+                    textAlign:  'center',
+                    minWidth:   '160px',
+                    padding:    '8px 4px',
+                    fontFamily: 'Arial, sans-serif',
+                    position:   'relative',
+                  }}>
+                    <strong style={{
+                      display:      'block',
+                      fontSize:     '16px',
+                      color:        '#1d3557',
+                      marginBottom: '4px',
+                    }}>
+                      {loc.name}
+                    </strong>
+                    <span style={{
+                      display:      'block',
+                      fontSize:     '12px',
+                      color:        '#888',
+                      marginBottom: '12px',
+                    }}>
+                      {loc.total_scans} explorers
                     </span>
+                    <a
+                      href={`/hunts/${loc.id}`}
+                      style={{
+                        display:        'inline-block',
+                        padding:        '8px 20px',
+                        background:     '#2a9d8f',
+                        color:          'white',
+                        borderRadius:   '5px',
+                        textDecoration: 'none',
+                        fontSize:       '14px',
+                        fontWeight:     600,
+                      }}
+                    >
+                      Begin Hunt →
+                    </a>
                   </div>
-                </Tooltip>
+                </Popup>
               </Marker>
             </React.Fragment>
           ))}

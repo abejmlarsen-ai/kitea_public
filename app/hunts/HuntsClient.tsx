@@ -17,13 +17,6 @@ interface Location {
 
 interface Props {
   locations: Location[]
-  userId: string | null
-  progressList: {
-    hunt_location_id: string
-    current_question_index: number
-    location_revealed: boolean
-    completed_at: string | null
-  }[]
 }
 
 export default function HuntsClient({ locations }: Props) {
@@ -31,8 +24,18 @@ export default function HuntsClient({ locations }: Props) {
     <div style={{
       background: '#f1faee',
       minHeight: '100vh',
-      padding: '2rem 2rem',
+      padding: '2rem 2rem 2rem 2rem',
     }}>
+      <h1 style={{
+        fontFamily:    'var(--font-heading, inherit)',
+        fontSize:      '1.6rem',
+        fontWeight:    700,
+        color:         '#1d3557',
+        marginBottom:  '1rem',
+        letterSpacing: '0.04em',
+      }}>
+        Regions
+      </h1>
       <MapComponent locations={locations} />
     </div>
   )
