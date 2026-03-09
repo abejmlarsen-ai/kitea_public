@@ -25,13 +25,13 @@ interface ProgressData {
     image_url:          string | null
     text_content:       string | null
     code_type_hint:     string | null
-    initial_clue_hint:  string | null
   } | null
   questions: { id: string; question_text: string; order_index: number; hint_after_attempts: number }[]
   progress:  { current_question_index: number; location_revealed: boolean; completed_at: string | null } | null
   attempts:  { question_id: string; attempt_count: number; solved: boolean }[]
   reveal:    { reveal_image_url: string | null; reveal_directions: string } | null
   initial_clue_attempts: number
+  initial_clue_hint: string | null
 }
 
 interface Props {
@@ -41,6 +41,9 @@ interface Props {
 }
 
 export default function HuntClient({ huntLocation, userId, progressData }: Props) {
+
+  console.log('[HuntClient] received huntLocation:', huntLocation)
+  console.log('[HuntClient] received progressData:', progressData)
 
   // ── State ──────────────────────────────────────────────────────────────────────────
   const [mainAnswer,            setMainAnswer]            = useState('')
@@ -70,9 +73,9 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
 
     // If user has already hit hint threshold, show hint immediately
     const initAttempts = progressData?.initial_clue_attempts ?? 0
-    if (initAttempts >= 5 && progressData?.clue?.initial_clue_hint) {
+    if (initAttempts >= 5 && progressData?.initial_clue_hint) {
       setShowHint(true)
-      setHintText(progressData.clue.initial_clue_hint)
+      setHintText(progressData.initial_clue_hint)
     }
 
     // Check if all location questions already completed
@@ -80,9 +83,9 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
     const at = progressData?.attempts  ?? []
     if (qs.length > 0 && qs.every(q => at.some(a => a.question_id === q.id && a.solved))) {
       setLocationQComplete(true)
-      if (progressData?.clue?.initial_clue_hint) {
+      if (progressData?.initial_clue_hint) {
         setShowHint(true)
-        setHintText(progressData.clue.initial_clue_hint)
+        setHintText(progressData.initial_clue_hint)
       }
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -112,7 +115,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
         setTimeout(() => setMainWrong(false), 600)
         if (data.showHint) {
           setShowHint(true)
-          setHintText(data.hint ?? progressData?.clue?.initial_clue_hint ?? null)
+          setHintText(data.hint ?? progressData?.initial_clue_hint ?? null)
         }
       }
     } finally {
@@ -145,7 +148,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
         if (next >= qs.length) {
           setLocationQComplete(true)
           setShowHint(true)
-          setHintText(progressData?.clue?.initial_clue_hint ?? null)
+          setHintText(progressData?.initial_clue_hint ?? null)
         } else {
           setLocationQIndex(next)
           setLocationInput('')
@@ -372,7 +375,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                     Hint
                   </p>
                   <p style={{ fontSize: '0.95rem', color: '#1d3557', margin: 0, lineHeight: 1.55 }}>
-                    {hintText ?? clue?.initial_clue_hint ?? ''}
+                    {hintText ?? progressData?.initial_clue_hint ?? ''}
                   </p>
                 </div>
               )}

@@ -17,11 +17,20 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
   if (!huntLocation) redirect('/hunts')
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-  const progressRes = await fetch(
-    `${baseUrl}/api/hunt/progress?user_id=${user.id}&hunt_location_id=${params.id}`,
-    { cache: 'no-store' }
-  )
-  const progressData = progressRes.ok ? await progressRes.json() : null
+
+  let progressData = null
+  try {
+    const progressRes = await fetch(
+      `${baseUrl}/api/hunt/progress?user_id=${user.id}&hunt_location_id=${params.id}`,
+      { cache: 'no-store' }
+    )
+    progressData = progressRes.ok ? await progressRes.json() : null
+  } catch (err) {
+    console.error('[hunt/page] progress fetch failed:', err)
+  }
+
+  console.log('[hunt/page] huntLocation:', huntLocation)
+  console.log('[hunt/page] progressData:', JSON.stringify(progressData, null, 2))
 
   return (
     <HuntPageClient
