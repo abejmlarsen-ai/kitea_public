@@ -3,14 +3,36 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import React, { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Tooltip, Marker, useMap } from 'react-leaflet'
 
-const kiteaIcon = L.icon({
-  iconUrl: '/images/Kitea Logo Only.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
-  popupAnchor: [0, -20],
-})
+// ── Leaflet default-icon fix ───────────────────────────────────────────────
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({ iconUrl: '', shadowUrl: '' })
+
+// ── Types ─────────────────────────────────────────────────────────────────
+
+interface Location {
+  id:           string
+  name:         string
+  description:  string
+  latitude:     number
+  longitude:    number
+  total_scans:  number
+  region:       string
+  city:         string
+}
+
+interface Props {
+  locations: Location[]
+}
+
+interface FlyProps {
+  centre:  [number, number]
+  zoom:    number
+  trigger: number
+}
+
+// ── Regions ───────────────────────────────────────────────────────────────
 
 const REGIONS = [
   {
@@ -18,144 +40,127 @@ const REGIONS = [
     centre: [-25.2744, 133.7751] as [number, number],
     zoom: 4,
     cities: [
-      { label: 'Sydney',    centre: [-33.8688, 151.2093] as [number, number], zoom: 13 },
-      { label: 'Melbourne', centre: [-37.8136, 144.9631] as [number, number], zoom: 13 },
-      { label: 'Brisbane',  centre: [-27.4698, 153.0251] as [number, number], zoom: 13 },
+      { label: 'Sydney',    centre: [-33.8688, 151.2093] as [number, number], zoom: 12 },
+      { label: 'Melbourne', centre: [-37.8136, 144.9631] as [number, number], zoom: 12 },
+      { label: 'Brisbane',  centre: [-27.4698, 153.0251] as [number, number], zoom: 12 },
+      { label: 'Perth',     centre: [-31.9505, 115.8605] as [number, number], zoom: 12 },
     ],
   },
   {
     label: 'New Zealand',
-    centre: [-40.9006, 172.8860] as [number, number],
+    centre: [-40.9006, 174.8860] as [number, number],
     zoom: 5,
     cities: [
-      { label: 'Auckland',   centre: [-36.8485, 174.7633] as [number, number], zoom: 13 },
-      { label: 'Wellington', centre: [-41.2865, 174.7762] as [number, number], zoom: 13 },
+      { label: 'Auckland',      centre: [-36.8485, 174.7633] as [number, number], zoom: 12 },
+      { label: 'Wellington',    centre: [-41.2865, 174.7762] as [number, number], zoom: 12 },
+      { label: 'Christchurch',  centre: [-43.5321, 172.6362] as [number, number], zoom: 12 },
     ],
   },
 ]
 
-interface FlyProps {
-  centre: [number, number]
-  zoom: number
-  trigger: number
-}
+// ── FlyTo ─────────────────────────────────────────────────────────────────
 
 function FlyTo({ centre, zoom, trigger }: FlyProps) {
   const map = useMap()
   useEffect(() => {
     if (trigger > 0) map.flyTo(centre, zoom, { duration: 1.2 })
-  }, [trigger]) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trigger])
   return null
 }
 
-interface Location {
-  id: string
-  name: string
-  latitude: number
-  longitude: number
-  total_scans: number
-}
+// ── Kitea logo icon ───────────────────────────────────────────────────────
 
-interface Props {
-  locations: Location[]
-}
+const kiteaIcon = L.icon({
+  iconUrl:    '/images/Kitea Logo Only.png',
+  iconSize:   [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor:[0, -34],
+})
+
+// ── Component ─────────────────────────────────────────────────────────────
 
 export default function MapComponent({ locations }: Props) {
-  const [flyTarget, setFlyTarget] = useState<{ centre: [number, number]; zoom: number; trigger: number } | null>(null)
-  const [expandedRegion, setExpandedRegion] = useState<string | null>(null)
+  const mappable = locations.filter(l => l.latitude != null && l.longitude != null)
 
-  const handleRegion = (region: typeof REGIONS[0]) => {
-    const isOpen = expandedRegion === region.label
-    setExpandedRegion(isOpen ? null : region.label)
-    setFlyTarget((prev) => ({
-      centre: region.centre,
-      zoom: region.zoom,
-      trigger: (prev?.trigger ?? 0) + 1,
-    }))
-  }
+  const defaultCentre: [number, number] =
+    mappable.length > 0
+      ? [mappable[0].latitude, mappable[0].longitude]
+      : [-33.8688, 151.2093]
 
-  const handleCity = (city: typeof REGIONS[0]['cities'][0]) => {
-    setFlyTarget((prev) => ({
-      centre: city.centre,
-      zoom: city.zoom,
+  const [flyTarget, setFlyTarget] = useState<FlyProps | null>(null)
+  const [openRegion, setOpenRegion] = useState<string | null>(null)
+
+  function flyTo(centre: [number, number], zoom: number) {
+    setFlyTarget(prev => ({
+      centre,
+      zoom,
       trigger: (prev?.trigger ?? 0) + 1,
     }))
   }
 
   return (
     <div style={{
-      display: 'grid',
-      gridTemplateColumns: '200px 1fr 200px',
-      gap: '0',
-      width: '100%',
-      height: '72vh',
-      alignItems: 'start',
+      display:             'grid',
+      gridTemplateColumns: '190px 1fr 190px',
+      gap:                 '1rem',
+      width:               '100%',
+      height:              '70vh',
+      marginTop:           '1.5rem',
     }}>
 
-      {/* Left sidebar — regions */}
+      {/* ── Left sidebar: region / city nav ─────────────────────────── */}
       <div style={{
-        paddingTop: '0',
-        paddingRight: '1rem',
+        overflowY:    'auto',
+        background:   '#f1faee',
+        borderRadius: 8,
+        padding:      '0.75rem',
+        display:      'flex',
+        flexDirection:'column',
+        gap:          '0.5rem',
       }}>
-        <p style={{
-          fontSize: '11px',
-          fontWeight: 700,
-          letterSpacing: '0.08em',
-          color: '#457b9d',
-          marginBottom: '0.75rem',
-          textTransform: 'uppercase',
-        }}>
-          Regions
-        </p>
-
-        {REGIONS.map((region) => (
-          <div key={region.label} style={{ marginBottom: '0.5rem' }}>
+        {REGIONS.map(region => (
+          <div key={region.label}>
             <button
-              onClick={() => handleRegion(region)}
+              onClick={() => {
+                flyTo(region.centre, region.zoom)
+                setOpenRegion(openRegion === region.label ? null : region.label)
+              }}
               style={{
-                width: '100%',
-                textAlign: 'left',
-                padding: '0.5rem 1rem',
-                background: expandedRegion === region.label ? '#2a9d8f' : '#e8f4f1',
-                color: expandedRegion === region.label ? 'white' : '#1d3557',
-                border: 'none',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 600,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                transition: 'background 0.2s',
+                width:        '100%',
+                textAlign:    'left',
+                padding:      '0.45rem 0.6rem',
+                background:   '#2a9d8f',
+                color:        'white',
+                border:       'none',
+                borderRadius: 6,
+                fontWeight:   700,
+                fontSize:     '0.82rem',
+                cursor:       'pointer',
+                letterSpacing:'0.03em',
               }}
             >
               {region.label}
-              <span style={{ fontSize: '10px', opacity: 0.7 }}>
-                {expandedRegion === region.label ? '▼' : '►'}
-              </span>
             </button>
 
-            {expandedRegion === region.label && (
-              <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem' }}>
-                {region.cities.map((city) => (
+            {openRegion === region.label && (
+              <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {region.cities.map(city => (
                   <button
                     key={city.label}
-                    onClick={() => handleCity(city)}
+                    onClick={() => flyTo(city.centre, city.zoom)}
                     style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '0.4rem 1rem',
-                      background: '#f1faee',
-                      color: '#457b9d',
-                      border: 'none',
-                      borderRadius: '20px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      marginBottom: '0.2rem',
-                      transition: 'background 0.2s',
+                      textAlign:    'left',
+                      padding:      '0.35rem 0.5rem',
+                      background:   'transparent',
+                      color:        '#1d3557',
+                      border:       '1px solid #cde8e4',
+                      borderRadius: 5,
+                      fontSize:     '0.78rem',
+                      cursor:       'pointer',
                     }}
                   >
-                    · {city.label}
+                    {city.label}
                   </button>
                 ))}
               </div>
@@ -164,22 +169,17 @@ export default function MapComponent({ locations }: Props) {
         ))}
       </div>
 
-      {/* Centre — map */}
-      <div style={{
-        height: '72vh',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-      }}>
+      {/* ── Map ─────────────────────────────────────────────────────── */}
+      <div style={{ border: '2px solid black', borderRadius: 8, overflow: 'hidden' }}>
         <MapContainer
-          center={[-33.8688, 151.2093]}
-          zoom={11}
-          style={{ height: '100%', width: '100%' }}
+          center={defaultCentre}
+          zoom={12}
+          style={{ width: '100%', height: '100%' }}
           scrollWheelZoom={true}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
 
           {flyTarget && (
@@ -190,71 +190,77 @@ export default function MapComponent({ locations }: Props) {
             />
           )}
 
-          {locations.map((loc) => (
+          {mappable.map(loc => (
             <React.Fragment key={loc.id}>
-              <Circle
-                center={[Number(loc.latitude), Number(loc.longitude)]}
-                radius={250}
+              <CircleMarker
+                center={[loc.latitude, loc.longitude]}
+                radius={16}
                 pathOptions={{
-                  color: '#2a9d8f',
-                  fillColor: 'transparent',
+                  color:       '#2a9d8f',
+                  fillColor:   'transparent',
                   fillOpacity: 0,
-                  weight: 2,
-                  dashArray: '4 4',
+                  weight:      2,
+                  dashArray:   '5 5',
                 }}
               />
               <Marker
-                position={[Number(loc.latitude), Number(loc.longitude)]}
+                position={[loc.latitude, loc.longitude]}
                 icon={kiteaIcon}
               >
-                <Popup>
-                  <div style={{
-                    textAlign: 'center',
-                    minWidth: '160px',
-                    padding: '8px 4px',
-                    fontFamily: 'Arial, sans-serif',
-                  }}>
-                    <strong style={{
-                      display: 'block',
-                      fontSize: '16px',
-                      color: '#1d3557',
-                      marginBottom: '4px',
-                    }}>
-                      {loc.name}
-                    </strong>
-                    <span style={{
-                      display: 'block',
-                      fontSize: '12px',
-                      color: '#888',
-                      marginBottom: '12px',
-                    }}>
-                      {loc.total_scans} explorers
+                <Tooltip direction="top" offset={[0, -36]} permanent={false} opacity={0.95}>
+                  <div style={{ textAlign: 'center', minWidth: 130 }}>
+                    <strong style={{ display: 'block', fontSize: 14 }}>{loc.name}</strong>
+                    <span style={{ fontSize: 12, color: '#555' }}>
+                      {loc.total_scans} {loc.total_scans === 1 ? 'explorer' : 'explorers'}
                     </span>
-                    <a
-                      href={`/hunts/${loc.id}`}
-                      style={{
-                        display: 'inline-block',
-                        padding: '8px 20px',
-                        background: '#2a9d8f',
-                        color: 'white',
-                        borderRadius: '5px',
-                        textDecoration: 'none',
-                        fontSize: '14px',
-                        fontWeight: 600,
-                      }}
-                    >
-                      Begin Hunt →
-                    </a>
                   </div>
-                </Popup>
+                </Tooltip>
               </Marker>
             </React.Fragment>
           ))}
         </MapContainer>
       </div>
 
-      {/* Right — empty balance column */}
-      <div />
+      {/* ── Right sidebar: hunt list ─────────────────────────────────── */}
+      <div style={{
+        overflowY:    'auto',
+        background:   '#f1faee',
+        borderRadius: 8,
+        padding:      '0.75rem',
+        display:      'flex',
+        flexDirection:'column',
+        gap:          '0.5rem',
+      }}>
+        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2a9d8f', margin: '0 0 0.25rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          Hunts
+        </p>
+        {mappable.map(loc => (
+          <a
+            key={loc.id}
+            href={`/hunts/${loc.id}`}
+            style={{
+              display:        'block',
+              padding:        '0.5rem 0.6rem',
+              background:     'white',
+              border:         '1px solid #cde8e4',
+              borderRadius:   6,
+              textDecoration: 'none',
+              color:          '#1d3557',
+              fontSize:       '0.8rem',
+              fontWeight:     600,
+              lineHeight:     1.3,
+            }}
+          >
+            {loc.name}
+            <span style={{ display: 'block', fontWeight: 400, color: '#888', fontSize: '0.72rem' }}>
+              {loc.city}
+            </span>
+          </a>
+        ))}
+        {mappable.length === 0 && (
+          <p style={{ color: '#999', fontSize: '0.8rem' }}>No locations yet.</p>
+        )}
+      </div>
 
     </div>
   )
