@@ -213,18 +213,48 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
   // ── MAIN LAYOUT: two-column ──────────────────────────────────────────────────────────────────────────
   return (
     <div style={{ background: '#f1faee', minHeight: '100vh', color: '#1d3557' }}>
+
+      {/* Simplified hunt header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0.75rem 1.5rem',
+        background: 'white',
+        borderBottom: '1px solid #d0e8e4',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}>
+        <img
+          src="/images/Kitea Logo Only.png"
+          alt="Kitea"
+          style={{ height: '36px', width: 'auto' }}
+        />
+        <a
+          href="/map"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 16px',
+            background: '#f1faee',
+            color: '#2a9d8f',
+            border: '1px solid #2a9d8f',
+            borderRadius: '5px',
+            textDecoration: 'none',
+            fontSize: '14px',
+            fontWeight: 600,
+          }}
+        >
+          ← Return to Map
+        </a>
+      </div>
+
       <div className='hunt-layout'>
 
         {/* ── LEFT COLUMN ────────────────────────────────────────────────────────────────── */}
         <div className='hunt-col-main'>
-
-          {/* Back */}
-          <Link href='/map' style={{
-            color: '#2a9d8f', textDecoration: 'none', fontSize: '1.1rem',
-            display: 'inline-block', marginBottom: '0.75rem',
-          }}>
-            ← Back
-          </Link>
 
           {/* Hunt name */}
           <h1 style={{ fontSize: 'clamp(1.5rem,6vw,2.25rem)', fontWeight: 700, color: '#1d3557', margin: '0 0 1.25rem' }}>
