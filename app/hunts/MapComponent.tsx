@@ -1,8 +1,8 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import React, { useEffect, useState } from 'react'
 import L from 'leaflet'
+import React, { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
 
 const kiteaIcon = L.icon({
@@ -16,7 +16,7 @@ const REGIONS = [
   {
     label: 'Australia',
     centre: [-25.2744, 133.7751] as [number, number],
-    zoom: 5,
+    zoom: 4,
     cities: [
       { label: 'Sydney',    centre: [-33.8688, 151.2093] as [number, number], zoom: 13 },
       { label: 'Melbourne', centre: [-37.8136, 144.9631] as [number, number], zoom: 13 },
@@ -34,6 +34,20 @@ const REGIONS = [
   },
 ]
 
+interface FlyProps {
+  centre: [number, number]
+  zoom: number
+  trigger: number
+}
+
+function FlyTo({ centre, zoom, trigger }: FlyProps) {
+  const map = useMap()
+  useEffect(() => {
+    if (trigger > 0) map.flyTo(centre, zoom, { duration: 1.2 })
+  }, [trigger]) // eslint-disable-line react-hooks/exhaustive-deps
+  return null
+}
+
 interface Location {
   id: string
   name: string
@@ -42,87 +56,87 @@ interface Location {
   total_scans: number
 }
 
-interface FlyProps {
-  centre: [number, number]
-  zoom: number
-}
-
-function FlyTo({ centre, zoom }: FlyProps) {
-  const map = useMap()
-  useEffect(() => {
-    map.flyTo(centre, zoom, { duration: 1.2 })
-  }, [centre, zoom, map])
-  return null
-}
-
 interface Props {
   locations: Location[]
 }
 
 export default function MapComponent({ locations }: Props) {
-  const [flyTarget, setFlyTarget] = useState<FlyProps | null>(null)
+  const [flyTarget, setFlyTarget] = useState<{ centre: [number, number]; zoom: number; trigger: number } | null>(null)
   const [expandedRegion, setExpandedRegion] = useState<string | null>(null)
 
   const handleRegion = (region: typeof REGIONS[0]) => {
-    setExpandedRegion(expandedRegion === region.label ? null : region.label)
-    setFlyTarget({ centre: region.centre, zoom: region.zoom })
+    const isOpen = expandedRegion === region.label
+    setExpandedRegion(isOpen ? null : region.label)
+    setFlyTarget((prev) => ({
+      centre: region.centre,
+      zoom: region.zoom,
+      trigger: (prev?.trigger ?? 0) + 1,
+    }))
   }
 
   const handleCity = (city: typeof REGIONS[0]['cities'][0]) => {
-    setFlyTarget({ centre: city.centre, zoom: city.zoom })
+    setFlyTarget((prev) => ({
+      centre: city.centre,
+      zoom: city.zoom,
+      trigger: (prev?.trigger ?? 0) + 1,
+    }))
   }
 
   return (
-    <div style={{ display: 'flex', height: '75vh', width: '100%' }}>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '200px 1fr 200px',
+      gap: '0',
+      width: '100%',
+      height: '72vh',
+      alignItems: 'start',
+    }}>
 
-      {/* Left sidebar */}
+      {/* Left sidebar — regions */}
       <div style={{
-        width: '180px',
-        minWidth: '180px',
-        background: '#f1faee',
-        borderRight: '1px solid #d0e8e4',
-        overflowY: 'auto',
-        padding: '1rem 0',
+        paddingTop: '0',
+        paddingRight: '1rem',
       }}>
         <p style={{
           fontSize: '11px',
           fontWeight: 700,
           letterSpacing: '0.08em',
           color: '#457b9d',
-          padding: '0 1rem',
-          marginBottom: '0.5rem',
+          marginBottom: '0.75rem',
           textTransform: 'uppercase',
         }}>
           Regions
         </p>
 
         {REGIONS.map((region) => (
-          <div key={region.label}>
+          <div key={region.label} style={{ marginBottom: '0.5rem' }}>
             <button
               onClick={() => handleRegion(region)}
               style={{
                 width: '100%',
                 textAlign: 'left',
-                padding: '0.6rem 1rem',
-                background: expandedRegion === region.label ? '#2a9d8f' : 'transparent',
+                padding: '0.5rem 1rem',
+                background: expandedRegion === region.label ? '#2a9d8f' : '#e8f4f1',
                 color: expandedRegion === region.label ? 'white' : '#1d3557',
                 border: 'none',
+                borderRadius: '20px',
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: 600,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                transition: 'background 0.2s',
               }}
             >
               {region.label}
-              <span style={{ fontSize: '10px' }}>
+              <span style={{ fontSize: '10px', opacity: 0.7 }}>
                 {expandedRegion === region.label ? '▼' : '►'}
               </span>
             </button>
 
             {expandedRegion === region.label && (
-              <div>
+              <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem' }}>
                 {region.cities.map((city) => (
                   <button
                     key={city.label}
@@ -130,15 +144,18 @@ export default function MapComponent({ locations }: Props) {
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      padding: '0.5rem 1rem 0.5rem 1.75rem',
-                      background: 'transparent',
+                      padding: '0.4rem 1rem',
+                      background: '#f1faee',
                       color: '#457b9d',
                       border: 'none',
+                      borderRadius: '20px',
                       cursor: 'pointer',
                       fontSize: '13px',
+                      marginBottom: '0.2rem',
+                      transition: 'background 0.2s',
                     }}
                   >
-                    {city.label}
+                    · {city.label}
                   </button>
                 ))}
               </div>
@@ -147,8 +164,13 @@ export default function MapComponent({ locations }: Props) {
         ))}
       </div>
 
-      {/* Map */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      {/* Centre — map */}
+      <div style={{
+        height: '72vh',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+      }}>
         <MapContainer
           center={[-33.8688, 151.2093]}
           zoom={11}
@@ -160,7 +182,13 @@ export default function MapComponent({ locations }: Props) {
             attribution="&copy; OpenStreetMap contributors"
           />
 
-          {flyTarget && <FlyTo centre={flyTarget.centre} zoom={flyTarget.zoom} />}
+          {flyTarget && (
+            <FlyTo
+              centre={flyTarget.centre}
+              zoom={flyTarget.zoom}
+              trigger={flyTarget.trigger}
+            />
+          )}
 
           {locations.map((loc) => (
             <React.Fragment key={loc.id}>
@@ -169,9 +197,10 @@ export default function MapComponent({ locations }: Props) {
                 radius={250}
                 pathOptions={{
                   color: '#2a9d8f',
-                  fillColor: '#2a9d8f',
-                  fillOpacity: 0.08,
+                  fillColor: 'transparent',
+                  fillOpacity: 0,
                   weight: 2,
+                  dashArray: '4 4',
                 }}
               />
               <Marker
@@ -223,6 +252,9 @@ export default function MapComponent({ locations }: Props) {
           ))}
         </MapContainer>
       </div>
+
+      {/* Right — empty balance column */}
+      <div />
 
     </div>
   )

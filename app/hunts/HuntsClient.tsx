@@ -28,7 +28,11 @@ interface Props {
 
 export default function HuntsClient({ locations }: Props) {
   return (
-    <div style={{ background: '#f1faee', minHeight: '100vh' }}>
+    <div style={{
+      background: '#f1faee',
+      minHeight: '100vh',
+      padding: '2rem 2rem',
+    }}>
       <MapComponent locations={locations} />
     </div>
   )
