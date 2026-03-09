@@ -1,21 +1,21 @@
-const CACHE_NAME = 'kitea-v2'
-
-const PRECACHE_URLS = ['/', '/manifest.json']
+const CACHE_NAME = 'kitea-v3'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(['/', '/manifest.json'])
+    })
   )
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key \!== CACHE_NAME).map((key) => caches.delete(key))
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       )
-    )
+    })
   )
   self.clients.claim()
 })
@@ -23,7 +23,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
-  // Never cache API routes, auth, or page navigation
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/auth/') ||
@@ -33,7 +32,6 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Cache first for static assets only (images, fonts, icons)
   if (
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/images/') ||
@@ -43,7 +41,7 @@ self.addEventListener('fetch', (event) => {
       caches.match(event.request).then((cached) => {
         return cached || fetch(event.request).then((response) => {
           const clone = response.clone()
-          caches.open('kitea-v2').then((cache) => cache.put(event.request, clone))
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
           return response
         })
       })
@@ -51,6 +49,5 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Everything else — network only, no caching
   event.respondWith(fetch(event.request))
 })
