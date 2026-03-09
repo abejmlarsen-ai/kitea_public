@@ -111,7 +111,7 @@ export default function MapComponent({ locations }: Props) {
   return (
     <div style={{
       display:             'grid',
-      gridTemplateColumns: '190px 1fr 190px',
+      gridTemplateColumns: '190px 1fr',
       gap:                 '1rem',
       width:               '100%',
       height:              '70vh',
@@ -283,47 +283,6 @@ export default function MapComponent({ locations }: Props) {
             </React.Fragment>
           ))}
         </MapContainer>
-      </div>
-
-      {/* ── Right sidebar: hunt list ─────────────────────────────────── */}
-      <div style={{
-        overflowY:    'auto',
-        background:   '#f1faee',
-        borderRadius: 8,
-        padding:      '0.75rem',
-        display:      'flex',
-        flexDirection:'column',
-        gap:          '0.5rem',
-      }}>
-        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2a9d8f', margin: '0 0 0.25rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Hunts
-        </p>
-        {mappable.map(loc => (
-          <a
-            key={loc.id}
-            href={`/hunts/${loc.id}`}
-            style={{
-              display:        'block',
-              padding:        '0.5rem 0.6rem',
-              background:     'white',
-              border:         '1px solid #cde8e4',
-              borderRadius:   6,
-              textDecoration: 'none',
-              color:          '#1d3557',
-              fontSize:       '0.8rem',
-              fontWeight:     600,
-              lineHeight:     1.3,
-            }}
-          >
-            {loc.name}
-            <span style={{ display: 'block', fontWeight: 400, color: '#888', fontSize: '0.72rem' }}>
-              {loc.city}
-            </span>
-          </a>
-        ))}
-        {mappable.length === 0 && (
-          <p style={{ color: '#999', fontSize: '0.8rem' }}>No locations yet.</p>
-        )}
       </div>
 
     </div>
