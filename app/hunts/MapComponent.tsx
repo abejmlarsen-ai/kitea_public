@@ -84,7 +84,10 @@ const kiteaIcon = L.icon({
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function MapComponent({ locations }: Props) {
-  const mappable = locations.filter(l => l.latitude != null && l.longitude != null)
+  console.log('[MapComponent] locations received:', locations.length,
+    '| first:', locations[0] ? JSON.stringify({ id: locations[0].id, name: locations[0].name }) : 'none')
+
+  const mappable = locations.filter(l => l.id && l.latitude != null && l.longitude != null)
 
   const defaultCentre: [number, number] =
     mappable.length > 0
@@ -263,7 +266,7 @@ export default function MapComponent({ locations }: Props) {
                       {loc.total_scans} explorers
                     </span>
                     <a
-                      href={`/hunts/${loc.id}`}
+                      href={loc.id ? `/hunts/${loc.id}` : '#'}
                       style={{
                         display:        'inline-block',
                         padding:        '8px 20px',

@@ -75,7 +75,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
     const initAttempts = progressData?.initial_clue_attempts ?? 0
     if (initAttempts >= 5 && progressData?.initial_clue_hint) {
       setShowHint(true)
-      setHintText(progressData.initial_clue_hint)
+      setHintText(progressData?.initial_clue_hint ?? null)
     }
 
     // Check if all location questions already completed
@@ -85,7 +85,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
       setLocationQComplete(true)
       if (progressData?.initial_clue_hint) {
         setShowHint(true)
-        setHintText(progressData.initial_clue_hint)
+        setHintText(progressData?.initial_clue_hint ?? null)
       }
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -272,14 +272,14 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
               </h2>
               {progressData?.reveal?.reveal_image_url && (
                 <img
-                  src={progressData.reveal.reveal_image_url}
+                  src={progressData?.reveal?.reveal_image_url ?? ''}
                   alt='Location reveal'
                   style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '0.75rem', marginBottom: '1rem' }}
                 />
               )}
               {progressData?.reveal?.reveal_directions && (
                 <p style={{ fontSize: '1rem', lineHeight: 1.6, color: '#457b9d', marginBottom: '1.5rem' }}>
-                  {progressData.reveal.reveal_directions}
+                  {progressData?.reveal?.reveal_directions ?? ''}
                 </p>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '2rem 0 1.5rem' }}>
@@ -326,6 +326,18 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                 }}>
                   {clue.code_type_hint}
                 </span>
+              )}
+
+              {/* Clue placeholder — shown when progressData hasn't loaded */}
+              {!progressData && (
+                <p style={{
+                  fontSize: '1rem', color: '#457b9d', fontStyle: 'italic',
+                  marginBottom: '1rem', padding: '0.75rem 1rem',
+                  background: 'white', borderRadius: '0.5rem',
+                  border: '1px dashed #cde8e4',
+                }}>
+                  Starting hunt…
+                </p>
               )}
 
               {/* Main answer input */}
