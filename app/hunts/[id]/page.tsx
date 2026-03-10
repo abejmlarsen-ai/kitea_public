@@ -2,18 +2,27 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import HuntPageClient from './HuntPageClient'
 
-export default async function HuntPage({ params }: { params: { id: string } }) {
+// In Next.js 15+ params is a Promise and must be awaited before use.
+// Accessing params.id without awaiting returns undefined, which gets
+// coerced to the string "undefined" when passed to Supabase as a UUID.
+export default async function HuntPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
-  console.log('[hunt/page] fetching huntLocation for id:', params.id)
+  console.log('[hunt/page] fetching huntLocation for id:', id)
 
   const { data: huntLocation, error: locationError } = await supabase
     .from('hunt_locations')
     .select('id, name, description, total_scans, latitude, longitude')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   console.log('[hunt/page] huntLocation:', (huntLocation as { name?: string } | null)?.name ?? null, '| error:', locationError?.message ?? null)
@@ -57,18 +66,18 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
       db
         .from('hunt_clues')
         .select('image_url, text_content, code_type_hint, initial_clue_hint')
-        .eq('hunt_location_id', params.id)
+        .eq('hunt_location_id', id)
         .maybeSingle(),
       db
         .from('hunt_questions')
         .select('id, question_text, order_index, hint_after_attempts')
-        .eq('hunt_location_id', params.id)
+        .eq('hunt_location_id', id)
         .order('order_index', { ascending: true }),
       db
         .from('hunt_progress')
         .select('current_question_index, location_revealed, completed_at')
         .eq('user_id', user.id)
-        .eq('hunt_location_id', params.id)
+        .eq('hunt_location_id', id)
         .maybeSingle(),
     ])
 
@@ -83,10 +92,10 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
     console.log('[hunt/page] clue:', !!clue, '| questions:', questions.length, '| progress:', progress ? `idx:${progress.current_question_index}` : 'none')
 
     // Fetch attempts scoped to this hunt's question IDs.
-    // hunt_attempts has no hunt_location_id column, so we filter via question_id.
-    // The initial-clue attempt uses hunt_location_id as a pseudo question_id.
+    // hunt_attempts has no hunt_location_id column — filter via question_id set.
+    // The initial-clue attempt is stored with question_id = hunt location id.
     const questionIds = questions.map(q => q.id)
-    const scopedIds   = [...questionIds, params.id] // include initial-clue pseudo-ID
+    const scopedIds   = [...questionIds, id]
 
     const attemptsRes = await db
       .from('hunt_attempts')
@@ -99,8 +108,8 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
 
     const allAttempts = (attemptsRes.data ?? []) as { question_id: string; attempt_count: number; solved: boolean }[]
 
-    const initialClueRow   = allAttempts.find(a => a.question_id === params.id)
-    const questionAttempts = allAttempts.filter(a => a.question_id !== params.id)
+    const initialClueRow   = allAttempts.find(a => a.question_id === id)
+    const questionAttempts = allAttempts.filter(a => a.question_id !== id)
 
     progressData = {
       clue: clue ? {
