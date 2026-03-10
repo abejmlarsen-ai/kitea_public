@@ -70,24 +70,29 @@ export async function POST(req: NextRequest) {
 
     console.log('[nft/mint] Profile found, wallet_address:', profile.wallet_address ?? 'none')
 
-    // ── 3. Idempotency check — already minted? ───────────────────────────────────────────────────────────────────────
-    console.log('[nft/mint] Checking for existing minted NFT')
+    // ── 3. Idempotency check — already minted or pending? ─────────────────────────────────────────────────────────
+    // Include 'pending' so repeat logins don't insert duplicate rows.
+    console.log('[nft/mint] Checking for existing NFT record (minted or pending)')
     const baseIdempotencyQuery = supabase
       .from('nft_tokens')
       .select('*')
       .eq('user_id', user_id)
-      .eq('status', 'minted')
+      .in('status', ['minted', 'pending'])
 
-    const { data: existing } = await (
+    const { data: existing, error: idempotencyError } = await (
       hunt_location_id === null
         ? baseIdempotencyQuery.is('hunt_location_id', null)
         : baseIdempotencyQuery.eq('hunt_location_id', hunt_location_id)
     ).maybeSingle()
 
+    if (idempotencyError) {
+      console.error('[nft/mint] Idempotency query error:', idempotencyError.message)
+    }
+
     if (existing) {
-      console.log('[nft/mint] Already minted, returning existing record', existing.id)
+      console.log('[nft/mint] Record already exists (status:', existing.status + '), returning', existing.id)
       return NextResponse.json({
-        status: 'minted',
+        status: existing.status,
         token_id: existing.token_id,
         transaction_hash: existing.transaction_hash,
         contract_address: existing.contract_address,
