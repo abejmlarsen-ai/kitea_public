@@ -29,7 +29,6 @@ interface ProgressData {
   questions: { id: string; question_text: string; order_index: number; hint_after_attempts: number }[]
   progress:  { current_question_index: number; location_revealed: boolean; completed_at: string | null } | null
   attempts:  { question_id: string; attempt_count: number; solved: boolean }[]
-  reveal:    { reveal_image_url: string | null; reveal_directions: string } | null
   initial_clue_attempts: number
   initial_clue_hint: string | null
 }
@@ -270,18 +269,6 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
               <h2 style={{ color: '#2a9d8f', fontWeight: 700, fontSize: '1.5rem', margin: '0 0 1rem' }}>
                 You found it! 🌊
               </h2>
-              {progressData?.reveal?.reveal_image_url && (
-                <img
-                  src={progressData?.reveal?.reveal_image_url ?? ''}
-                  alt='Location reveal'
-                  style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '0.75rem', marginBottom: '1rem' }}
-                />
-              )}
-              {progressData?.reveal?.reveal_directions && (
-                <p style={{ fontSize: '1rem', lineHeight: 1.6, color: '#457b9d', marginBottom: '1.5rem' }}>
-                  {progressData?.reveal?.reveal_directions ?? ''}
-                </p>
-              )}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '2rem 0 1.5rem' }}>
                 <img
                   src='/images/Kitea Logo Only.png'

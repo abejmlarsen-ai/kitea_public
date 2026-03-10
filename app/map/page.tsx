@@ -1,13 +1,16 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import HuntsClient from '../hunts/HuntsClient'
 
 export const metadata: Metadata = { title: 'Map | Kitea' }
 
 export default async function MapPage() {
-  const supabase = await createClient()
+  // Use service-role client so locations always load regardless of auth state.
+  // RLS on hunt_locations requires authenticated role, but the map is public.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createServiceRoleClient() as any
 
-  const { data: locations, error: locError } = await supabase
+  const { data: locations, error: locError } = await db
     .from('hunt_locations')
     .select('id, name, description, latitude, longitude, total_scans, region, city')
     .eq('is_active', true)

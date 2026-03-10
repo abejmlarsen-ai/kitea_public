@@ -18,7 +18,7 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
 
   console.log('[hunt/page] huntLocation:', (huntLocation as { name?: string } | null)?.name ?? null, '| error:', locationError?.message ?? null)
 
-  // Render an inline error instead of redirecting — prevents /hunts → /map bounce
+  // Render an inline error instead of redirecting — prevents /hunts -> /map bounce
   if (!huntLocation) {
     return (
       <div style={{
@@ -41,7 +41,10 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
   }
 
   // ── Fetch progress data directly via service-role client ──────────────────
-  // Bypasses NEXT_PUBLIC_SITE_URL / internal HTTP fetch — works in all envs
+  // Bypasses NEXT_PUBLIC_SITE_URL / internal HTTP fetch — works in all envs.
+  // hunt_clues columns: id, hunt_location_id, image_url, text_content,
+  //   code_type_hint, initial_clue_answer, initial_clue_hint, created_at
+  // (reveal_image_url / reveal_directions do NOT exist in the DB)
   let progressData = null
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,7 +53,7 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
     const [clueRes, questionsRes, progressRes, attemptsRes] = await Promise.all([
       db
         .from('hunt_clues')
-        .select('image_url, text_content, code_type_hint, initial_clue_hint, reveal_image_url, reveal_directions')
+        .select('image_url, text_content, code_type_hint, initial_clue_hint')
         .eq('hunt_location_id', params.id)
         .maybeSingle(),
       db
@@ -93,10 +96,6 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
       questions,
       progress,
       attempts: questionAttempts,
-      reveal: clue ? {
-        reveal_image_url:  clue.reveal_image_url  ?? null,
-        reveal_directions: clue.reveal_directions ?? '',
-      } : null,
       initial_clue_hint:     clue?.initial_clue_hint     ?? null,
       initial_clue_attempts: initialClueRow?.attempt_count ?? 0,
     }
