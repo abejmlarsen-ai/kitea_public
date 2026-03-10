@@ -8,6 +8,8 @@
 //
 // DB schema — hunt_attempts: id, user_id, question_id, attempt_count, solved, updated_at
 // (NO hunt_location_id column — do not try to insert/filter by it)
+// NOTE: hunt_attempts_question_id_fkey (FK → hunt_questions.id) was DROPPED via migration.
+//       question_id may hold a hunt_location UUID as a pseudo-ID for initial-clue attempts.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
