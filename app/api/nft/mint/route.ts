@@ -21,6 +21,23 @@ export async function POST(req: NextRequest) {
       is_founder: is_founder ?? false,
     })
 
+    // ── 0. Env var guard — fail fast with clear error if misconfigured ───────
+    const missingVars: string[] = []
+    if (!process.env.THIRDWEB_SECRET_KEY)               missingVars.push('THIRDWEB_SECRET_KEY')
+    if (!process.env.DEPLOYER_PRIVATE_KEY)               missingVars.push('DEPLOYER_PRIVATE_KEY')
+    if (!process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS)   missingVars.push('NEXT_PUBLIC_NFT_CONTRACT_ADDRESS')
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY)          missingVars.push('SUPABASE_SERVICE_ROLE_KEY')
+    if (missingVars.length > 0) {
+      console.error('[nft/mint] Missing required env vars:', missingVars.join(', '))
+      return NextResponse.json(
+        { error: 'Server misconfiguration: missing env vars: ' + missingVars.join(', ') },
+        { status: 500 }
+      )
+    }
+
+    console.log('[nft/mint] contract address:', process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS)
+    console.log('[nft/mint] chain: base-sepolia (84532)')
+
     const supabase = createServiceRoleClient()
 
     // ── 1. Resolve token ID ───────────────────────────────────────────────────────────────────────────
@@ -48,11 +65,12 @@ export async function POST(req: NextRequest) {
       }
 
       console.log('[nft/mint] Location found', location)
-      tokenIdText = String(location.nft_token_id)
       if (location.nft_token_id === null) {
-      return NextResponse.json({ error: 'Location has no NFT token configured' }, { status: 400 })
-    }
-    tokenIdBigInt = BigInt(location.nft_token_id)
+        console.error('[nft/mint] Location has no nft_token_id configured:', hunt_location_id)
+        return NextResponse.json({ error: 'Location has no NFT token configured' }, { status: 400 })
+      }
+      tokenIdText = String(location.nft_token_id)
+      tokenIdBigInt = BigInt(location.nft_token_id)
     }
 
     // ── 2. Fetch user wallet address ───────────────────────────────────────────────────────────────────────

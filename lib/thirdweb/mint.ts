@@ -12,29 +12,78 @@ export async function mintNFT({
   toAddress: string
   tokenId: bigint
   amount?: number
-}) {
-  const client = createThirdwebClient({
-    secretKey: process.env.THIRDWEB_SECRET_KEY!,
-  })
+}): Promise<string> {
+  // ── Guard: verify all required env vars are present ───────────────────────
+  const secretKey      = process.env.THIRDWEB_SECRET_KEY
+  const privateKey     = process.env.DEPLOYER_PRIVATE_KEY
+  const contractAddr   = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS
 
-  const account = privateKeyToAccount({
-    client,
-    privateKey: process.env.DEPLOYER_PRIVATE_KEY!,
-  })
+  console.log('[mintNFT] called with toAddress:', toAddress, 'tokenId:', tokenId.toString(), 'amount:', amount)
+  console.log('[mintNFT] env check — THIRDWEB_SECRET_KEY set:', !!secretKey)
+  console.log('[mintNFT] env check — DEPLOYER_PRIVATE_KEY set:', !!privateKey)
+  console.log('[mintNFT] env check — NFT_CONTRACT_ADDRESS:', contractAddr ?? '(missing!)')
+  console.log('[mintNFT] chain: base-sepolia (chainId 84532)')
 
+  if (!secretKey) {
+    throw new Error('[mintNFT] THIRDWEB_SECRET_KEY is not set')
+  }
+  if (!privateKey) {
+    throw new Error('[mintNFT] DEPLOYER_PRIVATE_KEY is not set')
+  }
+  if (!contractAddr) {
+    throw new Error('[mintNFT] NEXT_PUBLIC_NFT_CONTRACT_ADDRESS is not set')
+  }
+
+  // ── Create client ──────────────────────────────────────────────────────────
+  console.log('[mintNFT] creating Thirdweb client...')
+  const client = createThirdwebClient({ secretKey })
+
+  // ── Create signer account ─────────────────────────────────────────────────
+  console.log('[mintNFT] creating deployer account from private key...')
+  let account
+  try {
+    account = privateKeyToAccount({ client, privateKey })
+    console.log('[mintNFT] deployer account address:', account.address)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[mintNFT] privateKeyToAccount failed:', msg)
+    throw new Error('[mintNFT] privateKeyToAccount failed: ' + msg)
+  }
+
+  // ── Get contract ──────────────────────────────────────────────────────────
+  console.log('[mintNFT] getting contract at:', contractAddr)
   const contract = getContract({
     client,
     chain: baseSepolia,
-    address: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS!,
+    address: contractAddr,
   })
 
-  const transaction = mintAdditionalSupplyTo({
-    contract,
-    to: toAddress,
-    tokenId,
-    supply: BigInt(amount),
-  })
+  // ── Build transaction ─────────────────────────────────────────────────────
+  console.log('[mintNFT] building mintAdditionalSupplyTo transaction...')
+  let transaction
+  try {
+    transaction = mintAdditionalSupplyTo({
+      contract,
+      to: toAddress,
+      tokenId,
+      supply: BigInt(amount),
+    })
+    console.log('[mintNFT] transaction built successfully')
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[mintNFT] mintAdditionalSupplyTo build failed:', msg)
+    throw new Error('[mintNFT] mintAdditionalSupplyTo build failed: ' + msg)
+  }
 
-  const receipt = await sendTransaction({ transaction, account })
-  return receipt.transactionHash
+  // ── Send transaction ──────────────────────────────────────────────────────
+  console.log('[mintNFT] sending transaction to chain...')
+  try {
+    const receipt = await sendTransaction({ transaction, account })
+    console.log('[mintNFT] transaction confirmed — txHash:', receipt.transactionHash)
+    return receipt.transactionHash
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[mintNFT] sendTransaction failed:', msg)
+    throw new Error('[mintNFT] sendTransaction failed: ' + msg)
+  }
 }

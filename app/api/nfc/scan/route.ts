@@ -1,4 +1,4 @@
-// ─── NFC Scan Verification ────────────────────────────────────────────────────────────────────────────────────
+// ─── NFC Scan Verification ───────────────────────────────────────────────────
 // POST /api/nfc/scan
 // Verifies a scanned NFC tag UID and records the scan in the database.
 import { NextRequest, NextResponse } from 'next/server'
@@ -6,7 +6,7 @@ import { createClient as createServerClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
-    // ── Step 1 — Parse the incoming scan data ────────────────────────────────────────────────────────────────────────
+    // ── Step 1 — Parse the incoming scan data ──────────────────────────────
     const body = await request.json()
     const { tag_uid } = body
     console.log('[scan] incoming tag_uid:', tag_uid)
@@ -18,13 +18,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Step 2 — Service-role Supabase client (bypasses RLS) ───────────────────────────────────────────────
+    // ── Step 2 — Service-role Supabase client (bypasses RLS) ─────────────
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // ── Step 3 — Verify the authenticated user from the Authorization header ──
+    // ── Step 3 — Verify authenticated user from Authorization header ──────
     const authHeader = request.headers.get('authorization')
     if (!authHeader) {
       console.log('[scan] missing authorization header')
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Step 4 — Look up the NFC tag ─────────────────────────────────────────────────────────────────────────────────
+    // ── Step 4 — Look up the NFC tag ──────────────────────────────────────
     const { data: tag, error: tagError } = await supabase
       .from('nfc_tags')
       .select('*, hunt_locations!hunt_location_id(*)')
@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
     console.log('[scan] tag query result:', JSON.stringify(tag, null, 2))
     console.log('[scan] tag query error:', tagError?.message ?? null)
     console.log('[scan] tag.hunt_location_id:', tag?.hunt_location_id ?? 'undefined')
-    console.log('[scan] tag.location_id:', tag?.location_id ?? 'undefined')
 
     if (tagError || !tag) {
       return NextResponse.json(
@@ -67,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     const huntLocationId = tag.hunt_location_id
 
-    // ── Step 5 — Check if this user has already scanned this location ─────────────────
+    // ── Step 5 — Check if user has already scanned this location ──────────
     const { data: existingScan, error: existingError } = await supabase
       .from('scans')
       .select('id, scan_number')
@@ -88,7 +87,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── Step 6 — Get current scan count to assign a scan number ────────────────────────
+    // ── Step 6 — Get current scan count to assign a scan number ──────────
     const { data: locationData, error: locationError } = await supabase
       .from('hunt_locations')
       .select('total_scans, name')
@@ -96,11 +95,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     console.log('[scan] locationData:', JSON.stringify(locationData, null, 2))
-    console.log('[scan] locationData error:', locationError?.message ?? null)
+    console.log('[scan] locationError:', locationError?.message ?? null)
 
     const scan_number = (locationData?.total_scans ?? 0) + 1
 
-    // ── Step 7 — Record the scan ─────────────────────────────────────────────────────────────────────────────────────────
+    // ── Step 7 — Record the scan ──────────────────────────────────────────
     const { data: scanData, error: scanError } = await supabase
       .from('scans')
       .insert({
@@ -123,20 +122,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── Step 8 — Fire background mint (do not await) ────────────────────────────────────────────────
+    // ── Step 7b — Increment total_scans on the location ──────────────────
+    const { error: incrementError } = await supabase
+      .from('hunt_locations')
+      .update({ total_scans: scan_number })
+      .eq('id', huntLocationId)
+
+    if (incrementError) {
+      // Non-fatal: log but continue — scan + mint still proceed
+      console.error('[scan] total_scans increment error:', incrementError.message)
+    } else {
+      console.log('[scan] total_scans updated to', scan_number, 'for location', huntLocationId)
+    }
+
+    // ── Step 8 — Trigger mint and AWAIT it ───────────────────────────────
+    // IMPORTANT: do NOT fire-and-forget. Vercel serverless may freeze the
+    // process once the response is returned, killing any background fetch().
+    // Use request origin as fallback so the URL is always valid in production.
+    const { origin } = new URL(request.url)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? origin
+
     const mintPayload = {
       user_id: user.id,
       hunt_location_id: huntLocationId,
       scan_number: scan_number,
       scan_id: scanData.id,
     }
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/nft/mint`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mintPayload),
-    }).catch((err) => console.error('[scan] background mint failed:', err))
 
-    // ── Step 9 — Return success ──────────────────────────────────────────────────────────────────────────────────────────
+    console.log('[scan] triggering mint — siteUrl:', siteUrl, 'payload:', JSON.stringify(mintPayload))
+
+    try {
+      const mintRes = await fetch(`${siteUrl}/api/nft/mint`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mintPayload),
+      })
+
+      if (!mintRes.ok) {
+        const mintBody = await mintRes.text()
+        console.error('[scan] mint returned error — status:', mintRes.status, 'body:', mintBody)
+      } else {
+        const mintResult = await mintRes.json() as Record<string, unknown>
+        console.log('[scan] mint succeeded — status:', mintRes.status, 'result:', mintResult)
+      }
+    } catch (mintErr) {
+      console.error('[scan] mint fetch threw:', mintErr)
+    }
+
+    // ── Step 9 — Return success ───────────────────────────────────────────
     console.log('[scan] success — scan_number:', scan_number)
     return NextResponse.json({
       success: true,
