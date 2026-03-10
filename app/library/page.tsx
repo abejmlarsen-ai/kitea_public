@@ -1,7 +1,7 @@
 // ─── Library Page (Protected) ────────────────────────────────────────────────
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import WalletButton from '@/components/wallet/WalletButton'
 import WalletAutoConnect from '@/components/wallet/WalletAutoConnect'
 import LibraryClient from './LibraryClient'
@@ -16,7 +16,9 @@ export type MintedNFT = {
   status: string
   transaction_hash: string | null
   minted_at: string | null
-  hunt_locations: { name: string } | null
+  hunt_locations: { name: string; nft_image_url: string | null } | null
+  // Pre-generated 1-hour signed URL for the NFT image (null if no image path).
+  nft_signed_image_url: string | null
 }
 
 export default async function LibraryPage() {
@@ -53,13 +55,39 @@ export default async function LibraryPage() {
     const { data } = await supabase
       .from('nft_tokens')
       .select(
-        'id, token_id, edition_number, hunt_location_id, status, transaction_hash, minted_at, hunt_locations(name)'
+        'id, token_id, edition_number, hunt_location_id, status, transaction_hash, minted_at, hunt_locations(name, nft_image_url)'
       )
       .eq('user_id', user.id)
       .eq('status', 'minted')
       .order('minted_at', { ascending: false })
 
-    if (data) nfts = data as unknown as MintedNFT[]
+    if (data) {
+      // Generate 1-hour signed URLs for any NFT that has a private image path.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const srClient = createServiceRoleClient() as any
+      const rawNfts = data as unknown as Omit<MintedNFT, 'nft_signed_image_url'>[]
+
+      nfts = await Promise.all(
+        rawNfts.map(async (nft) => {
+          const imagePath = nft.hunt_locations?.nft_image_url ?? null
+
+          // If already a full URL keep it; if a path, sign it; if null, skip.
+          let nft_signed_image_url: string | null = null
+          if (imagePath) {
+            if (imagePath.startsWith('http')) {
+              nft_signed_image_url = imagePath
+            } else {
+              const { data: signed } = await srClient.storage
+                .from('hunt-assets-private')
+                .createSignedUrl(imagePath, 3600)
+              nft_signed_image_url = signed?.signedUrl ?? null
+            }
+          }
+
+          return { ...nft, nft_signed_image_url }
+        })
+      )
+    }
   }
 
   return (

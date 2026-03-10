@@ -64,7 +64,7 @@ function NFTModal({ nft, onClose }: ModalProps) {
 
         <div className="nft-modal-image">
           <Image
-            src="/images/Kitea Logo Only.png"
+            src={nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'}
             alt={name}
             width={180}
             height={180}
@@ -129,7 +129,7 @@ function NFTCard({ nft, onClick }: CardProps) {
     >
       <div className="nft-card-image-wrapper">
         <Image
-          src="/images/Kitea Logo Only.png"
+          src={nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'}
           alt={name}
           width={isFounder ? 120 : 80}
           height={isFounder ? 120 : 80}

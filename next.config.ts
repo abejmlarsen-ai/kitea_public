@@ -1,9 +1,15 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Image optimisation — add external hostnames here as needed
+  // Image optimisation — external hostnames for next/image
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hwfxwbdnsnlvnyhkstcj.supabase.co',
+        pathname: '/storage/v1/**',
+      },
+    ],
   },
 }
 

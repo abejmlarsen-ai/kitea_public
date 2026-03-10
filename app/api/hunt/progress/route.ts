@@ -113,11 +113,27 @@ export async function GET(req: NextRequest) {
       '| initial_clue_attempts=', initial_clue_attempts
     )
 
-    // ── 5. Return response ────────────────────────────────────────────────────
+    // ── 5. Sign clue image URL if it is a private-storage path ───────────────
+    // image_url is stored as a relative path (e.g. "hunt-1/clue.png").
+    // Generate a 1-hour signed URL so the client can load the private image.
+    let clueImageUrl: string | null = (clue?.image_url as string | null) ?? null
+    if (clueImageUrl && !clueImageUrl.startsWith('http')) {
+      const { data: signedImg } = await db.storage
+        .from('hunt-assets-private')
+        .createSignedUrl(clueImageUrl, 3600)
+      if (signedImg?.signedUrl) {
+        clueImageUrl = signedImg.signedUrl
+        console.log('[hunt/progress] signed clue image URL generated')
+      } else {
+        console.warn('[hunt/progress] failed to sign clue image URL for path:', clueImageUrl)
+      }
+    }
+
+    // ── 6. Return response ────────────────────────────────────────────────────
     return NextResponse.json({
       clue: clue
         ? {
-            image_url:      (clue.image_url      as string|null) ?? null,
+            image_url:      clueImageUrl,
             text_content:   (clue.text_content   as string|null) ?? null,
             code_type_hint: (clue.code_type_hint as string|null) ?? null,
           }
