@@ -5,6 +5,9 @@
 // Updates hunt_attempts (per user+question) and hunt_progress (per user+location).
 //
 // Required env vars: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+//
+// DB schema — hunt_attempts: id, user_id, question_id, attempt_count, solved, updated_at
+// (NO hunt_location_id column — do not try to insert/filter by it)
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -13,14 +16,14 @@ import { distance }                   from 'fastest-levenshtein'
 import { createServiceRoleClient }    from '@/lib/supabase/server'
 
 // ── Answer normalisation ──────────────────────────────────────────────────────
-// Must match the normalisation applied in the admin panel when saving questions:
-// trim → lowercase → strip punctuation → collapse whitespace.
+// Applied to BOTH the submitted answer AND the stored answer_normalised value
+// so that casing / punctuation differences never cause false mismatches.
 function normaliseAnswer(raw: string): string {
   return raw
     .trim()
     .toLowerCase()
     .replace(/[^\w\s]/g, '')  // remove punctuation
-    .replace(/\s+/g, ' ')     // collapse runs of whitespace
+    .replace(/\s+/g, ' ')      // collapse runs of whitespace
     .trim()
 }
 
@@ -66,19 +69,24 @@ export async function POST(req: NextRequest) {
       }
 
       // ── ic.2 Normalise + compare via Levenshtein ────────────────────────────
-      const normInput  = normaliseAnswer(String(answer))
-      const normTarget = normaliseAnswer(String(clue.initial_clue_answer ?? ''))
+      const rawSubmitted  = String(answer)
+      const normInput     = normaliseAnswer(rawSubmitted)
+      const normTarget    = normaliseAnswer(String(clue.initial_clue_answer ?? ''))
 
       const dist      = distance(normInput, normTarget)
       const isCorrect = dist <= 3
 
       console.log(
-        '[hunt/answer] initial_clue input:', JSON.stringify(normInput),
-        '| target:', JSON.stringify(normTarget),
-        '| dist:', dist, '| correct:', isCorrect
+        '[hunt/answer] initial_clue raw submitted:', JSON.stringify(rawSubmitted),
+        '\n[hunt/answer] initial_clue norm submitted:', JSON.stringify(normInput),
+        '\n[hunt/answer] initial_clue norm target:', JSON.stringify(normTarget),
+        '\n[hunt/answer] initial_clue dist:', dist, '| correct:', isCorrect
       )
 
-      // ── ic.3 Fetch or create hunt_attempts row (location id as pseudo question_id) ──
+      // ── ic.3 Fetch or create hunt_attempts row ──────────────────────────────
+      // The initial-clue attempt is stored with question_id = hunt_location_id
+      // (a pseudo question_id so it can be distinguished from real questions).
+      // hunt_attempts has NO hunt_location_id column — do NOT include it in inserts.
       const { data: existing, error: fetchErr } = await db
         .from('hunt_attempts')
         .select('id, attempt_count, solved')
@@ -113,10 +121,9 @@ export async function POST(req: NextRequest) {
           .from('hunt_attempts')
           .insert({
             user_id,
-            question_id:      hunt_location_id,   // pseudo question_id
-            hunt_location_id,
-            attempt_count:    1,
-            solved:           isCorrect,
+            question_id:   hunt_location_id,  // pseudo question_id for initial clue
+            attempt_count: 1,
+            solved:        isCorrect,
           })
 
         if (creErr) {
@@ -145,7 +152,7 @@ export async function POST(req: NextRequest) {
           await db.from('hunt_progress').insert({ user_id, hunt_location_id, ...patch })
         }
 
-        console.log('[hunt/answer] initial_clue correct — hunt_progress updated, location_revealed: true')
+        console.log('[hunt/answer] initial_clue correct — location_revealed: true')
 
         return NextResponse.json({ correct: true })
       }
@@ -166,7 +173,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── Question branch (existing logic — unchanged) ───────────────────────────
+    // ── Question branch ────────────────────────────────────────────────────────
     if (!user_id?.trim() || !question_id?.trim() || answer === undefined || answer === null) {
       return NextResponse.json(
         { error: 'user_id, question_id, and answer are required.' },
@@ -174,9 +181,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.log('[hunt/answer] user:', user_id, '| question:', question_id)
+    console.log('[hunt/answer] question — user:', user_id, '| question:', question_id)
 
-    // Service-role client bypasses RLS — these tables are server-managed only
     const db: any = createServiceRoleClient()
 
     // ── 2. Fetch the question ─────────────────────────────────────────────────
@@ -192,19 +198,24 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 3. Normalise + compare via Levenshtein ────────────────────────────────
-    const normInput  = normaliseAnswer(String(answer))
-    const normTarget = String(question.answer_normalised ?? '')
+    // BOTH sides must be normalised — the stored value may not have been saved
+    // with exactly the same normalisation the client applies.
+    const rawSubmitted = String(answer)
+    const normInput    = normaliseAnswer(rawSubmitted)
+    const normTarget   = normaliseAnswer(String(question.answer_normalised ?? ''))
 
     const dist      = distance(normInput, normTarget)
     const isCorrect = dist <= 3
 
     console.log(
-      '[hunt/answer] input:', JSON.stringify(normInput),
-      '| target:', JSON.stringify(normTarget),
-      '| dist:', dist, '| correct:', isCorrect
+      '[hunt/answer] question raw submitted:', JSON.stringify(rawSubmitted),
+      '\n[hunt/answer] question norm submitted:', JSON.stringify(normInput),
+      '\n[hunt/answer] question norm target:', JSON.stringify(normTarget),
+      '\n[hunt/answer] question dist:', dist, '| correct:', isCorrect
     )
 
-    // ── 4. Fetch or create hunt_attempts row, increment attempt_count ─────────
+    // ── 4. Fetch or create hunt_attempts row ──────────────────────────────────
+    // hunt_attempts has NO hunt_location_id column — do NOT include it in inserts.
     const { data: existing, error: fetchErr } = await db
       .from('hunt_attempts')
       .select('id, attempt_count, solved')
@@ -221,13 +232,11 @@ export async function POST(req: NextRequest) {
     let attemptId:    string
 
     if (existing) {
-      // Already attempted — increment
       attemptCount = (existing.attempt_count as number ?? 0) + 1
       const { data: upd, error: updErr } = await db
         .from('hunt_attempts')
         .update({
           attempt_count: attemptCount,
-          // Never flip solved back to false once correct
           solved: isCorrect || Boolean(existing.solved),
         })
         .eq('id', existing.id)
@@ -240,16 +249,14 @@ export async function POST(req: NextRequest) {
       }
       attemptId = upd.id as string
     } else {
-      // First attempt
       attemptCount = 1
       const { data: cre, error: creErr } = await db
         .from('hunt_attempts')
         .insert({
           user_id,
           question_id,
-          hunt_location_id: question.hunt_location_id as string,
-          attempt_count:    1,
-          solved:           isCorrect,
+          attempt_count: 1,
+          solved:        isCorrect,
         })
         .select('id')
         .single()
@@ -265,7 +272,6 @@ export async function POST(req: NextRequest) {
 
     // ── 5. Correct branch — update hunt_progress ──────────────────────────────
     if (isCorrect) {
-      // How many questions does this location have in total?
       const { count: totalQ, error: cntErr } = await db
         .from('hunt_questions')
         .select('id', { count: 'exact', head: true })
@@ -284,7 +290,6 @@ export async function POST(req: NextRequest) {
         '| total:', totalQ, '| isLast:', isLastQuestion
       )
 
-      // Upsert hunt_progress
       const { data: prog } = await db
         .from('hunt_progress')
         .select('id')
@@ -319,7 +324,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── 6. Wrong branch — return hint if threshold reached ────────────────────
+    // ── 6. Wrong branch ───────────────────────────────────────────────────────
     const hintThreshold = question.hint_after_attempts as number ?? 3
     const showHint      = Boolean(question.hint_text) && attemptCount >= hintThreshold
 

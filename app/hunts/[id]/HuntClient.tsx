@@ -104,7 +104,16 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
           answer:           mainAnswer,
         }),
       })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string }
+        console.error('[HuntClient] submitMainAnswer API error:', res.status, err.error)
+        setMainWrong(true)
+        setTimeout(() => setMainWrong(false), 600)
+        return
+      }
       const data = await res.json() as { correct: boolean; showHint?: boolean; hint?: string | null }
+
+      console.log('[HuntClient] submitMainAnswer response:', data)
 
       if (data.correct) {
         setRevealed(true)
@@ -140,7 +149,16 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
           answer:      locationInput,
         }),
       })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string }
+        console.error('[HuntClient] submitLocationAnswer API error:', res.status, err.error)
+        setLocationWrong(true)
+        setTimeout(() => setLocationWrong(false), 600)
+        return
+      }
       const data = await res.json() as { correct: boolean }
+
+      console.log('[HuntClient] submitLocationAnswer response:', data)
 
       if (data.correct) {
         const next = locationQIndex + 1
