@@ -41,16 +41,19 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
   }
 
   // ── Fetch progress data directly via service-role client ──────────────────
-  // Bypasses NEXT_PUBLIC_SITE_URL / internal HTTP fetch — works in all envs.
-  // hunt_clues columns: id, hunt_location_id, image_url, text_content,
-  //   code_type_hint, initial_clue_answer, initial_clue_hint, created_at
-  // (reveal_image_url / reveal_directions do NOT exist in the DB)
+  // Direct queries — no internal HTTP fetch (unreliable on Vercel preview).
+  // DB schema notes:
+  //   hunt_clues    : image_url, text_content, code_type_hint, initial_clue_hint
+  //                   (reveal_image_url / reveal_directions do NOT exist)
+  //   hunt_attempts : user_id, question_id, attempt_count, solved
+  //                   (no hunt_location_id column — scope via question_id set)
   let progressData = null
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = createServiceRoleClient() as any
 
-    const [clueRes, questionsRes, progressRes, attemptsRes] = await Promise.all([
+    // Fetch clue, questions, and progress first
+    const [clueRes, questionsRes, progressRes] = await Promise.all([
       db
         .from('hunt_clues')
         .select('image_url, text_content, code_type_hint, initial_clue_hint')
@@ -67,21 +70,33 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
         .eq('user_id', user.id)
         .eq('hunt_location_id', params.id)
         .maybeSingle(),
-      db
-        .from('hunt_attempts')
-        .select('question_id, attempt_count, solved')
-        .eq('user_id', user.id)
-        .eq('hunt_location_id', params.id),
     ])
 
     if (clueRes.error)      console.error('[hunt/page] clue error:',      clueRes.error.message)
     if (questionsRes.error) console.error('[hunt/page] questions error:',  questionsRes.error.message)
     if (progressRes.error)  console.error('[hunt/page] progress error:',   progressRes.error.message)
-    if (attemptsRes.error)  console.error('[hunt/page] attempts error:',   attemptsRes.error.message)
 
-    const clue        = clueRes.data
-    const questions   = questionsRes.data  ?? []
-    const progress    = progressRes.data
+    const clue      = clueRes.data
+    const questions = (questionsRes.data ?? []) as { id: string; question_text: string; order_index: number; hint_after_attempts: number }[]
+    const progress  = progressRes.data
+
+    console.log('[hunt/page] clue:', !!clue, '| questions:', questions.length, '| progress:', progress ? `idx:${progress.current_question_index}` : 'none')
+
+    // Fetch attempts scoped to this hunt's question IDs.
+    // hunt_attempts has no hunt_location_id column, so we filter via question_id.
+    // The initial-clue attempt uses hunt_location_id as a pseudo question_id.
+    const questionIds = questions.map(q => q.id)
+    const scopedIds   = [...questionIds, params.id] // include initial-clue pseudo-ID
+
+    const attemptsRes = await db
+      .from('hunt_attempts')
+      .select('question_id, attempt_count, solved')
+      .eq('user_id', user.id)
+      .in('question_id', scopedIds)
+
+    if (attemptsRes.error) console.error('[hunt/page] attempts error:', attemptsRes.error.message)
+    console.log('[hunt/page] attempts:', attemptsRes.data?.length ?? 0)
+
     const allAttempts = (attemptsRes.data ?? []) as { question_id: string; attempt_count: number; solved: boolean }[]
 
     const initialClueRow   = allAttempts.find(a => a.question_id === params.id)
@@ -100,9 +115,9 @@ export default async function HuntPage({ params }: { params: { id: string } }) {
       initial_clue_attempts: initialClueRow?.attempt_count ?? 0,
     }
 
-    console.log('[hunt/page] progressData: clue=', !!clue,
-      '| questions=', questions.length,
-      '| progress=', progress ? `idx:${progress.current_question_index}` : 'none')
+    console.log('[hunt/page] progressData built: clue=', !!clue,
+      '| initial_clue_hint=', !!progressData.initial_clue_hint,
+      '| initial_clue_attempts=', progressData.initial_clue_attempts)
   } catch (err) {
     console.error('[hunt/page] progress fetch failed:', err)
   }
