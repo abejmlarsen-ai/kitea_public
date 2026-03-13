@@ -1,12 +1,11 @@
 'use client'
-// ─── Login Form (Client Component) ───────────────────────────────────────────
+// ─── Login Form (Client Component) ──────────────────────────────────────────────
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { mintFounderNft } from '@/app/actions/mintFounderNft'
 
 export default function LoginForm() {
   const [email, setEmail]       = useState('')
@@ -32,15 +31,24 @@ export default function LoginForm() {
       return
     }
 
-    // ── Founder NFT mint (idempotent — no-op if already pending/minted) ──────
-    // Called as a server action so it runs server-side with full DB + Thirdweb
-    // access.  Errors are caught and logged; they never block the redirect.
+    // Fire-and-forget: queue the founder NFT pending row insert.
+    // /api/nft/mint runs in its own serverless invocation and is fully
+    // idempotent — safe to call on every login.  We intentionally do NOT
+    // await so the redirect to /library happens immediately.
+    // The library page detects any pending row and triggers the actual
+    // blockchain mint once the user has a connected wallet.
     if (data.user) {
-      try {
-        await mintFounderNft(data.user.id)
-      } catch (mintErr) {
-        console.error('[LoginForm] mintFounderNft failed (non-fatal):', mintErr)
-      }
+      fetch('/api/nft/mint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: data.user.id,
+          hunt_location_id: null,
+          scan_number: 1,
+          scan_id: null,
+          is_founder: true,
+        }),
+      }).catch(console.error)
     }
 
     router.push('/library')
