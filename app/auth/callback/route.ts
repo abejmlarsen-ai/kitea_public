@@ -6,6 +6,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createServiceRoleClient } from '@/lib/supabase/server'
+import { mintNFT } from '@/lib/thirdweb/mint'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -14,6 +16,7 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const cookieStore = await cookies()
+    // Anon client — only used to exchange the OAuth code for a session
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,12 +34,17 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // ── Founder NFT: trigger on every auth (mint route is idempotent) ─────
       const { data: { user } } = await supabase.auth.getUser()
+
       if (user) {
         console.log('[auth/callback] user authenticated:', user.id)
 
-        // Upsert profile row — no-op if it already exists
+        // Service-role client for nft_tokens + profile reads (bypasses RLS)
+        const db = createServiceRoleClient()
+
+        // ── 1. Upsert profile row ──────────────────────────────────────────
+        // Use the anon client here — it has the user session and the un-typed
+        // createServerClient skips strict schema checks on profiles.
         const { error: upsertError } = await supabase
           .from('profiles')
           .upsert({ id: user.id }, { onConflict: 'id', ignoreDuplicates: true })
@@ -47,8 +55,8 @@ export async function GET(request: NextRequest) {
           console.log('[auth/callback] profile upserted for:', user.id)
         }
 
-        // Count all profiles to determine this user's founder edition number
-        const { count, error: countError } = await supabase
+        // ── 2. Count profiles to determine founder edition number ──────────
+        const { count, error: countError } = await db
           .from('profiles')
           .select('*', { count: 'exact', head: true })
 
@@ -57,46 +65,99 @@ export async function GET(request: NextRequest) {
         }
 
         const founderNumber = count ?? 1
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? origin
+        console.log('[auth/callback] founder edition number:', founderNumber)
 
-        console.log(
-          '[auth/callback] triggering founder mint — user:', user.id,
-          'edition:', founderNumber,
-          'url:', `${siteUrl}/api/nft/mint`,
-        )
+        // ── 3. Idempotency — skip if NFT already pending or minted ─────────
+        const { data: existing, error: idempotencyError } = await db
+          .from('nft_tokens')
+          .select('id, status')
+          .eq('user_id', user.id)
+          .is('hunt_location_id', null)
+          .in('status', ['minted', 'pending'])
+          .maybeSingle()
 
-        // ── IMPORTANT: await the fetch — do NOT fire-and-forget ────────────
-        // Serverless runtimes (Vercel) may freeze the process the moment the
-        // redirect response is returned.  A background fetch() that is not
-        // awaited will be killed before it resolves, so the mint never runs.
-        try {
-          const mintRes = await fetch(`${siteUrl}/api/nft/mint`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: user.id,
-              hunt_location_id: null,
-              scan_number: founderNumber,
-              scan_id: null,
-              is_founder: true,
-            }),
-          })
+        if (idempotencyError) {
+          console.error('[auth/callback] idempotency check error:', idempotencyError.message)
+        }
 
-          if (!mintRes.ok) {
-            const body = await mintRes.text()
-            console.error(
-              '[auth/callback] founder mint returned error — status:',
-              mintRes.status, 'body:', body,
-            )
-          } else {
-            const result = await mintRes.json() as Record<string, unknown>
-            console.log(
-              '[auth/callback] founder mint succeeded — status:', mintRes.status,
-              'result:', result,
-            )
+        if (existing) {
+          console.log('[auth/callback] founder NFT already exists (status:', existing.status + ') — skipping mint')
+        } else {
+          // ── 4. Fetch wallet address ──────────────────────────────────────
+          const { data: profile, error: profileError } = await db
+            .from('profiles')
+            .select('wallet_address')
+            .eq('id', user.id)
+            .single()
+
+          if (profileError) {
+            console.error('[auth/callback] profile fetch failed:', profileError.message)
           }
-        } catch (fetchErr) {
-          console.error('[auth/callback] founder mint fetch threw:', fetchErr)
+
+          const walletAddress = profile?.wallet_address ?? null
+          const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS ?? ''
+          const chain = 'base-sepolia-testnet'
+
+          if (!walletAddress) {
+            // ── 4a. No wallet yet — insert pending row; drained when wallet connects
+            console.log('[auth/callback] no wallet — inserting pending founder NFT for user:', user.id)
+
+            const { data: pendingRow, error: insertError } = await db
+              .from('nft_tokens')
+              .insert({
+                user_id: user.id,
+                hunt_location_id: null,
+                scan_id: null,
+                token_id: '0',
+                edition_number: founderNumber,
+                status: 'pending',
+                contract_address: contractAddress,
+                chain,
+              })
+              .select('id')
+              .single()
+
+            if (insertError) {
+              console.error('[auth/callback] pending NFT insert failed:', insertError.message, insertError.details)
+            } else {
+              console.log('[auth/callback] pending founder NFT row created:', pendingRow.id)
+            }
+          } else {
+            // ── 4b. Wallet present — mint on-chain directly ──────────────
+            console.log('[auth/callback] wallet found:', walletAddress, '— minting founder NFT directly')
+
+            try {
+              const txHash = await mintNFT({
+                toAddress: walletAddress,
+                tokenId: BigInt(0),
+                amount: 1,
+              })
+
+              console.log('[auth/callback] founder NFT minted — txHash:', txHash)
+
+              const { error: mintRecordError } = await db
+                .from('nft_tokens')
+                .insert({
+                  user_id: user.id,
+                  hunt_location_id: null,
+                  scan_id: null,
+                  token_id: '0',
+                  edition_number: founderNumber,
+                  status: 'minted',
+                  transaction_hash: txHash,
+                  contract_address: contractAddress,
+                  chain,
+                })
+
+              if (mintRecordError) {
+                console.error('[auth/callback] minted NFT record insert failed:', mintRecordError.message)
+              } else {
+                console.log('[auth/callback] minted founder NFT record saved')
+              }
+            } catch (mintErr) {
+              console.error('[auth/callback] mintNFT threw:', mintErr)
+            }
+          }
         }
       }
 
