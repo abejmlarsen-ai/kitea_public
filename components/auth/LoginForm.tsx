@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { mintFounderNft } from '@/app/actions/mintFounderNft'
 
 export default function LoginForm() {
   const [email, setEmail]       = useState('')
@@ -20,7 +21,7 @@ export default function LoginForm() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -29,6 +30,17 @@ export default function LoginForm() {
       setError(authError.message)
       setLoading(false)
       return
+    }
+
+    // ── Founder NFT mint (idempotent — no-op if already pending/minted) ──────
+    // Called as a server action so it runs server-side with full DB + Thirdweb
+    // access.  Errors are caught and logged; they never block the redirect.
+    if (data.user) {
+      try {
+        await mintFounderNft(data.user.id)
+      } catch (mintErr) {
+        console.error('[LoginForm] mintFounderNft failed (non-fatal):', mintErr)
+      }
     }
 
     router.push('/library')
