@@ -1,18 +1,21 @@
 'use client'
 
-// ─── Library Client — NFT collection display ─────────────────────────────────
+// ─── Library Client — NFT collection display ────────────────────────────
 // Wrapped in Suspense so useSearchParams() works with static rendering.
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import type { MintedNFT } from './page'
 
 type Props = {
   nfts: MintedNFT[]
+  userId?: string | null
+  walletAddress?: string | null
+  hasPendingFounder?: boolean
 }
 
-// ─── NFT Modal ────────────────────────────────────────────────────────────────
+// ─── NFT Modal ───────────────────────────────────────────────────────────
 
 type ModalProps = {
   nft: MintedNFT
@@ -109,7 +112,7 @@ function NFTModal({ nft, onClose }: ModalProps) {
   )
 }
 
-// ─── NFT Card ─────────────────────────────────────────────────────────────────
+// ─── NFT Card ──────────────────────────────────────────────────────────────
 
 type CardProps = {
   nft: MintedNFT
@@ -156,9 +159,9 @@ function NFTCard({ nft, onClick }: CardProps) {
   )
 }
 
-// ─── Inner component (uses useSearchParams + modal state) ─────────────────────
+// ─── Inner component (uses useSearchParams + modal state) ────────────────────
 
-function LibraryClientInner({ nfts }: Props) {
+function LibraryClientInner({ nfts, userId, walletAddress, hasPendingFounder }: Props) {
   const searchParams    = useSearchParams()
   const [selectedNFT, setSelectedNFT] = useState<MintedNFT | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
@@ -180,10 +183,48 @@ function LibraryClientInner({ nfts }: Props) {
     return () => clearTimeout(t)
   }, [showBanner])
 
+  // If the user has a pending founder NFT and a connected wallet, trigger the
+  // mint now.  The mint route upgrades the pending row to minted, then we
+  // reload so the NFT appears in the collection.
+  //
+  // useRef prevents a double-fire in React StrictMode (dev double-invoke).
+  const mintTriggered = useRef(false)
+
+  useEffect(() => {
+    if (!hasPendingFounder || !walletAddress || !userId) return
+    if (mintTriggered.current) return
+    mintTriggered.current = true
+
+    console.log('[LibraryClient] pending founder NFT detected — triggering mint')
+
+    fetch('/api/nft/mint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId,
+        hunt_location_id: null,
+        scan_number: 1,
+        scan_id: null,
+        is_founder: true,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data: { status: string }) => {
+        console.log('[LibraryClient] mint result:', data.status)
+        if (data.status === 'minted') {
+          // Reload to show the newly minted founder NFT in the collection.
+          window.location.reload()
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('[LibraryClient] mint trigger failed:', err)
+      })
+  }, [hasPendingFounder, walletAddress, userId])
+
   const founderNFT = nfts.find((n) => n.hunt_location_id === null)
   const huntNFTs   = nfts.filter((n) => n.hunt_location_id !== null)
 
-  // ── Empty state: only when truly no NFTs ──────────────────────────────────
+  // ── Empty state: only when truly no NFTs ───────────────────────────────
   if (nfts.length === 0) {
     return (
       <div className="library-paper">
@@ -211,7 +252,7 @@ function LibraryClientInner({ nfts }: Props) {
     )
   }
 
-  // ── Full collection view ───────────────────────────────────────────────────
+  // ── Full collection view ─────────────────────────────────────────────────
   return (
     <>
       {/* Scan-success congratulations banner */}
@@ -291,10 +332,20 @@ function LibraryClientInner({ nfts }: Props) {
 
 // ─── Default export — wraps inner in Suspense for useSearchParams ─────────────
 
-export default function LibraryClient({ nfts }: Props) {
+export default function LibraryClient({
+  nfts,
+  userId,
+  walletAddress,
+  hasPendingFounder,
+}: Props) {
   return (
     <Suspense fallback={null}>
-      <LibraryClientInner nfts={nfts} />
+      <LibraryClientInner
+        nfts={nfts}
+        userId={userId}
+        walletAddress={walletAddress}
+        hasPendingFounder={hasPendingFounder}
+      />
     </Suspense>
   )
 }
