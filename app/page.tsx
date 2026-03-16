@@ -1,18 +1,11 @@
-// ─── Root Page ────────────────────────────────────────────────────────────────
+// ─── Root Page ────────────────────────────────────────────────────────────────────────────
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import UnderConstruction from '@/components/ui/UnderConstruction'
 
 export const metadata: Metadata = { title: 'Kitea' }
 
-const isUnderConstruction = process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true'
-
 export default function HomePage() {
-  if (isUnderConstruction) {
-    return <UnderConstruction />
-  }
-
   return (
     <div className="page-theme page-theme--home">
       {/* Brand Logo */}
