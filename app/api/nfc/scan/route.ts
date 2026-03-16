@@ -46,10 +46,29 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Step 4 — Look up the NFC tag ──────────────────────────────────────
+    // Normalise the incoming UID so chips programmed with any casing or
+    // formatting resolve correctly:
+    //   raw          e.g. "04:6a:61:22:49:68:80"  (as received)
+    //   upper        e.g. "04:6A:61:22:49:68:80"  (uppercase)
+    //   stripped     e.g. "046a61224968"           (colons removed)
+    //   strippedUpper e.g. "046A61224968"          (uppercase + no colons)
+    // One OR query covers all four variants against both tag_uid and uid.
+    const uidVariants = Array.from(new Set([
+      tag_uid,
+      tag_uid.toUpperCase(),
+      tag_uid.replace(/:/g, ''),
+      tag_uid.toUpperCase().replace(/:/g, ''),
+    ]))
+    const orFilter = uidVariants
+      .flatMap((v) => [`tag_uid.eq.${v}`, `uid.eq.${v}`])
+      .join(',')
+
+    console.log('[scan] uid variants tried:', uidVariants)
+
     const { data: tag, error: tagError } = await supabase
       .from('nfc_tags')
       .select('*, hunt_locations!hunt_location_id(*)')
-      .or(`tag_uid.eq.${tag_uid},uid.eq.${tag_uid}`)
+      .or(orFilter)
       .eq('is_active', true)
       .single()
 
