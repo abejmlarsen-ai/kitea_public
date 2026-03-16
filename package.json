@@ -10,12 +10,21 @@
     "postinstall": "mkdir -p public/images/leaflet && cp node_modules/leaflet/dist/images/marker-icon*.png public/images/leaflet/ && cp node_modules/leaflet/dist/images/marker-shadow.png public/images/leaflet/ && cp node_modules/leaflet/dist/images/layers*.png public/images/leaflet/"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.8.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.97.0",
+    "@types/nodemailer": "^7.0.11",
+    "ethers": "^6.16.0",
+    "fastest-levenshtein": "^1.0.16",
     "leaflet": "^1.9.4",
     "next": "^16.1.6",
+    "nodemailer": "^8.0.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-leaflet": "^5.0.0",
+    "resend": "^6.9.3",
+    "stripe": "^20.3.1",
+    "thirdweb": "^5.119.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.14",

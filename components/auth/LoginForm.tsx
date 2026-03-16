@@ -1,6 +1,5 @@
-
 'use client'
-// ─── Login Form (Client Component) ───────────────────────────────────────────
+// ─── Login Form (Client Component) ──────────────────────────────────────────────
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
@@ -21,7 +20,7 @@ export default function LoginForm() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -32,21 +31,41 @@ export default function LoginForm() {
       return
     }
 
+    // Fire-and-forget: queue the founder NFT pending row insert.
+    // /api/nft/mint runs in its own serverless invocation and is fully
+    // idempotent — safe to call on every login.  We intentionally do NOT
+    // await so the redirect to /library happens immediately.
+    // The library page detects any pending row and triggers the actual
+    // blockchain mint once the user has a connected wallet.
+    if (data.user) {
+      fetch('/api/nft/mint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: data.user.id,
+          hunt_location_id: null,
+          scan_number: 1,
+          scan_id: null,
+          is_founder: true,
+        }),
+      }).catch(console.error)
+    }
+
     router.push('/library')
     router.refresh()
   }
 
   return (
-    <section className="login-section">
+    <section className="login-section login-section--split">
       {/* Brand Logo */}
-      <div className="logo-hero">
+      <div className="login-logo-side">
         <Image
           src="/images/Kitea Logo Only.png"
           alt="Kitea logo"
-          width={200}
-          height={200}
+          width={400}
+          height={400}
           priority
-          style={{ objectFit: 'contain', maxHeight: '40vh', width: 'auto' }}
+          style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
         />
       </div>
 

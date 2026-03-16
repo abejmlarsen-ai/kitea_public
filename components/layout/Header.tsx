@@ -1,20 +1,36 @@
 // ─── Site Header (Server Component) ─────────────────────────────────────────
-// Reads Supabase session server-side so the Library/Shop links appear
-// instantly for authenticated users without any client-side flash.
-
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import AdminDropdown from './AdminDropdown'
+import LogoutButton from '@/components/auth/LogoutButton'
 
 export default async function Header() {
   const supabase = await createClient()
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
+  let isAdmin = false
+
+  if (user) {
+    const { data: profileRaw, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError) {
+      console.error('[Header] profiles query error:', profileError.message)
+    }
+
+    const raw = profileRaw as Record<string, unknown> | null
+    isAdmin   = !!raw?.is_admin
+  }
+
   return (
     <header className="site-header">
-      <div className="container header-inner">
+      <div className="header-inner">
         <Link href="/" className="logo">
           Kitea
         </Link>
@@ -29,6 +45,8 @@ export default async function Header() {
               <>
                 <li><Link href="/library">Library</Link></li>
                 <li><Link href="/shop">Shop</Link></li>
+                {isAdmin && <AdminDropdown />}
+                <li><LogoutButton /></li>
               </>
             ) : (
               <li><Link href="/login">Login</Link></li>

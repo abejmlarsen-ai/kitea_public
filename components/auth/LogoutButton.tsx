@@ -1,5 +1,4 @@
 'use client'
-// ─── Logout Button (Client Component) ────────────────────────────────────────
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -15,7 +14,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <button id="logout-btn" onClick={handleLogout}>
+    <button id="logout-btn" className="nav-logout-btn" onClick={handleLogout}>
       Logout
     </button>
   )
