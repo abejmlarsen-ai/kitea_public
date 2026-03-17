@@ -21,16 +21,12 @@ interface Props {
 
 export default function HuntsClient({ locations }: Props) {
   return (
-    <div style={{
-      background: '#f1faee',
-      minHeight: '100vh',
-      padding: '2rem 2rem 2rem 2rem',
-    }}>
+    <div className="page-theme page-theme--map" style={{ padding: '2rem' }}>
       <h1 style={{
         fontFamily:    'var(--font-heading, inherit)',
         fontSize:      '1.6rem',
         fontWeight:    700,
-        color:         '#1d3557',
+        color:         'var(--dune-7)',
         marginBottom:  '1rem',
         letterSpacing: '0.04em',
       }}>

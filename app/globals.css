@@ -12,11 +12,11 @@
 
 /* ─── Design Variables ──────────────────────────────────────────────────────── */
 :root {
-  --color-bg:      #afcefa;
-  --color-surface: #d2def7;
-  --color-text:    #000104;
-  --color-muted:   #010002;
-  --color-accent:  #000001;
+  --color-bg:      var(--dune-2);
+  --color-surface: var(--dune-3);
+  --color-text:    var(--dune-7);
+  --color-muted:   var(--dune-6);
+  --color-accent:  var(--horizon-3);
 
   --font-heading: 'Inter', sans-serif;
   --font-body:    'Inter', sans-serif;
@@ -24,14 +24,42 @@
   --max-width:       1200px;
   --section-padding: 6rem;
 }
-/* ─── Kitea surfy palette ───────────────────────────────────────────────── */
+/* ─── Brand Palettes ────────────────────────────────────────────────────── */
 :root {
-  --kitea-teal:  #2a9d8f;
-  --kitea-ocean: #457b9d;
-  --kitea-sand:  #e9c46a;
-  --kitea-warm:  #f4a261;
-  --kitea-light: #f1faee;
-  --kitea-dark:  #1d3557;
+  /* Palette 1 — Dune to Deep */
+  --dune-1: #FFFFFF;
+  --dune-2: #F2EDE3;
+  --dune-3: #C4B08E;
+  --dune-4: #8A7A5E;
+  --dune-5: #4A7C8C;
+  --dune-6: #1B4965;
+  --dune-7: #0B2838;
+
+  /* Palette 2 — Organic Coastal */
+  --coastal-1: #FFFFFF;
+  --coastal-2: #FAF3E0;
+  --coastal-3: #D4C5A0;
+  --coastal-4: #8BA888;
+  --coastal-5: #3D8B7A;
+  --coastal-6: #1A6B5A;
+  --coastal-7: #0F3D35;
+
+  /* Palette 3 — Golden Burnt Horizon */
+  --horizon-1: #FFFFFF;
+  --horizon-2: #FFF4E0;
+  --horizon-3: #D4A55A;
+  --horizon-4: #B86B3A;
+  --horizon-5: #8A3A2A;
+  --horizon-6: #6B1D3A;
+  --horizon-7: #1A0A12;
+
+  /* Legacy aliases — mapped to nearest brand equivalents */
+  --kitea-teal:  var(--coastal-5);
+  --kitea-ocean: var(--dune-5);
+  --kitea-sand:  var(--horizon-3);
+  --kitea-warm:  var(--horizon-4);
+  --kitea-light: var(--dune-2);
+  --kitea-dark:  var(--dune-7);
 }
 
 
@@ -66,7 +94,7 @@ body {
 }
 .dynamic-text:hover {
   transform: scale(1.08) translateY(-4px);
-  color: var(--color-accent);
+  color: var(--horizon-3);
 }
 
 /* ─── Header / Navigation ───────────────────────────────────────────────────── */
@@ -124,10 +152,10 @@ body {
 }
 
 /* Per-page logo-hero tints */
-.logo-hero--home  { background: rgba(190, 227, 250, 0.6); }
-.logo-hero--about { background: rgba(239, 205, 251, 0.6); }
-.logo-hero--hiw   { background: rgba(193, 254, 254, 0.6); }
-.logo-hero--map   { background: rgba(251, 219, 174, 0.6); }
+.logo-hero--home  { background: transparent; }
+.logo-hero--about { background: transparent; }
+.logo-hero--hiw   { background: transparent; }
+.logo-hero--map   { background: transparent; }
 
 /* ─── Section_1 (shared structure) ─────────────────────────────────────────── */
 .section_1 {
@@ -303,21 +331,22 @@ body {
 .btn-secondary {
   display: inline-block;
   padding: 1rem 2.5rem;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: transparent;
+  color: var(--dune-7);
+  border: 2px solid var(--dune-7);
   text-decoration: none;
   font-weight: 600;
   border-radius: 50px;
   transition: 0.3s ease;
 }
-.btn-secondary:hover { background: white; }
+.btn-secondary:hover { background: var(--dune-1); color: var(--dune-7); }
 
 /* ─── Footer ────────────────────────────────────────────────────────────────── */
 .site-footer {
   background: linear-gradient(
     135deg,
-    rgba(175, 206, 250, 0.95) 0%,
-    rgba(130, 168, 240, 0.95) 50%,
+    var(--dune-5) 0%,
+    var(--dune-6) 50%,
     rgba(79, 140, 220, 0.95) 100%
   );
   color: var(--color-text);
@@ -379,8 +408,8 @@ body {
   width: 100%;
   padding: 0.75rem;
   margin-top: 0.5rem;
-  background: rgba(60, 79, 245, 0.6);
-  color: white;
+  background: var(--horizon-3);
+  color: #FFFFFF;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
@@ -388,7 +417,7 @@ body {
   cursor: pointer;
   transition: transform 0.3s ease, background 0.3s ease;
 }
-.login-btn:hover        { transform: scale(1.03); background: rgba(60, 79, 245, 0.8); }
+.login-btn:hover        { transform: scale(1.03); background: var(--horizon-4); }
 .login-btn:disabled     { opacity: 0.6; cursor: not-allowed; transform: none; }
 .error-message   { color: red;     font-size: 0.85rem; margin-top: 0.75rem; min-height: 1rem; }
 .success-message { color: #2e7d32; font-size: 0.85rem; margin-top: 0.75rem; min-height: 1rem; }
@@ -606,11 +635,11 @@ body {
   justify-content: center;
   align-items: center;
   padding: 20px;
-  background-color: var(--background, #0a0a0a);
+  background-color: transparent;
 }
 
 .scan-container {
-  background: white;
+  background: var(--horizon-1);
   border-radius: 16px;
   padding: 48px 32px;
   text-align: center;
@@ -627,11 +656,11 @@ body {
 .scan-container h2 {
   font-size: 1.8em;
   margin-bottom: 12px;
-  color: #0a0a0a;
+  color: var(--horizon-7);
 }
 
 .scan-container p {
-  color: #666;
+  color: var(--horizon-5);
   margin-bottom: 8px;
   font-size: 1em;
 }
@@ -639,13 +668,13 @@ body {
 .scan-number {
   font-size: 2.5em !important;
   font-weight: bold;
-  color: #0a0a0a !important;
+  color: var(--horizon-7) !important;
   margin: 16px 0 !important;
 }
 
 .scan-location {
   font-size: 0.9em !important;
-  color: #999 !important;
+  color: var(--horizon-4) !important;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -653,8 +682,8 @@ body {
 .scan-btn {
   margin-top: 24px;
   padding: 14px 32px;
-  background: #0a0a0a;
-  color: white;
+  background: var(--horizon-3);
+  color: #FFFFFF;
   border: none;
   border-radius: 8px;
   font-size: 1em;
@@ -664,14 +693,14 @@ body {
 }
 
 .scan-btn:hover {
-  background: #333;
+  background: var(--horizon-4);
 }
 
 .scan-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #eee;
-  border-top-color: #0a0a0a;
+  border: 3px solid var(--horizon-2);
+  border-top-color: var(--horizon-3);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 16px;
@@ -1374,21 +1403,21 @@ body {
 /* ─── Page shell ────────────────────────────────────────────── */
 .admin-page {
   min-height: 100vh;
-  background: #0f1117;
-  color: #e8ecf4;
+  background: transparent;
+  color: var(--dune-7);
   font-family: var(--font-body);
 }
 
 .admin-header {
   padding: 1.25rem 2rem;
-  border-bottom: 1px solid #2d3142;
-  background: #13161f;
+  border-bottom: 1px solid var(--dune-3);
+  background: var(--dune-4);
 }
 .admin-header h1 {
   font-family: var(--font-heading);
   font-size: 1.4rem;
   font-weight: 700;
-  color: #e8ecf4;
+  color: var(--dune-1);
   margin: 0;
 }
 
@@ -1396,8 +1425,8 @@ body {
 .admin-tabs {
   display: flex;
   gap: 0;
-  background: #13161f;
-  border-bottom: 1px solid #2d3142;
+  background: var(--dune-4);
+  border-bottom: 1px solid var(--dune-3);
   padding: 0 2rem;
   overflow-x: auto;
   flex-wrap: nowrap;
@@ -2629,100 +2658,58 @@ body {
 
 /* ── Home: muted blue (light → deep navy) ───── */
 .page-theme--home {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(220, 236, 248, 0.97)  0%,
-      rgba(165, 210, 238, 0.97) 18%,
-      rgba(90,  165, 220, 0.97) 42%,
-      rgba(30,   85, 148, 0.97) 72%,
-      rgba(4,    40,  72, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-6));
 }
 
 /* ── About: muted pink → purple ─────────────── */
 .page-theme--about {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(252, 240, 255, 0.97)  0%,
-      rgba(232, 195, 248, 0.97) 20%,
-      rgba(180, 120, 218, 0.97) 48%,
-      rgba(105,  40, 158, 0.97) 76%,
-      rgba(55,   12,  82, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-5));
 }
 
 /* ── How It Works: muted forest green ───────── */
 .page-theme--hiw {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(225, 248, 238, 0.97)  0%,
-      rgba(175, 228, 205, 0.97) 20%,
-      rgba(80,  175, 135, 0.97) 48%,
-      rgba(18,   98,  62, 0.97) 76%,
-      rgba(6,    58,  36, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-7));
 }
 
 /* ── Map: muted amber-gold ───────────────────── */
 .page-theme--map {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(255, 252, 238, 0.98)  0%,
-      rgba(248, 228, 175, 0.97) 20%,
-      rgba(210, 158,  68, 0.97) 48%,
-      rgba(140,  85,  12, 0.97) 76%,
-      rgba(82,   48,   4, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-6));
 }
 
 /* ── Library: muted navy ─────────────────────── */
 .page-theme--library {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(220, 230, 252, 0.97)  0%,
-      rgba(168, 188, 238, 0.97) 20%,
-      rgba(75,  108, 195, 0.97) 48%,
-      rgba(18,   44, 118, 0.97) 76%,
-      rgba(6,    18,  60, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--coastal-2), var(--coastal-6));
 }
 
 /* ── Shop: muted crimson red ─────────────────── */
 .page-theme--shop {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(255, 235, 235, 0.97)  0%,
-      rgba(240, 182, 182, 0.97) 20%,
-      rgba(200,  85,  85, 0.97) 48%,
-      rgba(128,  22,  22, 0.97) 76%,
-      rgba(68,    6,   6, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--horizon-2), var(--horizon-6));
 }
 
 /* ── Contact: muted teal ─────────────────────── */
 .page-theme--contact {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(220, 248, 252, 0.97)  0%,
-      rgba(172, 228, 238, 0.97) 20%,
-      rgba(68,  172, 198, 0.97) 48%,
-      rgba(8,    88, 112, 0.97) 76%,
-      rgba(3,    50,  65, 0.97) 100%
-    ),
-    url('/images/hero-bg.jpg') center / cover no-repeat fixed;
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-5));
+}
+
+/* ── Login / Signup: Dune light */
+.page-theme--login,
+.page-theme--signup {
+  background: linear-gradient(to bottom, var(--dune-1), var(--dune-3));
+}
+
+/* ── Hunt pages: Golden Burnt Horizon */
+.page-theme--hunt {
+  background: linear-gradient(to bottom, var(--horizon-2), var(--horizon-6));
+}
+
+/* ── Scan page: Horizon warm */
+.page-theme--scan {
+  background: linear-gradient(to bottom, var(--horizon-2), var(--horizon-4));
+}
+
+/* ── Admin: Dune mid */
+.page-theme--admin {
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-4));
 }
 
 /* ─── Transparent overrides inside any page-theme ────────────────────────────── */
@@ -2755,40 +2742,28 @@ body {
 .page-theme .map-section,
 .page-theme .library-section,
 .page-theme .shop-page,
-.page-theme .contact-section {
+.page-theme .contact-section,
+.page-theme .login-section,
+.page-theme .signup-section,
+.page-theme .admin-page,
+.page-theme .scan-page {
   background: transparent !important;
 }
 
 /* ─── Per-page footer theming via :has() ─────────────────────────────────────── */
 /* Footer background matches each page's gradient end-colour for seamlessness.   */
-body:has(.page-theme--home)    .site-footer {
-  background: rgb(4,  40,  72);
-  border-top-color: rgba(90, 165, 220, 0.2);
-}
-body:has(.page-theme--about)   .site-footer {
-  background: rgb(55,  12,  82);
-  border-top-color: rgba(180, 120, 218, 0.2);
-}
-body:has(.page-theme--hiw)     .site-footer {
-  background: rgb(6,   58,  36);
-  border-top-color: rgba(80, 175, 135, 0.2);
-}
-body:has(.page-theme--map)     .site-footer {
-  background: rgb(82,  48,   4);
-  border-top-color: rgba(210, 158,  68, 0.2);
-}
-body:has(.page-theme--library) .site-footer {
-  background: rgb(6,   18,  60);
-  border-top-color: rgba(75, 108, 195, 0.2);
-}
-body:has(.page-theme--shop)    .site-footer {
-  background: rgb(68,   6,   6);
-  border-top-color: rgba(200, 85,  85, 0.2);
-}
-body:has(.page-theme--contact) .site-footer {
-  background: rgb(3,   50,  65);
-  border-top-color: rgba(68, 172, 198, 0.2);
-}
+body:has(.page-theme--home)    .site-footer { background: var(--dune-6);    border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--about)   .site-footer { background: var(--dune-5);    border-top-color: rgba(196,176,142,0.3); }
+body:has(.page-theme--hiw)     .site-footer { background: var(--dune-7);    border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--map)     .site-footer { background: var(--dune-6);    border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--library) .site-footer { background: var(--coastal-6); border-top-color: rgba(139,168,136,0.3); }
+body:has(.page-theme--shop)    .site-footer { background: var(--horizon-6); border-top-color: rgba(138,58,42,0.3); }
+body:has(.page-theme--contact) .site-footer { background: var(--dune-5);    border-top-color: rgba(196,176,142,0.3); }
+body:has(.page-theme--login)   .site-footer { background: var(--dune-3);    border-top-color: rgba(138,122,94,0.3); }
+body:has(.page-theme--signup)  .site-footer { background: var(--dune-3);    border-top-color: rgba(138,122,94,0.3); }
+body:has(.page-theme--hunt)    .site-footer { background: var(--horizon-6); border-top-color: rgba(138,58,42,0.3); }
+body:has(.page-theme--scan)    .site-footer { background: var(--horizon-4); border-top-color: rgba(138,58,42,0.3); }
+body:has(.page-theme--admin)   .site-footer { background: var(--dune-4);    border-top-color: rgba(196,176,142,0.3); }
 
 /* Text colour: always white when a page-theme is active */
 body:has(.page-theme) .site-footer,

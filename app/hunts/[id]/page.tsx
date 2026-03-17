@@ -33,14 +33,14 @@ export default async function HuntPage({
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', minHeight: '100vh',
-        background: '#f1faee', color: '#1d3557', padding: '2rem', textAlign: 'center',
+        background: 'var(--horizon-2)', color: 'var(--horizon-7)', padding: '2rem', textAlign: 'center',
       }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Hunt not found</h1>
-        <p style={{ color: '#457b9d', marginBottom: '2rem' }}>
+        <p style={{ color: 'var(--horizon-4)', marginBottom: '2rem' }}>
           {locationError ? locationError.message : 'This hunt location could not be loaded.'}
         </p>
         <a href="/map" style={{
-          padding: '0.75rem 1.5rem', background: '#2a9d8f', color: 'white',
+          padding: '0.75rem 1.5rem', background: 'var(--horizon-3)', color: '#FFFFFF',
           borderRadius: '0.5rem', textDecoration: 'none', fontWeight: 600,
         }}>
           Return to Map

@@ -12,10 +12,12 @@ interface Props {
 
 export default function HuntPageClient({ huntLocation, userId, progressData }: Props) {
   return (
-    <HuntClient
-      huntLocation={huntLocation}
-      userId={userId}
-      progressData={progressData}
-    />
+    <div className="page-theme page-theme--hunt">
+      <HuntClient
+        huntLocation={huntLocation}
+        userId={userId}
+        progressData={progressData}
+      />
+    </div>
   )
 }

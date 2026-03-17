@@ -188,7 +188,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', minHeight: '100vh',
-        background: '#f1faee', color: '#1d3557',
+        background: 'transparent', color: 'var(--horizon-7)',
         padding: '2rem 1.5rem', textAlign: 'center',
       }}>
         <img
@@ -197,31 +197,31 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
           className='gold-glow'
           style={{ width: '100px', height: '100px', objectFit: 'contain', marginBottom: '2rem' }}
         />
-        <p style={{ fontSize: 'clamp(3rem,16vw,5rem)', fontWeight: 700, color: '#e9c46a', margin: '0 0 0.5rem', lineHeight: 1 }}>
+        <p style={{ fontSize: 'clamp(3rem,16vw,5rem)', fontWeight: 700, color: 'var(--horizon-3)', margin: '0 0 0.5rem', lineHeight: 1 }}>
           #{editionNumber}
         </p>
-        <h2 style={{ fontSize: 'clamp(1.1rem,4vw,1.5rem)', fontWeight: 600, margin: '0 0 1rem', color: '#1d3557' }}>
+        <h2 style={{ fontSize: 'clamp(1.1rem,4vw,1.5rem)', fontWeight: 600, margin: '0 0 1rem', color: 'var(--horizon-7)' }}>
           {huntLocation.name} #{editionNumber}
         </h2>
-        <p style={{ fontStyle: 'italic', color: '#457b9d', fontSize: '1rem', margin: '0 0 0.5rem' }}>
+        <p style={{ fontStyle: 'italic', color: 'var(--horizon-4)', fontSize: '1rem', margin: '0 0 0.5rem' }}>
           You were the {editionNumber} person to find this place
         </p>
-        <p style={{ fontSize: '0.8rem', color: '#888', margin: '0 0 2.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--horizon-5)', margin: '0 0 2.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           A timestamp on a moment
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', maxWidth: '320px' }}>
           <Link href='/library' style={{
-            display: 'block', background: '#2a9d8f', color: 'white',
+            display: 'block', background: 'var(--horizon-3)', color: '#FFFFFF',
             textAlign: 'center', padding: '0.8rem 1rem', borderRadius: '0.5rem',
             fontWeight: 600, fontSize: '1rem', textDecoration: 'none',
           }}>
             View your collection
           </Link>
           <Link href='/map' style={{
-            display: 'block', background: 'transparent', color: '#2a9d8f',
+            display: 'block', background: 'transparent', color: 'var(--horizon-3)',
             textAlign: 'center', padding: '0.8rem 1rem', borderRadius: '0.5rem',
             fontWeight: 600, fontSize: '1rem', textDecoration: 'none',
-            border: '2px solid #2a9d8f',
+            border: '2px solid var(--horizon-3)',
           }}>
             Find another hunt
           </Link>
@@ -232,7 +232,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
 
   // ── MAIN LAYOUT: two-column ──────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ background: '#f1faee', minHeight: '100vh', color: '#1d3557' }}>
+    <div style={{ background: 'transparent', minHeight: '100vh', color: 'var(--horizon-7)' }}>
 
       {/* Simplified hunt header */}
       <div style={{
@@ -240,8 +240,8 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0.75rem 1.5rem',
-        background: 'white',
-        borderBottom: '1px solid #d0e8e4',
+        background: 'var(--horizon-1)',
+        borderBottom: '1px solid var(--horizon-3)',
         position: 'sticky',
         top: 0,
         zIndex: 100,
@@ -258,9 +258,9 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
             alignItems: 'center',
             gap: '6px',
             padding: '7px 16px',
-            background: '#f1faee',
-            color: '#2a9d8f',
-            border: '1px solid #2a9d8f',
+            background: 'var(--horizon-2)',
+            color: 'var(--horizon-3)',
+            border: '1px solid var(--horizon-3)',
             borderRadius: '5px',
             textDecoration: 'none',
             fontSize: '14px',
@@ -277,14 +277,14 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
         <div className='hunt-col-main'>
 
           {/* Hunt name */}
-          <h1 style={{ fontSize: 'clamp(1.5rem,6vw,2.25rem)', fontWeight: 700, color: '#1d3557', margin: '0 0 1.25rem' }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem,6vw,2.25rem)', fontWeight: 700, color: 'var(--horizon-7)', margin: '0 0 1.25rem' }}>
             {huntLocation.name}
           </h1>
 
           {/* ── REVEAL STATE ─────────────────────────────────────────────────────────── */}
           {revealed ? (
             <div>
-              <h2 style={{ color: '#2a9d8f', fontWeight: 700, fontSize: '1.5rem', margin: '0 0 1rem' }}>
+              <h2 style={{ color: 'var(--horizon-3)', fontWeight: 700, fontSize: '1.5rem', margin: '0 0 1rem' }}>
                 You found it! 🌊
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '2rem 0 1.5rem' }}>
@@ -295,10 +295,10 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                   style={{ width: '100px', height: '100px', objectFit: 'contain' }}
                 />
               </div>
-              <p style={{ textAlign: 'center', fontSize: '1.1rem', fontWeight: 500, color: '#1d3557', marginBottom: '0.5rem' }}>
+              <p style={{ textAlign: 'center', fontSize: '1.1rem', fontWeight: 500, color: 'var(--horizon-7)', marginBottom: '0.5rem' }}>
                 Tap your phone to the Kitea tag when you find it
               </p>
-              <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#888' }}>
+              <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--horizon-5)' }}>
                 Make sure NFC is enabled on your phone
               </p>
             </div>
@@ -317,7 +317,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
 
               {/* Clue text */}
               {clue?.text_content && (
-                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#457b9d', marginBottom: '1rem' }}>
+                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--horizon-4)', marginBottom: '1rem' }}>
                   {clue.text_content}
                 </p>
               )}
@@ -325,7 +325,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
               {/* Code type hint pill */}
               {clue?.code_type_hint && (
                 <span style={{
-                  display: 'inline-block', background: '#2a9d8f', color: 'white',
+                  display: 'inline-block', background: 'var(--horizon-3)', color: 'white',
                   borderRadius: '99px', padding: '0.25rem 0.75rem',
                   fontSize: '0.75rem', fontWeight: 600, marginBottom: '1.25rem', letterSpacing: '0.04em',
                 }}>
@@ -336,7 +336,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
               {/* Clue placeholder — shown when progressData hasn't loaded */}
               {!progressData && (
                 <p style={{
-                  fontSize: '1rem', color: '#457b9d', fontStyle: 'italic',
+                  fontSize: '1rem', color: 'var(--horizon-4)', fontStyle: 'italic',
                   marginBottom: '1rem', padding: '0.75rem 1rem',
                   background: 'white', borderRadius: '0.5rem',
                   border: '1px dashed #cde8e4',
@@ -356,7 +356,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                 style={{
                   width: '100%', padding: '0.75rem 1rem', fontSize: '1rem',
                   background: 'white', border: '2px solid #2a9d8f', borderRadius: '0.5rem',
-                  color: '#1d3557', boxSizing: 'border-box', marginBottom: '0.75rem', outline: 'none',
+                  color: 'var(--horizon-7)', boxSizing: 'border-box', marginBottom: '0.75rem', outline: 'none',
                 }}
               />
 
@@ -366,7 +366,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                 disabled={mainSubmitting}
                 style={{
                   width: '100%', padding: '0.75rem', fontSize: '1rem', fontWeight: 600,
-                  background: mainSubmitting ? '#888' : 'linear-gradient(135deg,#2a9d8f,#457b9d)',
+                  background: mainSubmitting ? 'var(--horizon-5)' : 'linear-gradient(135deg,#2a9d8f,#457b9d)',
                   color: 'white', border: 'none', borderRadius: '0.5rem',
                   cursor: mainSubmitting ? 'not-allowed' : 'pointer', marginBottom: '0.5rem',
                 }}
@@ -376,7 +376,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
 
               {/* Attempt count */}
               {mainAttempts > 0 && (
-                <p style={{ fontSize: '0.8rem', color: '#888', margin: '0 0 1rem', textAlign: 'right' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--horizon-5)', margin: '0 0 1rem', textAlign: 'right' }}>
                   {mainAttempts} {mainAttempts === 1 ? 'attempt' : 'attempts'}
                 </p>
               )}
@@ -388,10 +388,10 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                   border: '1px solid #e9c46a', borderRadius: '0.75rem',
                   padding: '1rem 1.25rem', marginBottom: '1.25rem',
                 }}>
-                  <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#f4a261', margin: '0 0 0.4rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--horizon-4)', margin: '0 0 0.4rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Hint
                   </p>
-                  <p style={{ fontSize: '0.95rem', color: '#1d3557', margin: 0, lineHeight: 1.55 }}>
+                  <p style={{ fontSize: '0.95rem', color: 'var(--horizon-7)', margin: 0, lineHeight: 1.55 }}>
                     {hintText ?? progressData?.initial_clue_hint ?? ''}
                   </p>
                 </div>
@@ -406,7 +406,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       width: '100%', background: 'transparent', border: '1px solid #457b9d',
                       borderRadius: '0.5rem', padding: '0.65rem 1rem',
-                      color: '#457b9d', fontSize: '0.875rem', cursor: 'pointer',
+                      color: 'var(--horizon-4)', fontSize: '0.875rem', cursor: 'pointer',
                     }}
                   >
                     <span>Need help? Answer location questions for a hint</span>
@@ -425,12 +425,12 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                       marginTop: '1rem', background: 'white',
                       border: '1px solid #e0e0e0', borderRadius: '0.75rem', padding: '1.25rem',
                     }}>
-                      <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#457b9d', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--horizon-4)', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Answer these {questions.length} questions to receive a hint for the main clue
                       </p>
 
                       {locationQComplete ? (
-                        <div style={{ textAlign: 'center', padding: '1rem', color: '#2a9d8f', fontWeight: 600 }}>
+                        <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--horizon-3)', fontWeight: 600 }}>
                           Hint unlocked! See above.
                         </div>
                       ) : (
@@ -445,7 +445,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                                   width:  i === locationQIndex ? '14px' : '10px',
                                   height: i === locationQIndex ? '14px' : '10px',
                                   borderRadius: '50%',
-                                  background: i <= locationQIndex ? '#2a9d8f' : 'transparent',
+                                  background: i <= locationQIndex ? 'var(--horizon-3)' : 'transparent',
                                   border: i > locationQIndex ? '1.5px solid #bbb' : 'none',
                                   transition: 'all 0.2s', flexShrink: 0,
                                 }}
@@ -454,7 +454,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                           </div>
 
                           {/* Current question */}
-                          <p style={{ fontSize: '1rem', fontWeight: 600, color: '#1d3557', marginBottom: '0.75rem', lineHeight: 1.4 }}>
+                          <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--horizon-7)', marginBottom: '0.75rem', lineHeight: 1.4 }}>
                             {questions[locationQIndex]?.question_text}
                           </p>
 
@@ -468,8 +468,8 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                             placeholder='Your answer…'
                             style={{
                               width: '100%', padding: '0.65rem 0.9rem', fontSize: '0.95rem',
-                              background: '#f8f8f8', border: '1.5px solid #ccc',
-                              borderRadius: '0.4rem', color: '#1d3557',
+                              background: 'var(--horizon-1)', border: '1.5px solid #ccc',
+                              borderRadius: '0.4rem', color: 'var(--horizon-7)',
                               boxSizing: 'border-box', marginBottom: '0.65rem', outline: 'none',
                             }}
                           />
@@ -480,7 +480,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
                             disabled={locationSubmitting}
                             style={{
                               width: '100%', padding: '0.6rem', fontSize: '0.9rem', fontWeight: 600,
-                              background: locationSubmitting ? '#888' : '#457b9d',
+                              background: locationSubmitting ? 'var(--horizon-5)' : 'var(--horizon-4)',
                               color: 'white', border: 'none', borderRadius: '0.4rem',
                               cursor: locationSubmitting ? 'not-allowed' : 'pointer',
                             }}
@@ -503,7 +503,7 @@ export default function HuntClient({ huntLocation, userId, progressData }: Props
           <div style={{ borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', marginBottom: '0.5rem' }}>
             <HuntAreaMap lat={huntLocation.latitude} lng={huntLocation.longitude} />
           </div>
-          <p style={{ fontSize: '0.75rem', color: '#888', textAlign: 'center', margin: 0 }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--horizon-5)', textAlign: 'center', margin: 0 }}>
             Hunt area
           </p>
         </div>

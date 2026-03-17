@@ -47,5 +47,9 @@ export default async function AdminPage({
     ? (tabParam as Tab)
     : 'locations'
 
-  return <AdminClient initialTab={initialTab} />
+  return (
+    <div className="page-theme page-theme--admin">
+      <AdminClient initialTab={initialTab} />
+    </div>
+  )
 }
