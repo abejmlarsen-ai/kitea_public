@@ -27,8 +27,7 @@ export default function Footer() {
 
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/about">About</a>
-          <a href="/how-it-works">How It Works</a>
-          <a href="/about#our-story">Our Story</a>
+          <a href="/our-story">Our Story</a>
           <a href="/contact">Contact</a>
         </nav>
       </div>

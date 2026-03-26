@@ -3389,38 +3389,54 @@ body:has(.login-section) .site-footer a:hover {
   padding-top: 0.75rem;
 }
 
-/* ── About: values bubbles — brand palette colours ──────────
-   Palette 1 Dune/Deep: #C4B08E #8A7A5E #4A7C8C #1B4965 #0B2838
-   Palette 2 Coastal:   #D4C5A0 #8BA888 #3D8B7A #1A6B5A #0F3D35  */
-.page-theme--about .value {
-  background: #4a7c8c !important;
-  color: #ffffff;
-  border: 2px solid #1b4965;
+/* ── About: values bubbles — uniform gradient, responsive flexbox layout ──────
+   All bubbles share the same Palette-1 gradient (#C4B08E → #4A7C8C).
+   Flexbox wrap replaces the absolute-positioned desktop layout so bubbles
+   reflow and resize with the viewport.                                         */
+
+/* Responsive wrapper — overrides the fixed 600×600 absolute-positioned layout */
+.page-theme--about .values-wrapper {
+  position:        static;
+  width:           100%;
+  height:          auto;
+  display:         flex;
+  flex-wrap:       wrap;
+  justify-content: center;
+  align-items:     center;
+  gap:             2rem;
 }
-.page-theme--about .value-1 {
-  background: #4a7c8c !important;
-  color: #ffffff;
-  border: 2px solid #1b4965;
+
+.page-theme--about .center-word {
+  position:     static;
+  transform:    none;
+  flex:         0 0 100%;
+  text-align:   center;
+  margin-bottom: 0.5rem;
 }
-.page-theme--about .value-2 {
-  background: #8ba888 !important;
-  color: #0f3d35;
-  border: 2px solid #3d8b7a;
-}
-.page-theme--about .value-3 {
-  background: #1b4965 !important;
-  color: #ffffff;
-  border: 2px solid #0b2838;
-}
-.page-theme--about .value-4 {
-  background: #3d8b7a !important;
-  color: #ffffff;
-  border: 2px solid #1a6b5a;
-}
+
+/* All bubbles: uniform gradient, clamp() sizing, relative in flex flow */
+.page-theme--about .value,
+.page-theme--about .value-1,
+.page-theme--about .value-2,
+.page-theme--about .value-3,
+.page-theme--about .value-4,
 .page-theme--about .value-5 {
-  background: #c4b08e !important;
-  color: #0b2838;
-  border: 2px solid #8a7a5e;
+  position:   relative;
+  top:        auto;
+  left:       auto;
+  width:      clamp(140px, 20vw, 200px);
+  height:     clamp(140px, 20vw, 200px);
+  padding:    0;
+  background: linear-gradient(135deg, #c4b08e, #4a7c8c) !important;
+  color:      #ffffff !important;
+  border:     2px solid #4a7c8c !important;
+}
+
+/* Hover: scale only — no width/height change so flex row stays stable */
+.page-theme--about .value:hover {
+  width:     clamp(140px, 20vw, 200px) !important;
+  height:    clamp(140px, 20vw, 200px) !important;
+  transform: scale(1.08);
 }
 
 /* ── About: normalise Vision + Our Story heading sizes ────── */
@@ -3523,7 +3539,7 @@ body:has(.login-section) .site-footer a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.875rem 1.25rem;
+  padding: 2rem 1.25rem 0.875rem;  /* extra top room for absolute X */
   background: rgba(14, 14, 14, 0.97);
   border-top: 1px solid rgba(200, 150, 12, 0.35);
   backdrop-filter: blur(10px);
@@ -3562,16 +3578,19 @@ body:has(.login-section) .site-footer a:hover {
 }
 
 .pwa-banner-dismiss {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.6rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
   background: transparent;
   border: 1px solid rgba(200, 150, 12, 0.4);
   border-radius: 50%;
   color: rgba(200, 150, 12, 0.75);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }

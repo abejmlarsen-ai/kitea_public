@@ -117,8 +117,7 @@ export default function MapComponent({ locations }: Props) {
       gridTemplateColumns: '190px 1fr',
       gap:                 '1rem',
       width:               '100%',
-      height:              '70vh',
-      marginTop:           '1rem',
+      height:              'calc(100vh - 8.5rem)',
     }}>
 
       {/* ── Left sidebar: region / city nav ─────────────────────────── */}
