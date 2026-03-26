@@ -18,7 +18,10 @@ export default function HuntAreaMap({ lat, lng }: Props) {
       zoomControl={false}
       attributionControl={false}
     >
-      <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
+      <TileLayer
+        url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        attribution='Tiles &copy; Esri'
+      />
     </MapContainer>
   )
 }

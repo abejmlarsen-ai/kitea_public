@@ -18,6 +18,9 @@ export default function PWAInstallPrompt() {
     // Already installed in standalone mode — skip
     if (window.matchMedia('(display-mode: standalone)').matches) return
 
+    // Already dismissed this session — skip
+    if (sessionStorage.getItem('kitea-install-dismissed') === 'true') return
+
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
     setIsIOS(ios)
 
@@ -44,6 +47,7 @@ export default function PWAInstallPrompt() {
   }, [])
 
   function dismiss() {
+    sessionStorage.setItem('kitea-install-dismissed', 'true')
     setShow(false)
   }
 
