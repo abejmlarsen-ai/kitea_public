@@ -59,7 +59,7 @@ export default function AboutPage() {
       </section>
 
       {/* Narrative */}
-      <section className="about-narrative">
+      <section id="our-story" className="about-narrative">
         <div className="container">
           <h2>Our Story</h2>
           <div className="narrative-text">

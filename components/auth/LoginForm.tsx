@@ -56,57 +56,62 @@ export default function LoginForm() {
   }
 
   return (
-    <section className="login-section login-section--split">
-      {/* Brand Logo */}
-      <div className="login-logo-side">
-        <Image
-          src="/images/Kitea Logo Only.png"
-          alt="Kitea logo"
-          width={400}
-          height={400}
-          priority
-          style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
-        />
-      </div>
-
+    <section className="login-section">
       <div className="login-container">
-        <h2>Login</h2>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+        {/* Background logo — low opacity, centred behind form fields */}
+        <div className="login-bg-logo" aria-hidden="true">
+          <Image
+            src="/images/Kitea Logo Only.png"
+            alt=""
+            width={340}
+            height={340}
+            priority
+            style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+        {/* Form content — floats above logo */}
+        <div className="login-form-content">
+          <h2>Login</h2>
 
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Logging in…' : 'Login'}
-          </button>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          {error && <p className="error-message">{error}</p>}
-        </form>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-        <Link href="/signup" className="auth-link">
-          Don&apos;t have an account? Sign up
-        </Link>
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? 'Logging in…' : 'Login'}
+            </button>
+
+            {error && <p className="error-message">{error}</p>}
+          </form>
+
+          <Link href="/signup" className="auth-link">
+            Don&apos;t have an account? Sign up
+          </Link>
+        </div>
+
       </div>
     </section>
   )

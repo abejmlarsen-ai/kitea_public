@@ -37,8 +37,6 @@ export default async function Header() {
 
         <nav className="main-nav">
           <ul>
-            <li><Link href="/about">About</Link></li>
-            <li><Link href="/how-it-works">How It Works</Link></li>
             <li><Link href="/map">Map</Link></li>
 
             {user ? (
