@@ -2697,6 +2697,11 @@ body {
   background: linear-gradient(to bottom, var(--dune-1), var(--dune-3));
 }
 
+/* ── Account page: Dune to Deep */
+.page-theme--account {
+  background: linear-gradient(to bottom, var(--dune-2), var(--dune-5), var(--dune-6));
+}
+
 /* ── Hunt pages: Old Parchment Map */
 .page-theme--hunt {
   background: linear-gradient(to bottom, #F5F0E8, #E8DCC8, #D4C4A0, #C4A882);
@@ -2764,6 +2769,7 @@ body:has(.page-theme--signup)  .site-footer { background: var(--dune-6);    bord
 body:has(.page-theme--hunt)    .site-footer { background: #C4A882;          border-top-color: rgba(138,122,94,0.4); }
 body:has(.page-theme--scan)    .site-footer { background: var(--horizon-4); border-top-color: rgba(138,58,42,0.3); }
 body:has(.page-theme--admin)   .site-footer { background: var(--dune-4);    border-top-color: rgba(196,176,142,0.3); }
+body:has(.page-theme--account) .site-footer { background: var(--dune-7);    border-top-color: rgba(74,124,140,0.3); }
 
 /* Text colour: always white when a page-theme is active */
 body:has(.page-theme) .site-footer,
@@ -4252,3 +4258,136 @@ body:has(.page-theme) .site-footer a:hover {
   border-radius: 0.75rem;
   padding: 1.25rem;
 }
+
+/* ══ Account page ═════════════════════════════════════════════════════════════ */
+
+/* Section card (account details panel on the lighter upper gradient) */
+.acct-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(138, 122, 94, 0.35);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  backdrop-filter: blur(4px);
+}
+
+/* Section headings */
+.acct-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0B2838;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 1rem;
+}
+.acct-section-heading--dark {
+  color: #FFFFFF;
+  margin-top: 0.5rem;
+}
+
+/* Field inputs (same style as login/signup) */
+.acct-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #8A7A5E;
+  border-radius: 6px;
+  color: #0B2838;
+  box-sizing: border-box;
+  outline: none;
+}
+.acct-input::placeholder { color: #8A7A5E; }
+.acct-input:focus { border-color: #4A7C8C; }
+
+/* Save / Cancel / Edit buttons */
+.acct-btn-save {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #4A7C8C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.acct-btn-save:hover:not(:disabled) { background: #1B4965; }
+.acct-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.acct-btn-cancel {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: transparent;
+  color: #8A7A5E;
+  border: 1px solid #8A7A5E;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.acct-btn-cancel:hover:not(:disabled) { border-color: #4A7C8C; color: #4A7C8C; }
+
+.acct-btn-edit {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #4A7C8C;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.acct-btn-edit:hover { background: rgba(74, 124, 140, 0.12); }
+
+/* Adventure stats grid */
+.acct-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+@media (min-width: 500px) {
+  .acct-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.acct-stat-card {
+  background: rgba(74, 124, 140, 0.2);
+  border: 1px solid #4A7C8C;
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.acct-stat-value {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.acct-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Header: settings cog icon */
+.header-settings-link {
+  display: inline-flex;
+  align-items: center;
+  color: #FFFFFF;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+  text-decoration: none;
+  padding: 0.2rem;
+}
+.header-settings-link:hover { opacity: 1; }
