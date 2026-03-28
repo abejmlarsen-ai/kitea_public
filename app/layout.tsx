@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import ThirdwebAppProvider from '@/components/providers/ThirdwebProvider'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
+import LogoWatermark    from '@/components/ui/LogoWatermark'
 
 export const metadata: Metadata = {
   title: {
@@ -47,10 +48,15 @@ export default function RootLayout({
     <html lang="en">
       <body className="theme-dark">
         <ThirdwebAppProvider>
-          <Header />
-          {children}
-          <Footer />
-          <PWAInstallPrompt />
+          {/* Fixed watermark behind all page content */}
+          <LogoWatermark />
+          {/* Content shell at z-index 1 keeps everything above the watermark */}
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Header />
+            {children}
+            <Footer />
+            <PWAInstallPrompt />
+          </div>
         </ThirdwebAppProvider>
 
         {/* Register service worker */}

@@ -2759,8 +2759,8 @@ body:has(.page-theme--map)     .site-footer { background: var(--dune-6);    bord
 body:has(.page-theme--library) .site-footer { background: var(--coastal-6); border-top-color: rgba(139,168,136,0.3); }
 body:has(.page-theme--shop)    .site-footer { background: var(--horizon-6); border-top-color: rgba(138,58,42,0.3); }
 body:has(.page-theme--contact) .site-footer { background: var(--dune-5);    border-top-color: rgba(196,176,142,0.3); }
-body:has(.page-theme--login)   .site-footer { background: var(--dune-3);    border-top-color: rgba(138,122,94,0.3); }
-body:has(.page-theme--signup)  .site-footer { background: var(--dune-3);    border-top-color: rgba(138,122,94,0.3); }
+body:has(.page-theme--login)   .site-footer { background: var(--dune-6);    border-top-color: rgba(196,176,142,0.2); }
+body:has(.page-theme--signup)  .site-footer { background: var(--dune-6);    border-top-color: rgba(196,176,142,0.2); }
 body:has(.page-theme--hunt)    .site-footer { background: #C4A882;          border-top-color: rgba(138,122,94,0.4); }
 body:has(.page-theme--scan)    .site-footer { background: var(--horizon-4); border-top-color: rgba(138,58,42,0.3); }
 body:has(.page-theme--admin)   .site-footer { background: var(--dune-4);    border-top-color: rgba(196,176,142,0.3); }
@@ -3366,19 +3366,7 @@ body:has(.page-theme) .site-footer a:hover {
   width: auto;
 }
 
-/* ── Login page footer gradient ───────────────────────────── */
-body:has(.login-section) .site-footer {
-  background: linear-gradient(to bottom, rgba(60, 70, 200, 0.95), rgba(20, 25, 90, 0.97));
-  color: #fff;
-}
-
-body:has(.login-section) .site-footer a {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-body:has(.login-section) .site-footer a:hover {
-  color: #fff;
-}
+/* ── Login / signup footer: uses page-theme--login/signup rules above ─────── */
 
 /* ── About: collapse gap between section_1 and buckets ───── */
 .page-theme--about .section_1--about {

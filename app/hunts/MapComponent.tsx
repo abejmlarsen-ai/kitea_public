@@ -74,11 +74,22 @@ function FlyTo({ centre, zoom, trigger }: FlyProps) {
 
 // ── Kitea logo icon ───────────────────────────────────────────────────────
 
-const kiteaIcon = L.icon({
-  iconUrl:    '/images/Kitea Logo Only.png',
-  iconSize:   [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor:[0, -34],
+const kiteaIcon = L.divIcon({
+  html: `<img
+    src="/images/Kitea Logo Only.png"
+    width="32" height="32"
+    style="
+      filter: brightness(0) invert(1)
+              drop-shadow(0 0 2px #CC2200)
+              drop-shadow(0 0 2px #CC2200)
+              drop-shadow(0 0 1px #CC2200);
+      display:block;
+    "
+  />`,
+  iconSize:    [32, 32],
+  iconAnchor:  [16, 32],
+  popupAnchor: [0, -34],
+  className:   '',
 })
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -237,7 +248,7 @@ export default function MapComponent({ locations }: Props) {
                 center={[loc.latitude, loc.longitude]}
                 radius={16}
                 pathOptions={{
-                  color:       '#2a9d8f',
+                  color:       '#CC2200',
                   fillColor:   'transparent',
                   fillOpacity: 0,
                   weight:      2,
