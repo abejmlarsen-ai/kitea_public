@@ -74,11 +74,22 @@ function FlyTo({ centre, zoom, trigger }: FlyProps) {
 
 // ── Kitea logo icon ───────────────────────────────────────────────────────
 
-const kiteaIcon = L.icon({
-  iconUrl:    '/images/Kitea Logo Only.png',
-  iconSize:   [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor:[0, -34],
+const kiteaIcon = L.divIcon({
+  html: `<img
+    src="/images/Kitea Logo Only.png"
+    width="32" height="32"
+    style="
+      filter: brightness(0) invert(1)
+              drop-shadow(0 0 2px #CC2200)
+              drop-shadow(0 0 2px #CC2200)
+              drop-shadow(0 0 1px #CC2200);
+      display:block;
+    "
+  />`,
+  iconSize:    [32, 32],
+  iconAnchor:  [16, 32],
+  popupAnchor: [0, -34],
+  className:   '',
 })
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -117,54 +128,74 @@ export default function MapComponent({ locations }: Props) {
       gridTemplateColumns: '190px 1fr',
       gap:                 '1rem',
       width:               '100%',
-      height:              '70vh',
-      marginTop:           '1rem',
+      height:              'calc(100vh - 8.5rem)',
     }}>
 
       {/* ── Left sidebar: region / city nav ─────────────────────────── */}
       <div style={{
         overflowY:    'auto',
-        background:   '#f1faee',
+        background:   '#F2EDE3',
         borderRadius: 8,
         padding:      '0.75rem',
         display:      'flex',
         flexDirection:'column',
         gap:          '0.5rem',
       }}>
-        <div style={{ marginBottom: '1.25rem' }}>
+        {/* Primary region label — moved from above the map grid */}
+        <div>
           <h2 style={{
-            fontSize:   '16px',
-            fontWeight: 700,
-            color:      '#1d3557',
-            margin:     '0 0 0.25rem 0',
+            fontFamily:    'var(--font-heading, inherit)',
+            fontSize:      '1rem',
+            fontWeight:    700,
+            color:         '#0b2838',
+            margin:        '0 0 0.2rem 0',
+            letterSpacing: '0.04em',
           }}>
             Regions
           </h2>
           <p style={{
-            fontSize: '12px',
-            color:    '#457b9d',
-            margin:   0,
+            fontSize:     '12px',
+            color:        '#4a7c8c',
+            margin:       '0 0 0.5rem 0',
           }}>
             Select an area to explore
           </p>
+          {/* Australia sits directly below the subheading */}
+          {REGIONS.filter(r => r.label === 'Australia').map(region => (
+            <div key={region.label}>
+              <button
+                onClick={() => handleRegion(region)}
+                className="map-region-btn"
+              >
+                {region.label}
+              </button>
+              {expandedRegion === region.label && (
+                <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  {region.cities.map(city => (
+                    <button
+                      key={city.label}
+                      onClick={() => setFlyTarget((prev) => ({
+                        centre: city.centre,
+                        zoom: city.zoom,
+                        trigger: (prev?.trigger ?? 0) + 1,
+                      }))}
+                      className="map-city-btn"
+                    >
+                      {city.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-        {REGIONS.map(region => (
+
+        {/* Remaining regions */}
+        {REGIONS.filter(r => r.label !== 'Australia').map(region => (
           <div key={region.label}>
             <button
               onClick={() => handleRegion(region)}
-              style={{
-                width:        '100%',
-                textAlign:    'left',
-                padding:      '0.45rem 0.6rem',
-                background:   '#2a9d8f',
-                color:        'white',
-                border:       'none',
-                borderRadius: 6,
-                fontWeight:   700,
-                fontSize:     '0.82rem',
-                cursor:       'pointer',
-                letterSpacing:'0.03em',
-              }}
+              className="map-region-btn"
             >
               {region.label}
             </button>
@@ -179,16 +210,7 @@ export default function MapComponent({ locations }: Props) {
                       zoom: city.zoom,
                       trigger: (prev?.trigger ?? 0) + 1,
                     }))}
-                    style={{
-                      textAlign:    'left',
-                      padding:      '0.35rem 0.5rem',
-                      background:   'transparent',
-                      color:        '#1d3557',
-                      border:       '1px solid #cde8e4',
-                      borderRadius: 5,
-                      fontSize:     '0.78rem',
-                      cursor:       'pointer',
-                    }}
+                    className="map-city-btn"
                   >
                     {city.label}
                   </button>
@@ -208,8 +230,8 @@ export default function MapComponent({ locations }: Props) {
           scrollWheelZoom={true}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
           />
 
           {flyTarget && (
@@ -226,7 +248,7 @@ export default function MapComponent({ locations }: Props) {
                 center={[loc.latitude, loc.longitude]}
                 radius={16}
                 pathOptions={{
-                  color:       '#2a9d8f',
+                  color:       '#CC2200',
                   fillColor:   'transparent',
                   fillOpacity: 0,
                   weight:      2,

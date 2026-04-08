@@ -1,22 +1,10 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 
 export const metadata: Metadata = { title: 'How It Works' }
 
 export default function HowItWorksPage() {
   return (
     <div className="page-theme page-theme--hiw">
-      <section className="logo-hero logo-hero--hiw">
-        <Image
-          src="/images/Kitea Logo Only.png"
-          alt="Kitea logo"
-          width={400}
-          height={400}
-          priority
-          style={{ objectFit: 'contain', width: 'auto' }}
-        />
-      </section>
-
       <section className="section_1 section_1--hiw">
         <div className="container">
           <h2>How It Works</h2>

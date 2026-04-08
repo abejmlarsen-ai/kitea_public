@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import ThirdwebAppProvider from '@/components/providers/ThirdwebProvider'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
+import LogoWatermark    from '@/components/ui/LogoWatermark'
 
 export const metadata: Metadata = {
   title: {
@@ -47,10 +48,13 @@ export default function RootLayout({
     <html lang="en">
       <body className="theme-dark">
         <ThirdwebAppProvider>
-          <Header />
-          {children}
-          <Footer />
-          <PWAInstallPrompt />
+          <div style={{ position: 'relative' }}>
+            <Header />
+            {children}
+            <Footer />
+            <PWAInstallPrompt />
+          </div>
+          <LogoWatermark />
         </ThirdwebAppProvider>
 
         {/* Register service worker */}

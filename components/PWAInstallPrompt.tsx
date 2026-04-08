@@ -17,8 +17,9 @@ export default function PWAInstallPrompt() {
   useEffect(() => {
     // Already installed in standalone mode — skip
     if (window.matchMedia('(display-mode: standalone)').matches) return
+
     // Already dismissed this session — skip
-    if (sessionStorage.getItem('pwa-prompt-dismissed')) return
+    if (sessionStorage.getItem('kitea-install-dismissed') === 'true') return
 
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
     setIsIOS(ios)
@@ -46,7 +47,7 @@ export default function PWAInstallPrompt() {
   }, [])
 
   function dismiss() {
-    sessionStorage.setItem('pwa-prompt-dismissed', '1')
+    sessionStorage.setItem('kitea-install-dismissed', 'true')
     setShow(false)
   }
 
@@ -62,6 +63,13 @@ export default function PWAInstallPrompt() {
 
   return (
     <div className="pwa-banner" role="status" aria-live="polite">
+      <button
+        className="pwa-banner-dismiss"
+        onClick={dismiss}
+        aria-label="Dismiss install prompt"
+      >
+        &#x2715;
+      </button>
       <p className="pwa-banner-msg">
         {isIOS
           ? 'Tap the share button then \u201cAdd to Home Screen\u201d to install Kitea'
@@ -73,9 +81,6 @@ export default function PWAInstallPrompt() {
             Install
           </button>
         )}
-        <button className="pwa-banner-dismiss" onClick={dismiss} aria-label="Dismiss install prompt">
-          \u2715
-        </button>
       </div>
     </div>
   )

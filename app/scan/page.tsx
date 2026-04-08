@@ -11,17 +11,13 @@ import { createClient } from '@/lib/supabase/client'
 function ScanContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [status, setStatus] = useState<'loading' | 'success' | 'already_scanned' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'already_scanned' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const [scanNumber, setScanNumber] = useState<number | null>(null)
-  const [locationName, setLocationName] = useState('')
-  const [huntLocationId, setHuntLocationId] = useState<string | null>(null)
 
   // ── Process the scan on mount ────────────────────────────────────────────
   useEffect(() => {
     async function processScan() {
-      // Get the tag ID from the URL
-      // When someone scans a tag it opens kitea-ao.com/scan?tag=TAG-ID-HERE
       const tag_uid = searchParams.get('tag')
 
       if (!tag_uid) {
@@ -36,11 +32,11 @@ function ScanContent() {
 
       if (!session) {
         // Not logged in — send them to login then back here after
-        router.push(`/login?redirect=/scan?tag=${tag_uid}`)
+        router.push(`/login?redirect=/scan?tag=${encodeURIComponent(tag_uid)}`)
         return
       }
 
-      // Send the scan to your API for verification and recording
+      // Send the scan to the API for verification and recording
       try {
         const response = await fetch('/api/nfc/scan', {
           method: 'POST',
@@ -54,16 +50,28 @@ function ScanContent() {
         const result = await response.json()
 
         if (result.success) {
-          setStatus('success')
-          setMessage(result.message)
-          setScanNumber(result.scan_number)
-          setLocationName(result.location?.name || '')
-          setHuntLocationId(result.hunt_location_id || null)
+          // Fire-and-forget mint — do not await, redirect immediately
+          fetch('/api/nft/mint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id:          session.user.id,
+              hunt_location_id: result.hunt_location_id || null,
+              scan_number:      result.scan_number,
+            }),
+          }).catch(() => { /* non-blocking — ignore errors */ })
+
+          // Redirect immediately to hunt page
+          if (result.hunt_location_id) {
+            router.push(`/hunts/${result.hunt_location_id}?scanned=true`)
+          } else {
+            router.push(`/library?scan=success&location=${encodeURIComponent(result.location?.name || '')}&edition=${result.scan_number}`)
+          }
+          return
         } else if (result.already_scanned) {
           setStatus('already_scanned')
           setMessage(result.message)
           setScanNumber(result.scan_number)
-          setLocationName(result.location?.name || '')
         } else {
           setStatus('error')
           setMessage(result.error || 'Something went wrong.')
@@ -77,19 +85,6 @@ function ScanContent() {
     processScan()
   }, [searchParams, router])
 
-  // ── Auto-redirect to hunt page after 2 s on success ────────────────────
-  useEffect(() => {
-    if (status !== 'success' || scanNumber === null) return
-    const timer = setTimeout(() => {
-      if (huntLocationId) {
-        router.push(`/hunts/${huntLocationId}?scanned=true&edition=${scanNumber}`)
-      } else {
-        router.push(`/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`)
-      }
-    }, 2000)
-    return () => clearTimeout(timer)
-  }, [status, huntLocationId, locationName, scanNumber, router])
-
   return (
     <div className="scan-page">
       <div className="scan-container">
@@ -98,26 +93,6 @@ function ScanContent() {
           <div className="scan-loading">
             <div className="scan-spinner" />
             <p>Verifying your scan…</p>
-          </div>
-        )}
-
-        {status === 'success' && (
-          <div className="scan-success">
-            <div className="scan-icon">✦</div>
-            <h2>Scan Confirmed!</h2>
-            <p className="scan-number">#{scanNumber}</p>
-            <p>{message}</p>
-            <p className="scan-location">{locationName}</p>
-            <button
-              className="scan-btn"
-              onClick={() =>
-                huntLocationId
-                  ? router.push(`/hunts/${huntLocationId}?scanned=true&edition=${scanNumber}`)
-                  : router.push(`/library?scan=success&location=${encodeURIComponent(locationName)}&edition=${scanNumber}`)
-              }
-            >
-              View Your Collection
-            </button>
           </div>
         )}
 

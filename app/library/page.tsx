@@ -1,6 +1,5 @@
 // ─── Library Page (Protected) ────────────────────────────────────────────
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import WalletButton from '@/components/wallet/WalletButton'
 import WalletAutoConnect from '@/components/wallet/WalletAutoConnect'
@@ -90,35 +89,8 @@ export default async function LibraryPage() {
     }
   }
 
-  // Check for a pending founder NFT row.  If the user now has a wallet,
-  // LibraryClient will call POST /api/nft/mint on load to upgrade the pending
-  // row to minted (without any extra round-trip on login).
-  let hasPendingFounder = false
-  if (user && walletAddress) {
-    const { data: pendingFounder } = await supabase
-      .from('nft_tokens')
-      .select('id')
-      .eq('user_id', user.id)
-      .is('hunt_location_id', null)
-      .eq('status', 'pending')
-      .maybeSingle()
-
-    hasPendingFounder = !!pendingFounder
-  }
-
   return (
     <div className="page-theme page-theme--library">
-      <section className="logo-hero logo-hero--library">
-        <Image
-          src="/images/Kitea Logo Only.png"
-          alt="Kitea logo"
-          width={400}
-          height={400}
-          priority
-          style={{ objectFit: 'contain', width: 'auto' }}
-        />
-      </section>
-
       <section className="section_1 section_1--library">
         <div className="container">
           <p id="user-greeting">Welcome back, {firstName}!</p>
@@ -138,7 +110,6 @@ export default async function LibraryPage() {
             nfts={nfts}
             userId={user?.id ?? null}
             walletAddress={walletAddress}
-            hasPendingFounder={hasPendingFounder}
           />
         </div>
       </section>

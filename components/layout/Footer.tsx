@@ -26,6 +26,8 @@ export default function Footer() {
         <p className="footer-copy">© 2026 Kitea Ao. All rights reserved.</p>
 
         <nav className="footer-nav" aria-label="Footer navigation">
+          <a href="/about">About</a>
+          <a href="/our-story">Our Story</a>
           <a href="/contact">Contact</a>
         </nav>
       </div>

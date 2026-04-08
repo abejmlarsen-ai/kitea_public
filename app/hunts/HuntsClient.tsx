@@ -21,21 +21,7 @@ interface Props {
 
 export default function HuntsClient({ locations }: Props) {
   return (
-    <div style={{
-      background: '#f1faee',
-      minHeight: '100vh',
-      padding: '2rem 2rem 2rem 2rem',
-    }}>
-      <h1 style={{
-        fontFamily:    'var(--font-heading, inherit)',
-        fontSize:      '1.6rem',
-        fontWeight:    700,
-        color:         '#1d3557',
-        marginBottom:  '1rem',
-        letterSpacing: '0.04em',
-      }}>
-        Regions
-      </h1>
+    <div className="page-theme page-theme--map" style={{ padding: '2rem', paddingTop: '6.5rem' }}>
       <MapComponent locations={locations} />
     </div>
   )

@@ -1,6 +1,5 @@
 // ─── Root Page ────────────────────────────────────────────────────────────────────────────
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Kitea' }
@@ -8,18 +7,6 @@ export const metadata: Metadata = { title: 'Kitea' }
 export default function HomePage() {
   return (
     <div className="page-theme page-theme--home">
-      {/* Brand Logo */}
-      <section className="logo-hero logo-hero--home">
-        <Image
-          src="/images/Kitea Logo Only.png"
-          alt="Kitea logo"
-          width={400}
-          height={400}
-          priority
-          style={{ objectFit: 'contain', width: 'auto' }}
-        />
-      </section>
-
       {/* Purpose */}
       <section className="section_1 section_1--home">
         <div className="container">

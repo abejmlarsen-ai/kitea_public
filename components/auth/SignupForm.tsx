@@ -5,6 +5,7 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupForm() {
@@ -83,112 +84,129 @@ export default function SignupForm() {
   return (
     <section className="signup-section">
       <div className="signup-container">
-        <h2>Create Account</h2>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {/* First & Last Name side by side */}
-          <div className="form-row">
+        {/* Background logo — low opacity, centred behind form fields */}
+        <div className="login-bg-logo" aria-hidden="true">
+          <Image
+            src="/images/Kitea Logo Only.png"
+            alt=""
+            width={340}
+            height={340}
+            priority
+            style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
+          />
+        </div>
+
+        {/* Form content — floats above logo */}
+        <div className="login-form-content">
+          <h2>Create Account</h2>
+
+          <form onSubmit={handleSubmit} noValidate>
+            {/* First & Last Name side by side */}
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="first_name">First Name</label>
+                <input
+                  id="first_name"
+                  type="text"
+                  name="first_name"
+                  placeholder="First name"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="last_name">Last Name</label>
+                <input
+                  id="last_name"
+                  type="text"
+                  name="last_name"
+                  placeholder="Last name"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
             <div className="form-group">
-              <label htmlFor="first_name">First Name</label>
+              <label htmlFor="date_of_birth">Date of Birth</label>
               <input
-                id="first_name"
-                type="text"
-                name="first_name"
-                placeholder="First name"
-                value={form.first_name}
+                id="date_of_birth"
+                type="date"
+                name="date_of_birth"
+                value={form.date_of_birth}
                 onChange={handleChange}
                 required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="last_name">Last Name</label>
+              <label htmlFor="email">Email</label>
               <input
-                id="last_name"
-                type="text"
-                name="last_name"
-                placeholder="Last name"
-                value={form.last_name}
+                id="email"
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={form.email}
                 onChange={handleChange}
                 required
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="date_of_birth">Date of Birth</label>
-            <input
-              id="date_of_birth"
-              type="date"
-              name="date_of_birth"
-              value={form.date_of_birth}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label htmlFor="mobile_number">Mobile Number</label>
+              <input
+                id="mobile_number"
+                type="tel"
+                name="mobile_number"
+                placeholder="e.g. +61 400 000 000"
+                value={form.mobile_number}
+                onChange={handleChange}
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="Create a password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="mobile_number">Mobile Number</label>
-            <input
-              id="mobile_number"
-              type="tel"
-              name="mobile_number"
-              placeholder="e.g. +61 400 000 000"
-              value={form.mobile_number}
-              onChange={handleChange}
-            />
-          </div>
+            <div className="form-group">
+              <label htmlFor="confirm_password">Confirm Password</label>
+              <input
+                id="confirm_password"
+                type="password"
+                name="confirm_password"
+                placeholder="Repeat your password"
+                value={form.confirm_password}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Create a password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={6}
-            />
-          </div>
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? 'Creating account…' : 'Create Account'}
+            </button>
 
-          <div className="form-group">
-            <label htmlFor="confirm_password">Confirm Password</label>
-            <input
-              id="confirm_password"
-              type="password"
-              name="confirm_password"
-              placeholder="Repeat your password"
-              value={form.confirm_password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            {error   && <p className="error-message">{error}</p>}
+            {success && <p className="success-message">{success}</p>}
+          </form>
 
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create Account'}
-          </button>
+          <Link href="/login" className="auth-link">
+            Already have an account? Log in
+          </Link>
+        </div>
 
-          {error   && <p className="error-message">{error}</p>}
-          {success && <p className="success-message">{success}</p>}
-        </form>
-
-        <Link href="/login" className="auth-link">
-          Already have an account? Log in
-        </Link>
       </div>
     </section>
   )

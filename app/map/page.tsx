@@ -10,10 +10,13 @@ export default async function MapPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServiceRoleClient() as any
 
-  const { data: locations, error: locError } = await db
+  const isProd = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
+  const baseQuery = db
     .from('hunt_locations')
     .select('id, name, description, latitude, longitude, total_scans, region, city')
-    .eq('is_active', true)
+  const { data: locations, error: locError } = await (
+    isProd ? baseQuery.eq('is_active', true) : baseQuery
+  )
 
   console.log('[map/page] locations count:', locations?.length ?? 0, '| error:', locError?.message ?? null)
   if (locations && locations.length > 0) {
