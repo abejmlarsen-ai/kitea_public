@@ -8,6 +8,7 @@ export default function AboutPage() {
       <section className="section_1 section_1--about">
         <div className="container">
           <h2>What is Kitea</h2>
+           <p> He tangata kite nui, he tangata whakaaro nui."  ~ A person who sees much is a person of great understanding.</p>
         </div>
       </section>
 
@@ -16,13 +17,13 @@ export default function AboutPage() {
         <div className="container">
           <div className="bucket-grid">
             <div className="bucket">
-              <h3>Why Kitea</h3>
-              <p> Kitea comes from the NZ native language of Te Reo Maori and is the passive form of the verb kite, which means to see, perceive, or find. So kitea is usually translated as seen, found or discovered. Kitea can also mean; to have something revealed, to be found after being hidden, to become known or perceived.</p>
-              <p> He tangata kite nui, he tangata whakaaro nui."  ~ A person who sees much is a person of great understanding.</p>
+              <h3>Kitea</h3>
+              <p> Kitea comes from the NZ native language of Te Reo Maori and is the passive form of the verb kite, which means to see, perceive, or find. </p>
+              <p> So kitea is usually translated as seen, found or discovered. Kitea can also mean; to have something revealed, to be found after being hidden, to become known or perceived.</p>
             </div>
             <div className="bucket">
               <h3>What Does this mean to me?</h3>
-              <p> To me this represents not only finding the answer but the idea of finding a purpose, finding a connection and finding the inspiration to dream. To find something means it has to be lost in the first place. KITEA represents a means to helping people find something they are missing. Be that energy, connection or a break from routine.</p>
+              <p> To me this represents not only finding the answer but the idea of finding a purpose, finding a connection and finding the inspiration to take that next step. To find something means it has to be lost in the first place. KITEA-AO represents a means to helping people find something they are missing. Be that energy, connection or a break from routine.</p>
             </div>
             <div className="bucket">
               <h3> Kitea Ao</h3>

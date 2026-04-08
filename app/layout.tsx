@@ -48,7 +48,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="theme-dark">
         <ThirdwebAppProvider>
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ position: 'relative', zIndex: 10 }}>
             <Header />
             {children}
             <Footer />
