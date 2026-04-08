@@ -89,22 +89,6 @@ export default async function LibraryPage() {
     }
   }
 
-  // Check for a pending founder NFT row.  If the user now has a wallet,
-  // LibraryClient will call POST /api/nft/mint on load to upgrade the pending
-  // row to minted (without any extra round-trip on login).
-  let hasPendingFounder = false
-  if (user && walletAddress) {
-    const { data: pendingFounder } = await supabase
-      .from('nft_tokens')
-      .select('id')
-      .eq('user_id', user.id)
-      .is('hunt_location_id', null)
-      .eq('status', 'pending')
-      .maybeSingle()
-
-    hasPendingFounder = !!pendingFounder
-  }
-
   return (
     <div className="page-theme page-theme--library">
       <section className="section_1 section_1--library">
@@ -126,7 +110,6 @@ export default async function LibraryPage() {
             nfts={nfts}
             userId={user?.id ?? null}
             walletAddress={walletAddress}
-            hasPendingFounder={hasPendingFounder}
           />
         </div>
       </section>

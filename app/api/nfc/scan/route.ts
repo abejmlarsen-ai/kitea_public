@@ -148,47 +148,14 @@ export async function POST(request: NextRequest) {
       .eq('id', huntLocationId)
 
     if (incrementError) {
-      // Non-fatal: log but continue — scan + mint still proceed
+      // Non-fatal: log but continue
       console.error('[scan] total_scans increment error:', incrementError.message)
     } else {
       console.log('[scan] total_scans updated to', scan_number, 'for location', huntLocationId)
     }
 
-    // ── Step 8 — Trigger mint and AWAIT it ───────────────────────────────
-    // IMPORTANT: do NOT fire-and-forget. Vercel serverless may freeze the
-    // process once the response is returned, killing any background fetch().
-    // Use request origin as fallback so the URL is always valid in production.
-    const { origin } = new URL(request.url)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? origin
-
-    const mintPayload = {
-      user_id: user.id,
-      hunt_location_id: huntLocationId,
-      scan_number: scan_number,
-      scan_id: scanData.id,
-    }
-
-    console.log('[scan] triggering mint — siteUrl:', siteUrl, 'payload:', JSON.stringify(mintPayload))
-
-    try {
-      const mintRes = await fetch(`${siteUrl}/api/nft/mint`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mintPayload),
-      })
-
-      if (!mintRes.ok) {
-        const mintBody = await mintRes.text()
-        console.error('[scan] mint returned error — status:', mintRes.status, 'body:', mintBody)
-      } else {
-        const mintResult = await mintRes.json() as Record<string, unknown>
-        console.log('[scan] mint succeeded — status:', mintRes.status, 'result:', mintResult)
-      }
-    } catch (mintErr) {
-      console.error('[scan] mint fetch threw:', mintErr)
-    }
-
-    // ── Step 9 — Return success ───────────────────────────────────────────
+    // ── Step 8 — Return success (mint is triggered client-side, fire-and-forget)
+    console.log('[scan] success — scan_number:', scan_number)
     console.log('[scan] success — scan_number:', scan_number)
     return NextResponse.json({
       success: true,

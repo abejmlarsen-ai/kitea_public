@@ -8,7 +8,7 @@ export default function AboutPage() {
       <section className="section_1 section_1--about">
         <div className="container">
           <h2>What is Kitea</h2>
-           <p> He tangata kite nui, he tangata whakaaro nui."  ~ A person who sees much is a person of great understanding.</p>
+           <p> "He tangata kite nui, he tangata whakaaro nui."  ~ A person who sees much is a person of great understanding.</p>
         </div>
       </section>
 

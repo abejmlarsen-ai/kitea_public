@@ -131,11 +131,29 @@ export default async function HuntPage({
     console.error('[hunt/page] progress fetch failed:', err)
   }
 
+  // ── Check if user has already scanned this location ──────────────────────
+  let hasScanned = false
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db2 = createServiceRoleClient() as any
+    const { data: scanRow } = await db2
+      .from('scans')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('location_id', id)
+      .maybeSingle()
+    hasScanned = !!scanRow
+    console.log('[hunt/page] hasScanned:', hasScanned)
+  } catch (err) {
+    console.error('[hunt/page] scans check failed:', err)
+  }
+
   return (
     <HuntPageClient
       huntLocation={huntLocation}
       userId={user.id}
       progressData={progressData}
+      hasScanned={hasScanned}
     />
   )
 }

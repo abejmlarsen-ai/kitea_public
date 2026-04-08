@@ -6,17 +6,19 @@ const HuntClient = dynamic(() => import('./HuntClient'), { ssr: false })
 
 interface Props {
   huntLocation: { id: string; name: string; description: string; total_scans: number; latitude: number; longitude: number }
-  userId: string
+  userId:       string
   progressData: any
+  hasScanned:   boolean
 }
 
-export default function HuntPageClient({ huntLocation, userId, progressData }: Props) {
+export default function HuntPageClient({ huntLocation, userId, progressData, hasScanned }: Props) {
   return (
     <div className="page-theme page-theme--hunt">
       <HuntClient
         huntLocation={huntLocation}
         userId={userId}
         progressData={progressData}
+        hasScanned={hasScanned}
       />
     </div>
   )
