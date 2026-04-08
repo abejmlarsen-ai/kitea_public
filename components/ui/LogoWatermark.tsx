@@ -22,7 +22,7 @@ export default function LogoWatermark() {
         transform:     'translate(-50%, -50%)',
         width:         '65vw',
         height:        'auto',
-        zIndex:        0,
+        zIndex:        1,
         opacity:       0.12,
         pointerEvents: 'none',
         userSelect:    'none',

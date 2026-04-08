@@ -2656,6 +2656,37 @@ body {
   min-height: 100vh;
 }
 
+/* ─── Content stacking above watermark ───────────────────────────────────────── */
+/* Watermark is position:fixed z-index:1. All content sections must be           */
+/* position:relative z-index:2+ so they render above the watermark.              */
+/* Page gradients (backgrounds on .page-theme) have no z-index so they sit in    */
+/* normal flow below the fixed watermark — giving the desired layering:          */
+/*   gradient → watermark (z:1) → content sections (z:2) → header (z:10)        */
+
+.page-theme .section_1,
+.page-theme .section_2,
+.page-theme .section_3,
+.page-theme .cta,
+.page-theme .about-buckets,
+.page-theme .about-narrative,
+.page-theme .hiw-flow,
+.page-theme .hiw-opportunities,
+.page-theme .hiw-faqs,
+.page-theme .map-section,
+.page-theme .library-section,
+.page-theme .contact-section,
+.page-theme .login-section,
+.page-theme .signup-section,
+.page-theme .scan-page,
+.page-theme .admin-page,
+.page-theme .shop-page,
+.page-theme .location-photo-section,
+.page-theme .location-content {
+  position: relative;
+  z-index: 2;
+}
+
+
 /* ── Home: Palette 1 (warm sand → deep navy) ───── */
 .page-theme--home {
   background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
