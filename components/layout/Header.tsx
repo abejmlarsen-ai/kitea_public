@@ -36,9 +36,9 @@ export default async function Header() {
           <Image
             src="/images/Kitea Logo Only.png"
             alt=""
-            width={28}
-            height={28}
-            style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+            width={40}
+            height={40}
+            style={{ objectFit: 'contain', filter: 'brightness(0)' }}
           />
           Kitea
         </Link>

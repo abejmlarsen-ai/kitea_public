@@ -2656,50 +2656,50 @@ body {
   min-height: 100vh;
 }
 
-/* ── Home: muted blue (light → deep navy) ───── */
+/* ── Home: Palette 1 (warm sand → deep navy) ───── */
 .page-theme--home {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-6));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── About: muted pink → purple ─────────────── */
+/* ── About: Palette 1 ─────────────── */
 .page-theme--about {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-5));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── How It Works: muted forest green ───────── */
+/* ── How It Works: Palette 1 ───────── */
 .page-theme--hiw {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-7));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── Map: muted amber-gold ───────────────────── */
+/* ── Map: Palette 1 ───────────────────── */
 .page-theme--map {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-6));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── Library: muted navy ─────────────────────── */
+/* ── Library: Palette 2 (warm linen → deep forest) ── */
 .page-theme--library {
-  background: linear-gradient(to bottom, var(--coastal-2), var(--coastal-6));
+  background: linear-gradient(to bottom, #FAF3E0, #8BA888, #0F3D35);
 }
 
-/* ── Shop: muted crimson red ─────────────────── */
+/* ── Shop: Palette 1 ─────────────────── */
 .page-theme--shop {
-  background: linear-gradient(to bottom, var(--horizon-2), var(--horizon-6));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── Contact: muted teal ─────────────────────── */
+/* ── Contact: Palette 1 ─────────────────────── */
 .page-theme--contact {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-5));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── Login / Signup: Dune light */
+/* ── Login / Signup: Palette 1 */
 .page-theme--login,
 .page-theme--signup {
-  background: linear-gradient(to bottom, var(--dune-1), var(--dune-3));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ── Account page: Dune to Deep */
+/* ── Account page: Palette 1 */
 .page-theme--account {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-5), var(--dune-6));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
 /* ── Hunt pages: Old Parchment Map */
@@ -2707,14 +2707,14 @@ body {
   background: linear-gradient(to bottom, #F5F0E8, #E8DCC8, #D4C4A0, #C4A882);
 }
 
-/* ── Scan page: Horizon warm */
+/* ── Scan page: Palette 3 (parchment) */
 .page-theme--scan {
-  background: linear-gradient(to bottom, var(--horizon-2), var(--horizon-4));
+  background: linear-gradient(to bottom, #F5F0E8, #E8DCC8, #D4C4A0, #C4A882);
 }
 
-/* ── Admin: Dune mid */
+/* ── Admin: Palette 1 */
 .page-theme--admin {
-  background: linear-gradient(to bottom, var(--dune-2), var(--dune-4));
+  background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
 /* ─── Transparent overrides inside any page-theme ────────────────────────────── */
@@ -2757,28 +2757,94 @@ body {
 
 /* ─── Per-page footer theming via :has() ─────────────────────────────────────── */
 /* Footer background matches each page's gradient end-colour for seamlessness.   */
-body:has(.page-theme--home)    .site-footer { background: var(--dune-6);    border-top-color: rgba(74,124,140,0.3); }
-body:has(.page-theme--about)   .site-footer { background: var(--dune-5);    border-top-color: rgba(196,176,142,0.3); }
-body:has(.page-theme--hiw)     .site-footer { background: var(--dune-7);    border-top-color: rgba(74,124,140,0.3); }
-body:has(.page-theme--map)     .site-footer { background: var(--dune-6);    border-top-color: rgba(74,124,140,0.3); }
-body:has(.page-theme--library) .site-footer { background: var(--coastal-6); border-top-color: rgba(139,168,136,0.3); }
-body:has(.page-theme--shop)    .site-footer { background: var(--horizon-6); border-top-color: rgba(138,58,42,0.3); }
-body:has(.page-theme--contact) .site-footer { background: var(--dune-5);    border-top-color: rgba(196,176,142,0.3); }
-body:has(.page-theme--login)   .site-footer { background: var(--dune-6);    border-top-color: rgba(196,176,142,0.2); }
-body:has(.page-theme--signup)  .site-footer { background: var(--dune-6);    border-top-color: rgba(196,176,142,0.2); }
-body:has(.page-theme--hunt)    .site-footer { background: #C4A882;          border-top-color: rgba(138,122,94,0.4); }
-body:has(.page-theme--scan)    .site-footer { background: var(--horizon-4); border-top-color: rgba(138,58,42,0.3); }
-body:has(.page-theme--admin)   .site-footer { background: var(--dune-4);    border-top-color: rgba(196,176,142,0.3); }
-body:has(.page-theme--account) .site-footer { background: var(--dune-7);    border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--home)    .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--about)   .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--hiw)     .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--map)     .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--library) .site-footer { background: #0F3D35;          border-top-color: rgba(139,168,136,0.3); }
+body:has(.page-theme--shop)    .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--contact) .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--login)   .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--signup)  .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--hunt)    .site-footer { background: #8A7A5E;          border-top-color: rgba(138,122,94,0.4); }
+body:has(.page-theme--scan)    .site-footer { background: #8A7A5E;          border-top-color: rgba(138,122,94,0.4); }
+body:has(.page-theme--admin)   .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
+body:has(.page-theme--account) .site-footer { background: #0B2838;          border-top-color: rgba(74,124,140,0.3); }
 
-/* Text colour: always white when a page-theme is active */
-body:has(.page-theme) .site-footer,
-body:has(.page-theme) .site-footer p,
-body:has(.page-theme) .site-footer a {
-  color: rgba(255, 255, 255, 0.82);
+/* ── Palette 1 footer text: sand text, warm links ────────────────────────── */
+body:has(.page-theme--home)    .site-footer,
+body:has(.page-theme--home)    .site-footer p,
+body:has(.page-theme--about)   .site-footer,
+body:has(.page-theme--about)   .site-footer p,
+body:has(.page-theme--hiw)     .site-footer,
+body:has(.page-theme--hiw)     .site-footer p,
+body:has(.page-theme--map)     .site-footer,
+body:has(.page-theme--map)     .site-footer p,
+body:has(.page-theme--contact) .site-footer,
+body:has(.page-theme--contact) .site-footer p,
+body:has(.page-theme--login)   .site-footer,
+body:has(.page-theme--login)   .site-footer p,
+body:has(.page-theme--signup)  .site-footer,
+body:has(.page-theme--signup)  .site-footer p,
+body:has(.page-theme--account) .site-footer,
+body:has(.page-theme--account) .site-footer p,
+body:has(.page-theme--admin)   .site-footer,
+body:has(.page-theme--admin)   .site-footer p,
+body:has(.page-theme--shop)    .site-footer,
+body:has(.page-theme--shop)    .site-footer p {
+  color: #F2EDE3;
 }
-body:has(.page-theme) .site-footer a:hover {
-  color: #fff;
+body:has(.page-theme--home)    .site-footer a,
+body:has(.page-theme--about)   .site-footer a,
+body:has(.page-theme--hiw)     .site-footer a,
+body:has(.page-theme--map)     .site-footer a,
+body:has(.page-theme--contact) .site-footer a,
+body:has(.page-theme--login)   .site-footer a,
+body:has(.page-theme--signup)  .site-footer a,
+body:has(.page-theme--account) .site-footer a,
+body:has(.page-theme--admin)   .site-footer a,
+body:has(.page-theme--shop)    .site-footer a {
+  color: #C4B08E;
+}
+body:has(.page-theme--home)    .site-footer a:hover,
+body:has(.page-theme--about)   .site-footer a:hover,
+body:has(.page-theme--hiw)     .site-footer a:hover,
+body:has(.page-theme--map)     .site-footer a:hover,
+body:has(.page-theme--contact) .site-footer a:hover,
+body:has(.page-theme--login)   .site-footer a:hover,
+body:has(.page-theme--signup)  .site-footer a:hover,
+body:has(.page-theme--account) .site-footer a:hover,
+body:has(.page-theme--admin)   .site-footer a:hover,
+body:has(.page-theme--shop)    .site-footer a:hover {
+  color: #FFFFFF;
+}
+
+/* ── Palette 2 footer text: linen text, sage links ───────────────────────── */
+body:has(.page-theme--library) .site-footer,
+body:has(.page-theme--library) .site-footer p {
+  color: #FAF3E0;
+}
+body:has(.page-theme--library) .site-footer a {
+  color: #8BA888;
+}
+body:has(.page-theme--library) .site-footer a:hover {
+  color: #FFFFFF;
+}
+
+/* ── Palette 3 footer text: white text, sand links ───────────────────────── */
+body:has(.page-theme--hunt)    .site-footer,
+body:has(.page-theme--hunt)    .site-footer p,
+body:has(.page-theme--scan)    .site-footer,
+body:has(.page-theme--scan)    .site-footer p {
+  color: #FFFFFF;
+}
+body:has(.page-theme--hunt)    .site-footer a,
+body:has(.page-theme--scan)    .site-footer a {
+  color: #F2EDE3;
+}
+body:has(.page-theme--hunt)    .site-footer a:hover,
+body:has(.page-theme--scan)    .site-footer a:hover {
+  color: #FFFFFF;
 }
 
 /* ─── Footer Layout & Social Links ───────────────────────────────────────────── */
@@ -4391,3 +4457,238 @@ body:has(.page-theme) .site-footer a:hover {
   padding: 0.2rem;
 }
 .header-settings-link:hover { opacity: 1; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TEXT CONTRAST — dark text on light gradient, white text on dark gradient
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Palette 1 upper sections: dark text ──────────────────────────────────── */
+.page-theme--home .section_1,
+.page-theme--about .section_1,
+.page-theme--hiw .section_1,
+.page-theme--map .section_1,
+.page-theme--login .login-section,
+.page-theme--signup .signup-section,
+.page-theme--account .section_1,
+.page-theme--contact .section_1 {
+  color: #0B2838;
+}
+.page-theme--home .section_1 h2,
+.page-theme--about .section_1 h2,
+.page-theme--hiw .section_1 h2,
+.page-theme--contact .section_1 h2 {
+  color: #0B2838;
+}
+.page-theme--home .section_1 p,
+.page-theme--about .section_1 p,
+.page-theme--hiw .section_1 p {
+  color: #0B2838;
+}
+
+/* ── Palette 1 lower sections: white text ─────────────────────────────────── */
+.page-theme--home .cta,
+.page-theme--home .section_2,
+.page-theme--home .section_3,
+.page-theme--about .about-narrative,
+.page-theme--about .section_2,
+.page-theme--about .section_3 {
+  color: #FFFFFF;
+}
+.page-theme--home .cta h3,
+.page-theme--home .section_2 h2,
+.page-theme--home .section_3 h2,
+.page-theme--about .about-narrative h2,
+.page-theme--about .section_2 h2,
+.page-theme--about .section_3 h2,
+.page-theme--about .center-word {
+  color: #FFFFFF;
+}
+.page-theme--home .cta p,
+.page-theme--home .section_2 p,
+.page-theme--about .about-narrative p,
+.page-theme--about .narrative-text p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Palette 1 — about buckets sit in the mid-gradient, keep dark text ────── */
+.page-theme--about .about-buckets h2 {
+  color: #0B2838;
+}
+
+/* ── Palette 1 — HIW lower sections: white text ──────────────────────────── */
+.page-theme--hiw .hiw-opportunities,
+.page-theme--hiw .hiw-faqs {
+  color: #FFFFFF;
+}
+.page-theme--hiw .hiw-opportunities h2,
+.page-theme--hiw .hiw-opportunities h3,
+.page-theme--hiw .hiw-faqs h2 {
+  color: #FFFFFF;
+}
+
+/* ── Palette 2 upper: dark text ───────────────────────────────────────────── */
+.page-theme--library .section_1 {
+  color: #0F3D35;
+}
+.page-theme--library .section_1 h2,
+.page-theme--library .section_1 p,
+.page-theme--library #user-greeting {
+  color: #0F3D35;
+}
+
+/* ── Palette 2 lower: white text ──────────────────────────────────────────── */
+.page-theme--library .library-section {
+  color: #FFFFFF;
+}
+
+/* ── Palette 3 (hunt / scan): dark text throughout ────────────────────────── */
+.page-theme--hunt,
+.page-theme--scan {
+  color: #0B2838;
+}
+.page-theme--hunt h2,
+.page-theme--hunt h3,
+.page-theme--hunt p,
+.page-theme--scan h2,
+.page-theme--scan p {
+  color: #0B2838;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   OPAQUE CONTENT AREAS — solid/near-solid backgrounds so watermark does not
+   show through content, only in negative space between blocks
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Text blocks, forms, info panels ──────────────────────────────────────── */
+.page-theme .bucket {
+  background: rgba(255, 255, 255, 0.92);
+}
+.page-theme .login-container,
+.page-theme .signup-container {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(8px);
+}
+.page-theme .scan-container {
+  background: rgba(255, 255, 255, 0.93);
+}
+
+/* ── About narrative block ────────────────────────────────────────────────── */
+.page-theme--about .narrative-text {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+/* ── HIW step boxes ───────────────────────────────────────────────────────── */
+.page-theme--hiw .hiw-step-box {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  color: #0B2838;
+}
+.page-theme--hiw .hiw-step-num {
+  color: #4A7C8C;
+}
+.page-theme--hiw .hiw-step-text {
+  color: #0B2838;
+}
+
+/* ── HIW opportunity cards ────────────────────────────────────────────────── */
+.page-theme--hiw .opportunity-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 2rem;
+  color: #0B2838;
+}
+.page-theme--hiw .opportunity-card h3 {
+  color: #0B2838;
+}
+.page-theme--hiw .opportunity-card li {
+  color: #0B2838;
+}
+
+/* ── HIW FAQ items ────────────────────────────────────────────────────────── */
+.page-theme--hiw .faq-item {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  color: #0B2838;
+}
+.page-theme--hiw .faq-item summary {
+  color: #0B2838;
+  font-weight: 600;
+}
+.page-theme--hiw .faq-item p {
+  color: #333;
+}
+
+/* ── Values bubbles (about page) — mid palette shade ──────────────────────── */
+.page-theme--about .value {
+  background: rgba(196, 176, 142, 0.92) !important;
+  color: #0B2838;
+}
+.page-theme--about .value h4,
+.page-theme--about .value p {
+  color: #0B2838;
+}
+
+/* ── Account card ─────────────────────────────────────────────────────────── */
+.page-theme--account .acct-card {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Account stat cards — Palette 1 mid ───────────────────────────────────── */
+.page-theme--account .acct-stat-card {
+  background: rgba(196, 176, 142, 0.92);
+  border-color: rgba(74, 124, 140, 0.5);
+}
+
+/* ── Library NFT cards — Palette 2 mid ────────────────────────────────────── */
+.page-theme--library .nft-card {
+  background: rgba(139, 168, 136, 0.92) !important;
+}
+
+/* ── Library paper — solid white ──────────────────────────────────────────── */
+.page-theme--library .library-paper {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* ── Map sidebar — solid white ────────────────────────────────────────────── */
+.page-theme .map-sidebar {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Hunt page content areas ──────────────────────────────────────────────── */
+.page-theme--hunt .hunt-hint-box {
+  background: rgba(255, 255, 255, 0.90);
+}
+.page-theme--hunt .hunt-questions-panel {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BUTTONS — Palette-aware contrast
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Palette 1 light sections: teal button ────────────────────────────────── */
+.page-theme--home .section_1 .btn-secondary,
+.page-theme--about .section_1 .btn-secondary,
+.page-theme--hiw .section_1 .btn-secondary {
+  background: #4A7C8C;
+  color: #FFFFFF;
+  border-color: #4A7C8C;
+}
+
+/* ── Palette 1 dark sections: white button ────────────────────────────────── */
+.page-theme--home .cta .btn-secondary,
+.page-theme--about .cta .btn-secondary {
+  background: #FFFFFF;
+  color: #0B2838;
+  border-color: #FFFFFF;
+}
+.page-theme--home .cta .btn-secondary:hover,
+.page-theme--about .cta .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.85);
+  color: #0B2838;
+}
