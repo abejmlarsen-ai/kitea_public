@@ -2717,42 +2717,77 @@ body {
   background: linear-gradient(to bottom, #F2EDE3, #4A7C8C, #0B2838);
 }
 
-/* ─── Transparent overrides inside any page-theme ────────────────────────────── */
-/* Every child section becomes transparent so the page gradient shows through.   */
-.page-theme .logo-hero,
-.page-theme .logo-hero--home,
-.page-theme .logo-hero--about,
-.page-theme .logo-hero--hiw,
-.page-theme .logo-hero--map,
-.page-theme .logo-hero--library,
-.page-theme .logo-hero--shop,
-.page-theme .logo-hero--contact,
-.page-theme .section_1,
-.page-theme .section_1--home,
-.page-theme .section_1--about,
-.page-theme .section_1--hiw,
-.page-theme .section_1--map,
-.page-theme .section_1--library,
-.page-theme .section_1--shop,
-.page-theme .section_1--contact,
-.page-theme .section_1--construction,
-.page-theme .section_2,
-.page-theme .section_3,
-.page-theme .cta,
-.page-theme .about-buckets,
-.page-theme .about-narrative,
-.page-theme .hiw-flow,
-.page-theme .hiw-opportunities,
-.page-theme .hiw-faqs,
-.page-theme .map-section,
-.page-theme .library-section,
-.page-theme .shop-page,
-.page-theme .contact-section,
-.page-theme .login-section,
-.page-theme .signup-section,
-.page-theme .admin-page,
-.page-theme .scan-page {
-  background: transparent !important;
+/* ─── Opaque section backgrounds inside page-themes ──────────────────────────── */
+/* Every content section gets a near-opaque background so the watermark only     */
+/* shows in the negative space between content blocks.                           */
+
+/* ── Palette 1 upper sections: warm sand ──────────────────────────────────── */
+.page-theme--home .section_1,
+.page-theme--about .section_1,
+.page-theme--hiw .section_1,
+.page-theme--map .section_1,
+.page-theme--contact .section_1,
+.page-theme--about .about-buckets {
+  background: rgba(242, 237, 227, 0.95);
+}
+
+/* ── Palette 1 mid sections ───────────────────────────────────────────────── */
+.page-theme--hiw .hiw-flow {
+  background: rgba(196, 176, 142, 0.95);
+}
+
+/* ── Palette 1 lower sections: deep navy ──────────────────────────────────── */
+.page-theme--home .section_2,
+.page-theme--home .cta,
+.page-theme--home .section_3,
+.page-theme--about .about-narrative,
+.page-theme--about .section_2,
+.page-theme--about .section_3,
+.page-theme--hiw .hiw-opportunities,
+.page-theme--hiw .hiw-faqs,
+.page-theme--contact .contact-section {
+  background: rgba(11, 40, 56, 0.95);
+}
+
+/* ── Palette 1 login / signup ─────────────────────────────────────────────── */
+.page-theme--login .login-section,
+.page-theme--signup .signup-section {
+  background: rgba(242, 237, 227, 0.95);
+}
+
+/* ── Palette 1 account ────────────────────────────────────────────────────── */
+.page-theme--account .admin-page,
+.page-theme--admin .admin-page {
+  background: rgba(242, 237, 227, 0.95);
+}
+
+/* ── Palette 2 upper: warm linen ──────────────────────────────────────────── */
+.page-theme--library .section_1 {
+  background: rgba(250, 243, 224, 0.95);
+}
+
+/* ── Palette 2 lower: deep forest ─────────────────────────────────────────── */
+.page-theme--library .library-section {
+  background: rgba(15, 61, 53, 0.95);
+}
+
+/* ── Palette 3 (hunt / scan): warm parchment ──────────────────────────────── */
+.page-theme--hunt .location-photo-section,
+.page-theme--hunt .location-content {
+  background: rgba(245, 240, 232, 0.95);
+}
+.page-theme--scan .scan-page {
+  background: rgba(245, 240, 232, 0.95);
+}
+
+/* ── Map section ──────────────────────────────────────────────────────────── */
+.page-theme--map .map-section {
+  background: rgba(242, 237, 227, 0.95);
+}
+
+/* ── Shop ─────────────────────────────────────────────────────────────────── */
+.page-theme--shop .shop-page {
+  background: rgba(242, 237, 227, 0.95);
 }
 
 /* ─── Per-page footer theming via :has() ─────────────────────────────────────── */
