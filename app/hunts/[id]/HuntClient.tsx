@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { createClient } from '@/lib/supabase/client'
 
 const HuntAreaMap = dynamic(() => import('./HuntAreaMap'), { ssr: false })
 
@@ -33,6 +35,11 @@ interface ProgressData {
   reveal_directions?: string | null
 }
 
+interface CollectibleData {
+  scan_count:    number   // COUNT(DISTINCT user_id) from scans for this location
+  nft_image_url: string | null
+}
+
 interface Props {
   huntLocation: HuntLocationData
   userId:       string
@@ -46,6 +53,8 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
   console.log('[HuntClient] received progressData:', progressData)
   console.log('[HuntClient] hasScanned:', hasScanned)
 
+  const router = useRouter()
+
   // ── State ──────────────────────────────────────────────────────────────────
   const [locationQIndex,     setLocationQIndex]     = useState(progressData?.progress?.current_question_index ?? 0)
   const [locationInput,      setLocationInput]      = useState('')
@@ -55,11 +64,68 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
   const [clueImgError,       setClueImgError]       = useState(false)
   const [isScanned,          setIsScanned]          = useState(hasScanned)
 
-  // ── On mount — check ?scanned=true param ──────────────────────────────────
+  // ── Popup state ────────────────────────────────────────────────────────────
+  const [showPopup,      setShowPopup]      = useState(false)
+  const [popupVisible,   setPopupVisible]   = useState(false)  // drives CSS transition
+  const [collectible,    setCollectible]    = useState<CollectibleData | null>(null)
+  const [collectibleErr, setCollectibleErr] = useState(false)
+
+  // ── Dismiss popup — remove ?scanned=true from URL ─────────────────────────
+  const dismissPopup = useCallback(() => {
+    setPopupVisible(false)
+    setTimeout(() => {
+      setShowPopup(false)
+      const url = new URL(window.location.href)
+      url.searchParams.delete('scanned')
+      router.replace(url.pathname + (url.search || ''))
+    }, 250)
+  }, [router])
+
+  // ── On mount — check ?scanned=true, fetch collectible data ────────────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('scanned') === 'true') {
+    const params  = new URLSearchParams(window.location.search)
+    const scanned = params.get('scanned') === 'true'
+
+    if (scanned) {
       setIsScanned(true)
+      setShowPopup(true)
+
+      // Fetch unique scanner count from scans table + nft_image_url from hunt_locations
+      const supabase = createClient()
+      Promise.all([
+        // COUNT(DISTINCT user_id) for this location — each user can only scan once,
+        // but select all user_ids and deduplicate in JS for safety
+        supabase
+          .from('scans')
+          .select('user_id')
+          .eq('location_id', huntLocation.id),
+        supabase
+          .from('hunt_locations')
+          .select('nft_image_url')
+          .eq('id', huntLocation.id)
+          .maybeSingle(),
+      ]).then(([scansRes, locationRes]) => {
+        if (scansRes.error || locationRes.error) {
+          console.error('[HuntClient] popup fetch error:', scansRes.error ?? locationRes.error)
+          setCollectibleErr(true)
+        } else {
+          const uniqueScanners = new Set((scansRes.data ?? []).map((r: { user_id: string }) => r.user_id)).size
+          setCollectible({
+            scan_count:    uniqueScanners,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            nft_image_url: (locationRes.data as any)?.nft_image_url ?? null,
+          })
+        }
+        // Trigger fade-in after data arrives (or error)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setPopupVisible(true))
+        })
+      }).catch(() => {
+        setCollectibleErr(true)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setPopupVisible(true))
+        })
+      })
     }
 
     // Initialise question completion state from saved progress
@@ -118,17 +184,166 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
   return (
     <div style={{ background: 'transparent', minHeight: '100vh', color: '#0B2838' }}>
 
+      {/* ── SCAN POPUP MODAL ───────────────────────────────────────────────── */}
+      {showPopup && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={dismissPopup}
+            style={{
+              position:   'fixed',
+              inset:      0,
+              background: 'rgba(0,0,0,0.6)',
+              zIndex:     200,
+              opacity:    popupVisible ? 1 : 0,
+              transition: 'opacity 0.25s ease',
+            }}
+          />
+
+          {/* Modal card */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{
+              position:    'fixed',
+              top:         '50%',
+              left:        '50%',
+              transform:   popupVisible
+                ? 'translate(-50%, -50%) scale(1)'
+                : 'translate(-50%, -50%) scale(0.92)',
+              zIndex:      201,
+              background:  '#FFFFFF',
+              borderRadius: '1rem',
+              boxShadow:   '0 8px 48px rgba(0,0,0,0.28), 0 2px 12px rgba(0,0,0,0.14)',
+              width:       'min(480px, 92vw)',
+              maxHeight:   '90vh',
+              overflowY:   'auto',
+              padding:     '2rem 1.75rem 1.75rem',
+              opacity:     popupVisible ? 1 : 0,
+              transition:  'opacity 0.25s ease, transform 0.25s ease',
+              textAlign:   'center',
+            }}
+          >
+            {/* Close button */}
+            <button
+              onClick={dismissPopup}
+              aria-label="Close"
+              style={{
+                position:   'absolute',
+                top:        '0.9rem',
+                right:      '0.9rem',
+                background: 'transparent',
+                border:     'none',
+                cursor:     'pointer',
+                padding:    '0.25rem',
+                color:      '#8A7A5E',
+                fontSize:   '1.4rem',
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Heading */}
+            <h2 style={{
+              fontSize:   'clamp(1.5rem, 6vw, 2rem)',
+              fontWeight: 700,
+              color:      '#0B2838',
+              margin:     '0 0 0.5rem',
+              lineHeight: 1.2,
+            }}>
+              Tag Found!
+            </h2>
+
+            {/* Subheading — varies by state */}
+            {!collectibleErr && collectible && (
+              <p style={{ fontSize: '1rem', color: '#4A7C8C', margin: '0 0 1.5rem', fontWeight: 500 }}>
+                You are number <strong style={{ color: '#0B2838' }}>{collectible.scan_count}</strong> to find this tag
+              </p>
+            )}
+            {collectibleErr && (
+              <p style={{ fontSize: '1rem', color: '#4A7C8C', margin: '0 0 1.5rem' }}>
+                Your collectible has been added to your collection
+              </p>
+            )}
+            {!collectibleErr && !collectible && (
+              <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem' }}>
+                Loading your collectible…
+              </p>
+            )}
+
+            {/* Collectible image — fixed-height container, objectFit:contain preserves aspect ratio */}
+            {collectible?.nft_image_url && (
+              <div style={{
+                position:     'relative',
+                margin:       '0 auto 1.5rem',
+                borderRadius: '0.75rem',
+                overflow:     'hidden',
+                background:   '#F5F0E8',
+                maxWidth:     '320px',
+                height:       '280px',
+              }}>
+                <img
+                  src={collectible.nft_image_url}
+                  alt="Collectible"
+                  style={{
+                    position:  'absolute',
+                    inset:     0,
+                    width:     '100%',
+                    height:    '100%',
+                    objectFit: 'contain',
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Placeholder if image URL is absent */}
+            {!collectibleErr && collectible && !collectible.nft_image_url && (
+              <div style={{
+                margin:       '0 auto 1.5rem',
+                borderRadius: '0.75rem',
+                background:   '#F5F0E8',
+                maxWidth:     '320px',
+                padding:      '3rem 1rem',
+                color:        '#8A7A5E',
+                fontSize:     '0.875rem',
+              }}>
+                Collectible image coming soon
+              </div>
+            )}
+
+            {/* CTA button */}
+            <Link
+              href="/library"
+              style={{
+                display:        'inline-block',
+                background:     '#0B2838',
+                color:          '#FFFFFF',
+                padding:        '0.75rem 2rem',
+                borderRadius:   '0.5rem',
+                fontWeight:     700,
+                fontSize:       '1rem',
+                textDecoration: 'none',
+                letterSpacing:  '0.02em',
+              }}
+            >
+              View Collection →
+            </Link>
+          </div>
+        </>
+      )}
+
       {/* Sticky hunt header */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
+        display:        'flex',
+        alignItems:     'center',
         justifyContent: 'space-between',
-        padding: '0.75rem 1.5rem',
-        background: '#F5F0E8',
-        borderBottom: '1px solid #8A7A5E',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
+        padding:        '0.75rem 1.5rem',
+        background:     '#F5F0E8',
+        borderBottom:   '1px solid #8A7A5E',
+        position:       'sticky',
+        top:            0,
+        zIndex:         100,
       }}>
         <img
           src="/images/Kitea Logo Only.png"
@@ -143,10 +358,10 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
       {/* ── CELEBRATION BANNER — shown above content when scanned ──────────── */}
       {isScanned && (
         <div style={{
-          background: 'linear-gradient(135deg, #4A7C8C 0%, #0B2838 100%)',
-          color: '#F5F0E8',
-          padding: '2rem 1.5rem',
-          textAlign: 'center',
+          background:   'linear-gradient(135deg, #4A7C8C 0%, #0B2838 100%)',
+          color:        '#F5F0E8',
+          padding:      '2rem 1.5rem',
+          textAlign:    'center',
           borderBottom: '2px solid #8A7A5E',
         }}>
           <p style={{ fontSize: '2rem', margin: '0 0 0.5rem', lineHeight: 1 }}>✦</p>
@@ -157,13 +372,13 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
             Your collectible has been added to your collection
           </p>
           <Link href="/library" style={{
-            display: 'inline-block',
-            background: '#F5F0E8',
-            color: '#0B2838',
-            padding: '0.65rem 1.5rem',
-            borderRadius: '6px',
-            fontWeight: 700,
-            fontSize: '0.95rem',
+            display:        'inline-block',
+            background:     '#F5F0E8',
+            color:          '#0B2838',
+            padding:        '0.65rem 1.5rem',
+            borderRadius:   '6px',
+            fontWeight:     700,
+            fontSize:       '0.95rem',
             textDecoration: 'none',
           }}>
             View Your Collection →
@@ -171,10 +386,10 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
         </div>
       )}
 
-      <div className='hunt-layout'>
+      <div className="hunt-layout">
 
         {/* ── LEFT COLUMN ──────────────────────────────────────────────────── */}
-        <div className='hunt-col-main'>
+        <div className="hunt-col-main">
 
           {/* Hunt name */}
           <h1 style={{ fontSize: 'clamp(1.5rem,6vw,2.25rem)', fontWeight: 700, color: '#0B2838', margin: '0 0 1.25rem' }}>
@@ -185,12 +400,12 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
           {clue?.image_url && !clueImgError ? (
             <img
               src={clue.image_url}
-              alt='Hunt clue'
+              alt="Hunt clue"
               onError={() => setClueImgError(true)}
               style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '0.75rem', marginBottom: '1rem' }}
             />
           ) : (
-            <div className='hunt-clue-placeholder'>
+            <div className="hunt-clue-placeholder">
               Clue image coming soon
             </div>
           )}
@@ -200,16 +415,22 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
               {clue.text_content}
             </p>
           ) : (
-            <p className='hunt-placeholder-text'>
+            <p className="hunt-placeholder-text">
               The clue for this hunt is being prepared. Check back soon.
             </p>
           )}
 
           {clue?.code_type_hint && (
             <span style={{
-              display: 'inline-block', background: '#4A7C8C', color: '#FFFFFF',
-              borderRadius: '99px', padding: '0.25rem 0.75rem',
-              fontSize: '0.75rem', fontWeight: 600, marginBottom: '1.25rem', letterSpacing: '0.04em',
+              display:       'inline-block',
+              background:    '#4A7C8C',
+              color:         '#FFFFFF',
+              borderRadius:  '99px',
+              padding:       '0.25rem 0.75rem',
+              fontSize:      '0.75rem',
+              fontWeight:    600,
+              marginBottom:  '1.25rem',
+              letterSpacing: '0.04em',
             }}>
               {clue.code_type_hint}
             </span>
@@ -217,11 +438,11 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
 
           {/* ── REVEAL DIRECTIONS — always visible ────────────────────────── */}
           <div style={{
-            background: 'rgba(74,124,140,0.10)',
-            border: '1px solid #4A7C8C',
-            borderRadius: '0.75rem',
-            padding: '1rem 1.25rem',
-            marginBottom: '1.5rem',
+            background:    'rgba(74,124,140,0.10)',
+            border:        '1px solid #4A7C8C',
+            borderRadius:  '0.75rem',
+            padding:       '1rem 1.25rem',
+            marginBottom:  '1.5rem',
           }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4A7C8C', margin: '0 0 0.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Where to scan
@@ -245,14 +466,18 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
           {/* ── NAVIGATION CLUES — questions as optional helpers ──────────── */}
           <div>
             <p style={{
-              fontSize: '0.75rem', fontWeight: 700, color: '#4A7C8C',
-              textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.75rem',
+              fontSize:      '0.75rem',
+              fontWeight:    700,
+              color:         '#4A7C8C',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              margin:        '0 0 0.75rem',
             }}>
               Finding the Tag
             </p>
 
             {questions.length > 0 ? (
-              <div className='hunt-questions-panel' style={{ marginTop: 0 }}>
+              <div className="hunt-questions-panel" style={{ marginTop: 0 }}>
                 <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4A7C8C', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Answer these questions to help navigate to the tag
                 </p>
@@ -269,13 +494,14 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
                         <span
                           key={i}
                           style={{
-                            display: 'inline-block',
-                            width:  i === locationQIndex ? '14px' : '10px',
-                            height: i === locationQIndex ? '14px' : '10px',
+                            display:      'inline-block',
+                            width:        i === locationQIndex ? '14px' : '10px',
+                            height:       i === locationQIndex ? '14px' : '10px',
                             borderRadius: '50%',
-                            background: i <= locationQIndex ? '#4A7C8C' : 'transparent',
-                            border: i > locationQIndex ? '1.5px solid #8A7A5E' : 'none',
-                            transition: 'all 0.2s', flexShrink: 0,
+                            background:   i <= locationQIndex ? '#4A7C8C' : 'transparent',
+                            border:       i > locationQIndex ? '1.5px solid #8A7A5E' : 'none',
+                            transition:   'all 0.2s',
+                            flexShrink:   0,
                           }}
                         />
                       ))}
@@ -286,18 +512,18 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
                     </p>
 
                     <input
-                      type='text'
+                      type="text"
                       value={locationInput}
                       onChange={e => setLocationInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') { void submitLocationAnswer() } }}
                       className={`hunt-input-sm${locationWrong ? ' shake' : ''}`}
-                      placeholder='Your answer…'
+                      placeholder="Your answer…"
                     />
 
                     <button
                       onClick={submitLocationAnswer}
                       disabled={locationSubmitting}
-                      className='hunt-btn-submit-sm'
+                      className="hunt-btn-submit-sm"
                     >
                       {locationSubmitting ? 'Checking…' : 'Submit'}
                     </button>
@@ -305,7 +531,7 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
                 )}
               </div>
             ) : (
-              <p className='hunt-placeholder-text'>
+              <p className="hunt-placeholder-text">
                 Navigation clues for this hunt are being finalised.
               </p>
             )}
@@ -314,7 +540,7 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
         </div>
 
         {/* ── RIGHT COLUMN — area map ───────────────────────────────────────── */}
-        <div className='hunt-col-map'>
+        <div className="hunt-col-map">
           <div style={{ borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', marginBottom: '0.5rem' }}>
             <HuntAreaMap lat={huntLocation.latitude} lng={huntLocation.longitude} />
           </div>

@@ -64,12 +64,14 @@ function NFTModal({ nft, onClose }: ModalProps) {
           ✕
         </button>
 
-        <div className="nft-modal-image">
+        {/* Fixed-height container — objectFit:contain preserves natural aspect ratio */}
+        <div className="nft-modal-image" style={{ position: 'relative', height: '220px', width: '100%' }}>
           <Image
             src={nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'}
             alt={name}
-            width={180}
-            height={180}
+            fill
+            style={{ objectFit: 'contain' }}
+            sizes="(max-width: 600px) 90vw, 440px"
           />
         </div>
 
@@ -124,37 +126,97 @@ function NFTCard({ nft, onClick }: CardProps) {
     ? `Kitea Founder #${nft.edition_number}`
     : `Kitea — ${nft.hunt_locations?.name ?? 'Unknown'} #${nft.edition_number}`
 
+  const imageSrc = nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'
+
   return (
     <article
-      className={`nft-card ${isFounder ? 'nft-card--founder' : 'nft-card--location'}`}
       onClick={onClick}
+      style={{
+        background:    '#FFFFFF',
+        border:        '1px solid #000000',
+        borderRadius:  '12px',
+        padding:       '16px',
+        cursor:        'pointer',
+        display:       'flex',
+        flexDirection: 'column',
+        gap:           '12px',
+        transition:    'transform 0.2s ease, box-shadow 0.2s ease',
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.transform  = 'translateY(-3px)'
+        ;(e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.transform  = ''
+        ;(e.currentTarget as HTMLElement).style.boxShadow = ''
+      }}
     >
-      <div className="nft-card-image-wrapper">
+      {/* Fixed-height image container — contain, never stretch or crop */}
+      <div style={{
+        position:        'relative',
+        height:          '200px',
+        width:           '100%',
+        background:      '#F8F8F8',
+        borderRadius:    '8px',
+        overflow:        'hidden',
+        display:         'flex',
+        alignItems:      'center',
+        justifyContent:  'center',
+      }}>
         <Image
-          src={nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'}
+          src={imageSrc}
           alt={name}
-          width={isFounder ? 120 : 80}
-          height={isFounder ? 120 : 80}
-          className="nft-card-img"
+          fill
+          style={{ objectFit: 'contain' }}
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 280px"
         />
-        {/* Hover overlay with View prompt */}
-        <div className="nft-card-overlay" aria-hidden="true">
-          <span className="nft-card-view-btn">View</span>
-        </div>
-        {/* Edition badge — top-right corner */}
-        <span
-          className={`nft-badge nft-card-badge ${
-            isFounder ? 'nft-badge--founder' : 'nft-badge--location'
-          }`}
-        >
+        {/* Edition badge */}
+        <span style={{
+          position:      'absolute',
+          top:           '8px',
+          right:         '8px',
+          background:    '#000000',
+          color:         '#FFFFFF',
+          borderRadius:  '99px',
+          padding:       '2px 10px',
+          fontSize:      '0.72rem',
+          fontWeight:    700,
+          letterSpacing: '0.04em',
+          lineHeight:    1.6,
+        }}>
           #{nft.edition_number}
         </span>
       </div>
 
-      <div className="nft-card-info">
-        <p className="nft-card-name">{name}</p>
-      </div>
+      {/* Card name */}
+      <p style={{
+        margin:     0,
+        fontSize:   '0.85rem',
+        fontWeight: 700,
+        color:      '#000000',
+        textAlign:  'center',
+        lineHeight: 1.35,
+      }}>
+        {name}
+      </p>
     </article>
+  )
+}
+
+// ─── Section heading ──────────────────────────────────────────────────────────
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 style={{
+      fontSize:      '0.7rem',
+      fontWeight:    700,
+      color:         '#8A7A5E',
+      textTransform: 'uppercase',
+      letterSpacing: '0.1em',
+      margin:        '0 0 1rem',
+    }}>
+      {children}
+    </h3>
   )
 }
 
@@ -182,8 +244,11 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
     return () => clearTimeout(t)
   }, [showBanner])
 
-  const founderNFT = nfts.find((n) => n.hunt_location_id === null)
+  // Hunt collectibles first (hunt_location_id NOT NULL), ordered by minted_at desc
+  // (server already returns minted_at desc, so filter preserves that order)
   const huntNFTs   = nfts.filter((n) => n.hunt_location_id !== null)
+  // Founder / origin collectibles second (hunt_location_id IS NULL)
+  const founderNFTs = nfts.filter((n) => n.hunt_location_id === null)
 
   // ── Empty state: only when truly no NFTs ───────────────────────────────
   if (nfts.length === 0) {
@@ -241,30 +306,10 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
           <p className="library-paper-subtitle">Adventure Log</p>
         </div>
 
-        {/* Founder NFT — centred as the origin piece.
-            Renders whenever the user has a founder NFT; the hunt-only
-            section always shows regardless. */}
-        {founderNFT && (
-          <div className="library-founder-section">
-            <div className="library-founder-label">Origin</div>
-            <NFTCard
-              nft={founderNFT}
-              onClick={() => setSelectedNFT(founderNFT)}
-            />
-          </div>
-        )}
-
-        {/* Hunt NFTs */}
-        <div className="library-hunts-section">
-          <div className="library-hunts-divider">
-            <span>Adventures Completed</span>
-          </div>
-
-          {huntNFTs.length === 0 ? (
-            <p className="library-no-hunts">
-              Complete a hunt to add it here.
-            </p>
-          ) : (
+        {/* ── DISCOVERIES — hunt collectibles first ──────────────────────── */}
+        {huntNFTs.length > 0 && (
+          <div style={{ marginBottom: founderNFTs.length > 0 ? '2.5rem' : 0 }}>
+            <SectionHeading>Discoveries</SectionHeading>
             <div className="library-hunts-grid">
               {huntNFTs.map((nft) => (
                 <NFTCard
@@ -274,8 +319,24 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
                 />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* ── ORIGIN — founder collectibles below ────────────────────────── */}
+        {founderNFTs.length > 0 && (
+          <div>
+            <SectionHeading>Origin</SectionHeading>
+            <div className="library-hunts-grid">
+              {founderNFTs.map((nft) => (
+                <NFTCard
+                  key={nft.id}
+                  nft={nft}
+                  onClick={() => setSelectedNFT(nft)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Paper footer */}
         <div className="library-paper-footer">
