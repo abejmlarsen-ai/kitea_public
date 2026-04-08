@@ -1,6 +1,5 @@
 // ─── Library Page (Protected) ────────────────────────────────────────────
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import WalletButton from '@/components/wallet/WalletButton'
 import WalletAutoConnect from '@/components/wallet/WalletAutoConnect'
@@ -108,17 +107,6 @@ export default async function LibraryPage() {
 
   return (
     <div className="page-theme page-theme--library">
-      <section className="logo-hero logo-hero--library">
-        <Image
-          src="/images/Kitea Logo Only.png"
-          alt="Kitea logo"
-          width={400}
-          height={400}
-          priority
-          style={{ objectFit: 'contain', width: 'auto' }}
-        />
-      </section>
-
       <section className="section_1 section_1--library">
         <div className="container">
           <p id="user-greeting">Welcome back, {firstName}!</p>

@@ -2,7 +2,7 @@
 // ─── Login Form (Client Component) ──────────────────────────────────────────────
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
   const router                  = useRouter()
+  const searchParams            = useSearchParams()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -51,7 +52,9 @@ export default function LoginForm() {
       }).catch(console.error)
     }
 
-    router.push('/library')
+    // Honour ?redirect= param (e.g. from /scan auth flow), fall back to /library
+    const redirect = searchParams.get('redirect')
+    router.push(redirect && redirect.startsWith('/') ? redirect : '/library')
     router.refresh()
   }
 
