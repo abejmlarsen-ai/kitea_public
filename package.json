@@ -34,5 +34,8 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "15.1.7",
     "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "use-sync-external-store": "^1.4.0"
   }
 }
