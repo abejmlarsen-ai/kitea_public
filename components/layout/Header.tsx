@@ -1,5 +1,6 @@
 // ─── Site Header (Server Component) ─────────────────────────────────────────
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import AdminDropdown from './AdminDropdown'
 import LogoutButton from '@/components/auth/LogoutButton'
@@ -31,7 +32,14 @@ export default async function Header() {
   return (
     <header className="site-header">
       <div className="header-inner">
-        <Link href="/" className="logo">
+        <Link href="/" className="logo" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <Image
+            src="/images/Kitea Logo Only.png"
+            alt=""
+            width={28}
+            height={28}
+            style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+          />
           Kitea
         </Link>
 

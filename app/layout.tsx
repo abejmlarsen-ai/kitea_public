@@ -48,15 +48,13 @@ export default function RootLayout({
     <html lang="en">
       <body className="theme-dark">
         <ThirdwebAppProvider>
-          {/* Fixed watermark behind all page content */}
-          <LogoWatermark />
-          {/* Content shell at z-index 1 keeps everything above the watermark */}
           <div style={{ position: 'relative', zIndex: 1 }}>
             <Header />
             {children}
             <Footer />
             <PWAInstallPrompt />
           </div>
+          <LogoWatermark />
         </ThirdwebAppProvider>
 
         {/* Register service worker */}
