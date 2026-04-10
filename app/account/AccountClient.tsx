@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import PasswordInput from '@/components/auth/PasswordInput'
 import { createClient } from '@/lib/supabase/client'
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -95,16 +96,24 @@ function EditRow({
 
         {editing ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <input
-              type={isPassword ? 'password' : inputType}
-              value={val}
-              onChange={e => setVal(e.target.value)}
-              placeholder={isPassword ? 'New password' : label}
-              className="acct-input"
-            />
-            {isPassword && (
+            {isPassword ? (
+              <PasswordInput
+                value={val}
+                onChange={e => setVal(e.target.value)}
+                placeholder="New password"
+                className="acct-input"
+              />
+            ) : (
               <input
-                type="password"
+                type={inputType}
+                value={val}
+                onChange={e => setVal(e.target.value)}
+                placeholder={label}
+                className="acct-input"
+              />
+            )}
+            {isPassword && (
+              <PasswordInput
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="Confirm new password"

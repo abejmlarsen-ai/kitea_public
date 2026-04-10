@@ -358,7 +358,7 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
       {/* ── CELEBRATION BANNER — shown above content when scanned ──────────── */}
       {isScanned && (
         <div style={{
-          background:   'linear-gradient(135deg, #4A7C8C 0%, #0B2838 100%)',
+          background:   '#0B2838',
           color:        '#F5F0E8',
           padding:      '2rem 1.5rem',
           textAlign:    'center',

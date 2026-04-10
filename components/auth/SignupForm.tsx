@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import PasswordInput from '@/components/auth/PasswordInput'
 
 export default function SignupForm() {
   const [form, setForm] = useState({
@@ -169,9 +170,8 @@ export default function SignupForm() {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 name="password"
                 placeholder="Create a password"
                 value={form.password}
@@ -183,9 +183,8 @@ export default function SignupForm() {
 
             <div className="form-group">
               <label htmlFor="confirm_password">Confirm Password</label>
-              <input
+              <PasswordInput
                 id="confirm_password"
-                type="password"
                 name="confirm_password"
                 placeholder="Repeat your password"
                 value={form.confirm_password}

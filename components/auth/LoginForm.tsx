@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import PasswordInput from '@/components/auth/PasswordInput'
 
 export default function LoginForm() {
   const [email, setEmail]       = useState('')
@@ -93,9 +94,8 @@ export default function LoginForm() {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
