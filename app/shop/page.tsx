@@ -1,4 +1,4 @@
-// ─── Shop Page ────────────────────────────────────────────────────────────────
+// ─── Shop Page ────────────────────────────────────────────────────────────────────────────────
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import ShopClient from './ShopClient'
@@ -11,7 +11,8 @@ export type ShopProduct = {
   description: string | null
   image_url: string | null
   hunt_location_id: string | null
-  price: number
+  price: number | null
+  requires_scan: boolean
 }
 
 export type HuntLocation = {
@@ -27,7 +28,8 @@ type RawProduct = {
   hunt_location_id?: string | null
   is_active?: boolean
   created_at?: string
-  price?: number
+  price?: number | null
+  requires_scan?: boolean
   [key: string]: unknown
 }
 
@@ -49,7 +51,8 @@ export default async function ShopPage() {
     description: p.description ?? null,
     image_url: p.image_url ?? null,
     hunt_location_id: p.hunt_location_id ?? null,
-    price: p.price ?? 0,
+    price: p.price ?? null,
+    requires_scan: p.requires_scan ?? false,
   }))
 
   // Fetch active hunt locations for grouping
@@ -62,6 +65,7 @@ export default async function ShopPage() {
   const locations: HuntLocation[] = ((rawLocations as unknown as HuntLocation[]) ?? [])
 
   let unlockedProductIds: string[] = []
+  let hasScanned = false
   if (user) {
     const { data: unlocks } = await supabase
       .from('product_unlocks')
@@ -70,6 +74,14 @@ export default async function ShopPage() {
 
     type RawUnlock = { product_id: string; [key: string]: unknown }
     unlockedProductIds = ((unlocks as unknown as RawUnlock[]) ?? []).map((u) => u.product_id)
+
+    // Check if user has scanned at least one NFC tag
+    const { count } = await supabase
+      .from('scans')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    hasScanned = (count ?? 0) > 0
   }
 
   return (
@@ -79,6 +91,7 @@ export default async function ShopPage() {
         userId={user?.id ?? null}
         unlockedProductIds={unlockedProductIds}
         locations={locations}
+        hasScanned={hasScanned}
       />
     </div>
   )

@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 // ─── Shop Client Component ────────────────────────────────────────────────────
 // Renders products grouped into coloured rows by hunt location.
@@ -19,6 +19,7 @@ type Props = {
   userId: string | null
   unlockedProductIds: string[]
   locations: HuntLocation[]
+  hasScanned: boolean
 }
 
 // Row colour palette — index maps to hunt order
@@ -31,7 +32,7 @@ const ROW_COLORS = [
   { header: '#16a085', light: '#e8f8f5' },  // Hunt 6 — teal
 ]
 
-export default function ShopClient({ products, userId, unlockedProductIds, locations }: Props) {
+export default function ShopClient({ products, userId, unlockedProductIds, locations, hasScanned }: Props) {
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
@@ -40,12 +41,23 @@ export default function ShopClient({ products, userId, unlockedProductIds, locat
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
   const cartTotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
+  // Filter out scan-gated products if user hasn't scanned
+  const visibleProducts = products.filter((p) => {
+    if (p.requires_scan && !hasScanned) return false
+    return true
+  })
+
   function isLocked(product: ShopProduct): boolean {
     if (!product.hunt_location_id) return false
     return !unlockedProductIds.includes(product.id)
   }
 
+  function isComingSoon(product: ShopProduct): boolean {
+    return product.price === null && product.requires_scan
+  }
+
   function addToCart(product: ShopProduct) {
+    if (product.price === null || product.price <= 0) return
     if (!userId) {
       router.push('/login?redirect=/shop')
       return
@@ -59,7 +71,7 @@ export default function ShopClient({ products, userId, unlockedProductIds, locat
       }
       return [
         ...prev,
-        { product_id: product.id, name: product.name, price: product.price, quantity: 1 },
+        { product_id: product.id, name: product.name, price: product.price ?? 0, quantity: 1 },
       ]
     })
     setCartOpen(true)
@@ -110,19 +122,94 @@ export default function ShopClient({ products, userId, unlockedProductIds, locat
   // ── Group products ──────────────────────────────────────────────────────────
 
   // Separate general (no hunt) products from hunt-specific ones
-  const generalProducts = products.filter((p) => !p.hunt_location_id)
+  const generalProducts = visibleProducts.filter((p) => !p.hunt_location_id)
 
   // Build hunt groups in the order locations are sorted
   const huntGroups = locations
     .map((loc) => ({
       location: loc,
-      products: products.filter((p) => p.hunt_location_id === loc.id),
+      products: visibleProducts.filter((p) => p.hunt_location_id === loc.id),
     }))
     .filter((g) => g.products.length > 0)
+
+  // ── Coming Soon card renderer ─────────────────────────────────────────────
+
+  function ComingSoonCard({ product }: { product: ShopProduct }) {
+    return (
+      <article
+        className="shop-card"
+        style={{
+          border: '2px dashed #C4B08E',
+          background: '#FFFFFF',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Coming Soon badge */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            background: '#C9A84C',
+            color: '#FFFFFF',
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            padding: '4px 10px',
+            borderRadius: '4px',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            zIndex: 2,
+          }}
+        >
+          Coming Soon
+        </div>
+
+        {/* Placeholder image area with Kitea logo watermark */}
+        {product.image_url ? (
+          <div className="shop-card-image-wrapper">
+            <img src={product.image_url} alt={product.name} className="shop-card-image" />
+          </div>
+        ) : (
+          <div
+            className="shop-card-image-placeholder"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+            }}
+          >
+            <img
+              src="/images/Kitea Logo Only.png"
+              alt=""
+              style={{
+                width: '64px',
+                height: '64px',
+                opacity: 0.2,
+                objectFit: 'contain',
+              }}
+            />
+          </div>
+        )}
+
+        <div className="shop-card-body">
+          <h3 className="shop-card-name">{product.name}</h3>
+          {product.description && (
+            <p className="shop-card-desc">{product.description}</p>
+          )}
+        </div>
+      </article>
+    )
+  }
 
   // ── Product card renderer ───────────────────────────────────────────────────
 
   function ProductCard({ product, bgLight }: { product: ShopProduct; bgLight?: string }) {
+    if (isComingSoon(product)) {
+      return <ComingSoonCard product={product} />
+    }
+
     const locked = isLocked(product)
     return (
       <article
@@ -147,18 +234,21 @@ export default function ShopClient({ products, userId, unlockedProductIds, locat
           )}
           {locked ? (
             <p className="shop-card-locked-msg">Scan the location to unlock</p>
-          ) : (
+          ) : product.price !== null ? (
             <p className="shop-card-price">
               {product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free'}
             </p>
-          )}
-          <button
-            className="shop-card-btn"
-            disabled={locked || product.price === 0}
-            onClick={() => !locked && addToCart(product)}
-          >
-            {locked ? 'Locked' : 'Add to Cart'}
-          </button>
+          ) : null}
+          {locked ? (
+            <button className="shop-card-btn" disabled>Locked</button>
+          ) : product.price !== null && product.price > 0 ? (
+            <button
+              className="shop-card-btn"
+              onClick={() => addToCart(product)}
+            >
+              Add to Cart
+            </button>
+          ) : null}
         </div>
       </article>
     )
@@ -186,7 +276,7 @@ export default function ShopClient({ products, userId, unlockedProductIds, locat
       <div className="shop-layout">
         {/* Hunt rows */}
         <main className="shop-hunt-rows">
-          {products.length === 0 && (
+          {visibleProducts.length === 0 && (
             <p className="shop-empty">No products available yet — check back soon.</p>
           )}
 

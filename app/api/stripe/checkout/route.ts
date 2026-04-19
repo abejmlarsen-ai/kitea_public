@@ -47,6 +47,21 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Reject products that are not purchasable
+      if (product.price === null || product.price === undefined) {
+        return NextResponse.json(
+          { error: `${product.name} is not available for purchase` },
+          { status: 400 }
+        )
+      }
+
+      if (product.stock_quantity !== null && product.stock_quantity !== undefined && product.stock_quantity <= 0) {
+        return NextResponse.json(
+          { error: `${product.name} is out of stock` },
+          { status: 400 }
+        )
+      }
+
       // Check scan requirement if applicable
       if (product.requires_scan && product.required_location_id) {
         const { data: scan } = await supabase
