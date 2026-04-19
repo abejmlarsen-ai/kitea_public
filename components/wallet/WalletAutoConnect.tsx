@@ -65,7 +65,7 @@ export default function WalletAutoConnect({ userEmail, userId }: WalletAutoConne
 
   return (
     <div className="wallet-toast" role="status" aria-live="polite">
-      ✦ Your Kitea wallet has been created
+      ✦ Your Kitea collection has been created
     </div>
   )
 }

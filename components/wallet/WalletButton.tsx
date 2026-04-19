@@ -32,8 +32,8 @@ export default function WalletButton() {
       <button
         className="wallet-display__copy"
         onClick={handleCopy}
-        title={copied ? 'Copied!' : 'Copy wallet address'}
-        aria-label={copied ? 'Address copied' : 'Copy wallet address'}
+        title={copied ? 'Copied!' : 'Copy collection ID'}
+        aria-label={copied ? 'Copied' : 'Copy collection ID'}
       >
         {copied ? '✓' : '⧉'}
       </button>

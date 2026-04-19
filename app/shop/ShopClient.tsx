@@ -1,97 +1,41 @@
 'use client'
 
 // ─── Shop Client Component ────────────────────────────────────────────────────
-// Renders products grouped into coloured rows by hunt location.
+// Hunt-reward shop: every product is tied to a hunt, visible only after scanning.
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ShopProduct, HuntLocation } from './page'
-
-type CartItem = {
-  product_id: string
-  name: string
-  price: number
-  quantity: number
-}
+import Link from 'next/link'
+import type { ShopProduct, HuntGroup } from './page'
 
 type Props = {
-  products: ShopProduct[]
+  huntGroups: HuntGroup[]
   userId: string | null
-  unlockedProductIds: string[]
-  locations: HuntLocation[]
 }
 
-// Row colour palette — index maps to hunt order
-const ROW_COLORS = [
-  { header: '#0169aa', light: '#e8f4fc' },  // Hunt 1 — blue
-  { header: '#c9a227', light: '#fdf6e3' },  // Hunt 2 — gold
-  { header: '#27ae60', light: '#e8f8f0' },  // Hunt 3 — green
-  { header: '#8e44ad', light: '#f4e8fc' },  // Hunt 4 — purple
-  { header: '#e74c3c', light: '#fce8e8' },  // Hunt 5 — red
-  { header: '#16a085', light: '#e8f8f5' },  // Hunt 6 — teal
-]
+function isComingSoon(product: ShopProduct): boolean {
+  return product.image_url === null || product.price === null || product.stripe_price_id === null
+}
 
-export default function ShopClient({ products, userId, unlockedProductIds, locations }: Props) {
+export default function ShopClient({ huntGroups, userId }: Props) {
   const router = useRouter()
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [cartOpen, setCartOpen] = useState(false)
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [checkingOut, setCheckingOut] = useState<string | null>(null)
 
-  const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
-  const cartTotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
-
-  function isLocked(product: ShopProduct): boolean {
-    if (!product.hunt_location_id) return false
-    return !unlockedProductIds.includes(product.id)
-  }
-
-  function addToCart(product: ShopProduct) {
+  async function handleAddToCart(product: ShopProduct) {
+    if (!product.stripe_price_id || product.price === null) return
     if (!userId) {
       router.push('/login?redirect=/shop')
       return
     }
-    setCart((prev) => {
-      const existing = prev.find((i) => i.product_id === product.id)
-      if (existing) {
-        return prev.map((i) =>
-          i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        )
-      }
-      return [
-        ...prev,
-        { product_id: product.id, name: product.name, price: product.price, quantity: 1 },
-      ]
-    })
-    setCartOpen(true)
-  }
 
-  function removeFromCart(product_id: string) {
-    setCart((prev) => prev.filter((i) => i.product_id !== product_id))
-  }
-
-  function updateQuantity(product_id: string, delta: number) {
-    setCart((prev) =>
-      prev
-        .map((i) => (i.product_id === product_id ? { ...i, quantity: i.quantity + delta } : i))
-        .filter((i) => i.quantity > 0)
-    )
-  }
-
-  async function handleCheckout() {
-    if (!userId) {
-      router.push('/login?redirect=/shop')
-      return
-    }
-    if (cart.length === 0) return
-
-    setIsCheckingOut(true)
+    setCheckingOut(product.id)
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
-          items: cart.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+          price_id: product.stripe_price_id,
+          product_id: product.id,
         }),
       })
       const data = (await res.json()) as { url?: string; error?: string }
@@ -99,174 +43,286 @@ export default function ShopClient({ products, userId, unlockedProductIds, locat
         window.location.href = data.url
       } else {
         alert(data.error ?? 'Checkout failed. Please try again.')
-        setIsCheckingOut(false)
+        setCheckingOut(null)
       }
     } catch {
       alert('Connection error. Please try again.')
-      setIsCheckingOut(false)
+      setCheckingOut(null)
     }
   }
 
-  // ── Group products ──────────────────────────────────────────────────────────
+  // ── Empty state ─────────────────────────────────────────────────────────────
 
-  // Separate general (no hunt) products from hunt-specific ones
-  const generalProducts = products.filter((p) => !p.hunt_location_id)
-
-  // Build hunt groups in the order locations are sorted
-  const huntGroups = locations
-    .map((loc) => ({
-      location: loc,
-      products: products.filter((p) => p.hunt_location_id === loc.id),
-    }))
-    .filter((g) => g.products.length > 0)
-
-  // ── Product card renderer ───────────────────────────────────────────────────
-
-  function ProductCard({ product, bgLight }: { product: ShopProduct; bgLight?: string }) {
-    const locked = isLocked(product)
+  if (huntGroups.length === 0) {
     return (
-      <article
-        className={`shop-card${locked ? ' shop-card--locked' : ''}`}
-        style={bgLight ? { background: bgLight } : undefined}
-      >
-        {product.image_url ? (
-          <div className="shop-card-image-wrapper">
-            <img src={product.image_url} alt={product.name} className="shop-card-image" />
-            {locked && <div className="shop-card-lock">🔒</div>}
-          </div>
-        ) : (
-          <div className="shop-card-image-placeholder">
-            {locked ? '🔒' : '✦'}
-          </div>
-        )}
-
-        <div className="shop-card-body">
-          <h3 className="shop-card-name">{product.name}</h3>
-          {product.description && (
-            <p className="shop-card-desc">{product.description}</p>
-          )}
-          {locked ? (
-            <p className="shop-card-locked-msg">Scan the location to unlock</p>
-          ) : (
-            <p className="shop-card-price">
-              {product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free'}
-            </p>
-          )}
-          <button
-            className="shop-card-btn"
-            disabled={locked || product.price === 0}
-            onClick={() => !locked && addToCart(product)}
+      <div className="shop-page">
+        <div
+          style={{
+            minHeight: '60vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '48px 24px',
+            background: '#0B2838',
+            color: '#F2EDE3',
+            borderRadius: '16px',
+            margin: '32px auto',
+            maxWidth: '560px',
+          }}
+        >
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px', color: '#F2EDE3' }}>
+            The Shop
+          </h1>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px', color: '#C9A84C' }}>
+            No items unlocked
+          </h2>
+          <p style={{ fontSize: '1rem', color: '#A8C4CC', marginBottom: '32px', maxWidth: '360px' }}>
+            Complete a hunt to unlock exclusive products
+          </p>
+          <Link
+            href="/map"
+            style={{
+              display: 'inline-block',
+              padding: '12px 32px',
+              background: '#4A7C8C',
+              color: '#FFFFFF',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '1rem',
+              textDecoration: 'none',
+              transition: 'background 0.2s',
+            }}
           >
-            {locked ? 'Locked' : 'Add to Cart'}
-          </button>
+            Explore the Map
+          </Link>
         </div>
-      </article>
+      </div>
     )
   }
 
+  // ── Products state ──────────────────────────────────────────────────────────
+
   return (
     <div className="shop-page">
-      {/* Hero */}
       <section className="shop-hero">
-        <h1>Shop</h1>
-        <p>Exclusive items — some unlocked by your adventures.</p>
+        <h1>The Shop</h1>
+        <p>Exclusive items unlocked by your adventures.</p>
       </section>
 
-      {/* Floating cart toggle */}
-      {cartCount > 0 && (
-        <button
-          className="shop-cart-toggle"
-          onClick={() => setCartOpen((o) => !o)}
-          aria-label="Open cart"
-        >
-          🛒&nbsp;<span className="shop-cart-badge">{cartCount}</span>
-        </button>
-      )}
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 16px 64px' }}>
+        {huntGroups.map((group) => (
+          <div key={group.hunt_location_id} style={{ marginBottom: '48px' }}>
+            {/* Hunt section heading */}
+            <h2
+              style={{
+                fontSize: '1.4rem',
+                fontWeight: 700,
+                color: '#0B2838',
+                marginBottom: '20px',
+                paddingBottom: '8px',
+                borderBottom: '2px solid #C4B08E',
+              }}
+            >
+              {group.hunt_name}
+            </h2>
 
-      <div className="shop-layout">
-        {/* Hunt rows */}
-        <main className="shop-hunt-rows">
-          {products.length === 0 && (
-            <p className="shop-empty">No products available yet — check back soon.</p>
-          )}
-
-          {/* General / always-available products */}
-          {generalProducts.length > 0 && (
-            <div className="hunt-row">
-              <div className="hunt-row-header" style={{ background: '#2d3142' }}>
-                <h2 className="hunt-row-title">General</h2>
-                <span className="hunt-row-subtitle">Available to everyone</span>
-              </div>
-              <div className="hunt-row-body">
-                {generalProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
+            {/* Product grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '24px',
+              }}
+            >
+              {group.products.map((product) =>
+                isComingSoon(product) ? (
+                  <ComingSoonCard
+                    key={product.id}
+                    product={product}
+                    scanNumber={group.scan_number}
+                  />
+                ) : (
+                  <PurchasableCard
+                    key={product.id}
+                    product={product}
+                    scanNumber={group.scan_number}
+                    onAddToCart={handleAddToCart}
+                    isLoading={checkingOut === product.id}
+                  />
+                )
+              )}
             </div>
-          )}
-
-          {/* Hunt-specific rows */}
-          {huntGroups.map((group, idx) => {
-            const color = ROW_COLORS[idx % ROW_COLORS.length]
-            return (
-              <div key={group.location.id} className="hunt-row">
-                <div className="hunt-row-header" style={{ background: color.header }}>
-                  <h2 className="hunt-row-title">{group.location.name}</h2>
-                  <span className="hunt-row-subtitle">Scan the tag to unlock</span>
-                </div>
-                <div className="hunt-row-body">
-                  {group.products.map((p) => (
-                    <ProductCard key={p.id} product={p} bgLight={color.light} />
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </main>
-
-        {/* Cart sidebar */}
-        {cartOpen && (
-          <aside className="shop-cart">
-            <div className="shop-cart-header">
-              <h2>Your Cart</h2>
-              <button className="shop-cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">✕</button>
-            </div>
-
-            {cart.length === 0 ? (
-              <p className="shop-cart-empty">Your cart is empty.</p>
-            ) : (
-              <>
-                <ul className="shop-cart-list">
-                  {cart.map((item) => (
-                    <li key={item.product_id} className="shop-cart-item">
-                      <div className="shop-cart-item-info">
-                        <span className="shop-cart-item-name">{item.name}</span>
-                        <span className="shop-cart-item-price">${(item.price * item.quantity).toFixed(2)}</span>
-                      </div>
-                      <div className="shop-cart-item-qty">
-                        <button onClick={() => updateQuantity(item.product_id, -1)} aria-label="Decrease">−</button>
-                        <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product_id, 1)} aria-label="Increase">+</button>
-                        <button className="shop-cart-item-remove" onClick={() => removeFromCart(item.product_id)} aria-label="Remove">✕</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="shop-cart-footer">
-                  <div className="shop-cart-total">
-                    <span>Total</span>
-                    <span>${cartTotal.toFixed(2)} AUD</span>
-                  </div>
-                  <button className="shop-cart-checkout-btn" onClick={handleCheckout} disabled={isCheckingOut}>
-                    {isCheckingOut ? 'Redirecting…' : 'Checkout →'}
-                  </button>
-                </div>
-              </>
-            )}
-          </aside>
-        )}
+          </div>
+        ))}
       </div>
     </div>
+  )
+}
+
+// ── Coming Soon Card ──────────────────────────────────────────────────────────
+
+function ComingSoonCard({
+  product,
+  scanNumber,
+}: {
+  product: ShopProduct
+  scanNumber: number
+}) {
+  return (
+    <article
+      style={{
+        background: '#FFFFFF',
+        border: '2px dashed #C4B08E',
+        borderRadius: '12px',
+        padding: '16px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Coming Soon badge */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          background: '#C9A84C',
+          color: '#FFFFFF',
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          padding: '4px 10px',
+          borderRadius: '0 12px 0 8px',
+          zIndex: 2,
+        }}
+      >
+        Coming Soon
+      </div>
+
+      {/* Placeholder image area with Kitea logo */}
+      <div
+        style={{
+          height: '200px',
+          background: '#F2EDE3',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+        }}
+      >
+        <img
+          src="/images/Kitea Logo Only.png"
+          alt=""
+          style={{
+            width: '80px',
+            height: '80px',
+            opacity: 0.15,
+            objectFit: 'contain',
+          }}
+        />
+      </div>
+
+      <h3 style={{ fontWeight: 700, color: '#0B2838', fontSize: '1rem', margin: '0 0 8px' }}>
+        {product.name}
+      </h3>
+
+      <p style={{ color: '#8A7A5E', fontSize: '0.9rem', margin: '0 0 8px', lineHeight: 1.4 }}>
+        Product unlocked. Available for purchase shortly.
+      </p>
+
+      <p style={{ color: '#4A7C8C', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
+        You are #{scanNumber} to find this tag
+      </p>
+    </article>
+  )
+}
+
+// ── Purchasable Card ──────────────────────────────────────────────────────────
+
+function PurchasableCard({
+  product,
+  scanNumber,
+  onAddToCart,
+  isLoading,
+}: {
+  product: ShopProduct
+  scanNumber: number
+  onAddToCart: (product: ShopProduct) => void
+  isLoading: boolean
+}) {
+  return (
+    <article
+      style={{
+        background: '#FFFFFF',
+        border: '1px solid #0B2838',
+        borderRadius: '12px',
+        padding: '16px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Product image */}
+      <div
+        style={{
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}
+      >
+        <img
+          src={product.image_url!}
+          alt={product.name}
+          style={{
+            maxWidth: '100%',
+            maxHeight: '200px',
+            objectFit: 'contain',
+          }}
+        />
+      </div>
+
+      <h3 style={{ fontWeight: 700, color: '#0B2838', fontSize: '1rem', margin: '0 0 8px' }}>
+        {product.name}
+      </h3>
+
+      {product.description && (
+        <p style={{ color: '#555', fontSize: '0.9rem', margin: '0 0 8px', lineHeight: 1.4 }}>
+          {product.description}
+        </p>
+      )}
+
+      <p style={{ color: '#4A7C8C', fontSize: '0.85rem', fontStyle: 'italic', margin: '0 0 12px' }}>
+        You are #{scanNumber} to find this tag
+      </p>
+
+      <p style={{ fontWeight: 700, color: '#0B2838', fontSize: '1.1rem', margin: '0 0 16px' }}>
+        ${product.price!.toFixed(2)}
+      </p>
+
+      {product.stripe_price_id && (
+        <button
+          onClick={() => onAddToCart(product)}
+          disabled={isLoading}
+          style={{
+            width: '100%',
+            padding: '12px',
+            background: isLoading ? '#8AAFBA' : '#4A7C8C',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '6px',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            transition: 'background 0.2s',
+          }}
+        >
+          {isLoading ? 'Redirecting...' : 'Add to Cart'}
+        </button>
+      )}
+    </article>
   )
 }

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default:  'Kitea',
   },
   description:
-    'Kitea — a physical NFC tag scavenger hunt where scanning tags unlocks NFTs and exclusive merchandise.',
+    'Kitea — a physical tag scavenger hunt where scanning tags unlocks collectibles and exclusive merchandise.',
   manifest: '/manifest.json',
   icons: {
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

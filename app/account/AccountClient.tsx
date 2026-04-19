@@ -253,7 +253,7 @@ export default function AccountClient({ userId, email, profile: initialProfile, 
           <h2 className="acct-section-heading acct-section-heading--dark">Adventure Stats</h2>
           <div className="acct-stats-grid">
             <StatCard value={stats.tagsScanned}   label="Tags scanned"    />
-            <StatCard value={stats.nftsEarned}    label="NFTs earned"     />
+            <StatCard value={stats.nftsEarned}    label="Collectibles earned"     />
             <StatCard value={stats.huntsCompleted} label="Hunts completed" />
             <StatCard value={stats.memberSince}   label="Member since"    />
           </div>
