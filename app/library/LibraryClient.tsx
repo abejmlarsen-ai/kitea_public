@@ -268,11 +268,11 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
           />
           <p>
             Your collection is empty. Find a Kitea tag and scan it to earn
-            your first NFT.
+            your first collectible.
           </p>
         </div>
         <div className="library-paper-footer">
-          <p>Kitea Adventure Log &middot; On-chain proof of your journey</p>
+          <p>Kitea Adventure Log &middot; Proof of your journey</p>
         </div>
       </div>
     )
@@ -340,7 +340,7 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
 
         {/* Paper footer */}
         <div className="library-paper-footer">
-          <p>Kitea Adventure Log &middot; On-chain proof of your journey</p>
+          <p>Kitea Adventure Log &middot; Proof of your journey</p>
         </div>
       </div>
 

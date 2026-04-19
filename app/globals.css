@@ -131,12 +131,20 @@ body {
   flex-shrink: 0;
 }
 
+.main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+}
+
 .main-nav ul {
   display: flex;
   gap: 1.5rem;
   list-style: none;
   justify-content: center;
   flex-wrap: nowrap;
+  align-items: center;
 }
 
 .main-nav a {
@@ -2648,6 +2656,7 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 44px;
 }
 
 /* ─── Page-Theme Base ────────────────────────────────────────────────────────── */
@@ -2756,6 +2765,22 @@ body {
 
 /* ── Homepage ──────────────────────────────────────────────────────────────── */
 .page-theme--home .section_1        { background: #F2EDE3; color: #0B2838; }
+.page-theme--home .section_1::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.12;
+  pointer-events: none;
+  background-image: url('/images/Kitea Logo Only.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 55%;
+}
+.page-theme--home .section_1 > * {
+  position: relative;
+  z-index: 1;
+}
 .page-theme--home .cta              { background: #C4B08E; color: #0B2838; }
 
 /* ── About ─────────────────────────────────────────────────────────────────── */
@@ -2829,9 +2854,8 @@ body {
   font-size: 0.88rem;
   font-weight: 600;
   text-decoration: none;
-  color: inherit;
   opacity: 0.82;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
 .footer-social-link:hover {
   opacity: 1;
