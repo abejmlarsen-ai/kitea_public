@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
           .from('scans')
           .select('id')
           .eq('user_id', user_id)
-          .eq('location_id', product.required_location_id)
+          .eq('hunt_location_id', product.required_location_id)
           .single()
 
         if (!scan) {

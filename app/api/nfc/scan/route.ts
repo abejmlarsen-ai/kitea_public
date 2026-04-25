@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       tag_uid.toUpperCase().replace(/:/g, ''),
     ]))
     const orFilter = uidVariants
-      .flatMap((v) => [`tag_uid.eq.${v}`, `uid.eq.${v}`])
+      .map((v) => `tag_uid.eq.${v}`)
       .join(',')
 
     console.log('[scan] uid variants tried:', uidVariants)
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       .from('scans')
       .select('id, scan_number')
       .eq('user_id', user.id)
-      .eq('location_id', huntLocationId)
+      .eq('hunt_location_id', huntLocationId)
       .single()
 
     console.log('[scan] existingScan:', JSON.stringify(existingScan, null, 2))
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       .from('scans')
       .insert({
         user_id: user.id,
-        location_id: huntLocationId,
+        hunt_location_id: huntLocationId,
         tag_uid: tag_uid,
         scan_number: scan_number,
         scanned_at: new Date().toISOString()

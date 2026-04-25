@@ -26,7 +26,7 @@ export default async function AccountPage() {
     db.from('scans')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id),
-    db.from('nft_tokens')
+    db.from('collectibles')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('status', 'minted'),

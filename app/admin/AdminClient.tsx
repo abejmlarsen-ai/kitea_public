@@ -42,8 +42,7 @@ type Product = {
 
 type NfcTag = {
   id: string
-  uid: string
-  tag_uid: string | null
+  tag_uid: string
   hunt_location_id: string | null
   is_active: boolean | null
   location_name: string | null
@@ -88,12 +87,16 @@ type HuntClue = {
   code_type_hint: string | null
 }
 
-type HuntQuestion = {
-  id:                  string
-  order_index:         number
-  question_text:       string
-  hint_text:           string | null
-  hint_after_attempts: number | null
+type HintRow = {
+  hint_1_text:          string | null
+  hint_1_answer:        string | null
+  hint_1_location_clue: string | null
+  hint_2_text:          string | null
+  hint_2_answer:        string | null
+  hint_2_location_clue: string | null
+  hint_3_text:          string | null
+  hint_3_answer:        string | null
+  hint_3_location_clue: string | null
 }
 
 type HuntReveal = {
@@ -104,7 +107,11 @@ type HuntReveal = {
 
 type ClueForm   = { image_url: string; text_content: string; code_type_hint: string }
 type RevealForm = { reveal_image_url: string; reveal_directions: string }
-type NewQForm   = { question_text: string; answer_normalised: string; hint_text: string; hint_after_attempts: string }
+type HintForm   = {
+  hint_1_text: string; hint_1_answer: string; hint_1_location_clue: string
+  hint_2_text: string; hint_2_answer: string; hint_2_location_clue: string
+  hint_3_text: string; hint_3_answer: string; hint_3_location_clue: string
+}
 
 // ── Tab labels ─────────────────────────────────────────────────────────────────
 
@@ -156,11 +163,11 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
   const [expandedHuntId, setExpandedHuntId] = useState<string | null>(null)
   const [huntLoadedIds,  setHuntLoadedIds]  = useState<Set<string>>(new Set())
   const [huntClues,      setHuntClues]      = useState<Record<string, HuntClue | null>>({})
-  const [huntQuestions,  setHuntQuestions]  = useState<Record<string, HuntQuestion[]>>({})
+  const [huntHints,      setHuntHints]      = useState<Record<string, HintRow | null>>({})
   const [huntReveals,    setHuntReveals]    = useState<Record<string, HuntReveal | null>>({})
   const [clueForms,      setClueForms]      = useState<Record<string, ClueForm>>({})
   const [revealForms,    setRevealForms]    = useState<Record<string, RevealForm>>({})
-  const [newQForms,      setNewQForms]      = useState<Record<string, NewQForm>>({})
+  const [hintForms,      setHintForms]      = useState<Record<string, HintForm>>({})
   const [huntSavingKey,  setHuntSavingKey]  = useState<string | null>(null)
   const [huntErrors,     setHuntErrors]     = useState<Record<string, string | null>>({})
 
@@ -224,8 +231,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setNfcTags(
       (data ?? []).map((r: any) => ({
         id:               r.id,
-        uid:              r.uid,
-        tag_uid:          r.tag_uid ?? null,
+        tag_uid:          r.tag_uid ?? '',
         hunt_location_id: r.hunt_location_id ?? null,
         is_active:        r.is_active ?? null,
         location_name:    r.hunt_locations?.name ?? null,
@@ -297,15 +303,15 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
   // ── Hunt data fetcher — called on expand ────────────────────────────────────
 
   const fetchHuntData = useCallback(async (locId: string) => {
-    const [clueRes, qRes, revealRes] = await Promise.all([
+    const [clueRes, hintsRes, revealRes] = await Promise.all([
       db.from('hunt_clues').select('*').eq('hunt_location_id', locId).maybeSingle(),
-      db.from('hunt_questions').select('*').eq('hunt_location_id', locId).order('order_index'),
+      db.from('hunt_hints').select('*').eq('hunt_location_id', locId).maybeSingle(),
       db.from('hunt_reveals').select('*').eq('hunt_location_id', locId).maybeSingle(),
     ])
 
-    const clueRow:   any   = clueRes.data
-    const qRows:     any[] = qRes.data ?? []
-    const revealRow: any   = revealRes.data
+    const clueRow:   any = clueRes.data
+    const hintsData: any = hintsRes.data
+    const revealRow: any = revealRes.data
 
     setHuntClues(prev => ({
       ...prev,
@@ -326,15 +332,34 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
       },
     }))
 
-    setHuntQuestions(prev => ({
+    setHuntHints(prev => ({
       ...prev,
-      [locId]: qRows.map((q: any) => ({
-        id:                  q.id,
-        order_index:         q.order_index,
-        question_text:       q.question_text,
-        hint_text:           q.hint_text           ?? null,
-        hint_after_attempts: q.hint_after_attempts ?? null,
-      })),
+      [locId]: hintsData ? {
+        hint_1_text:          hintsData.hint_1_text          ?? null,
+        hint_1_answer:        hintsData.hint_1_answer        ?? null,
+        hint_1_location_clue: hintsData.hint_1_location_clue ?? null,
+        hint_2_text:          hintsData.hint_2_text          ?? null,
+        hint_2_answer:        hintsData.hint_2_answer        ?? null,
+        hint_2_location_clue: hintsData.hint_2_location_clue ?? null,
+        hint_3_text:          hintsData.hint_3_text          ?? null,
+        hint_3_answer:        hintsData.hint_3_answer        ?? null,
+        hint_3_location_clue: hintsData.hint_3_location_clue ?? null,
+      } : null,
+    }))
+
+    setHintForms(prev => ({
+      ...prev,
+      [locId]: {
+        hint_1_text:          hintsData?.hint_1_text          ?? '',
+        hint_1_answer:        hintsData?.hint_1_answer        ?? '',
+        hint_1_location_clue: hintsData?.hint_1_location_clue ?? '',
+        hint_2_text:          hintsData?.hint_2_text          ?? '',
+        hint_2_answer:        hintsData?.hint_2_answer        ?? '',
+        hint_2_location_clue: hintsData?.hint_2_location_clue ?? '',
+        hint_3_text:          hintsData?.hint_3_text          ?? '',
+        hint_3_answer:        hintsData?.hint_3_answer        ?? '',
+        hint_3_location_clue: hintsData?.hint_3_location_clue ?? '',
+      },
     }))
 
     setHuntReveals(prev => ({
@@ -437,12 +462,11 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
 
       } else if (modalTab === 'nfc_tags') {
         const payload = {
-          uid:              (form.uid as string)?.trim(),
-          tag_uid:          (form.tag_uid as string) || null,
+          tag_uid:          (form.tag_uid as string)?.trim() || null,
           hunt_location_id: (form.hunt_location_id as string) || null,
           is_active:        Boolean(form.is_active),
         }
-        if (!payload.uid) throw new Error('UID is required')
+        if (!payload.tag_uid) throw new Error('Tag UID is required')
         const { error } = modalMode === 'add'
           ? await db.from('nfc_tags').insert(payload)
           : await db.from('nfc_tags').update(payload).eq('id', editingId)
@@ -505,12 +529,6 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
   async function handleExpandHunt(locId: string) {
     if (expandedHuntId === locId) { setExpandedHuntId(null); return }
     setExpandedHuntId(locId)
-    if (!newQForms[locId]) {
-      setNewQForms(prev => ({
-        ...prev,
-        [locId]: { question_text: '', answer_normalised: '', hint_text: '', hint_after_attempts: '3' },
-      }))
-    }
     await fetchHuntData(locId)
   }
 
@@ -553,66 +571,29 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setHuntSavingKey(null)
   }
 
-  async function handleAddQuestion(locId: string) {
-    const f = newQForms[locId]
-    if (!f?.question_text?.trim()) return
-    const key = `${locId}-newq`
+  async function handleSaveHints(locId: string) {
+    const f   = hintForms[locId]
+    const key = `${locId}-hints`
     setHuntSavingKey(key)
     setHuntErrors(prev => ({ ...prev, [key]: null }))
-    const qs      = huntQuestions[locId] ?? []
-    const nextIdx = qs.length > 0 ? Math.max(...qs.map(q => q.order_index)) + 1 : 0
-    const { error } = await db.from('hunt_questions').insert({
-      hunt_location_id:    locId,
-      question_text:       f.question_text.trim(),
-      answer_normalised:   (f.answer_normalised ?? '').trim().toLowerCase(),
-      hint_text:           f.hint_text?.trim() || null,
-      hint_after_attempts: f.hint_after_attempts ? parseInt(f.hint_after_attempts, 10) : 3,
-      order_index:         nextIdx,
-    })
-    if (error) {
-      setHuntErrors(prev => ({ ...prev, [key]: error.message }))
-    } else {
-      setNewQForms(prev => ({
-        ...prev,
-        [locId]: { question_text: '', answer_normalised: '', hint_text: '', hint_after_attempts: '3' },
-      }))
-      await fetchHuntData(locId)
+    const existing = huntHints[locId]
+    const payload  = {
+      hunt_location_id:     locId,
+      hint_1_text:          f.hint_1_text.trim()          || null,
+      hint_1_answer:        f.hint_1_answer.trim()        || null,
+      hint_1_location_clue: f.hint_1_location_clue.trim() || null,
+      hint_2_text:          f.hint_2_text.trim()          || null,
+      hint_2_answer:        f.hint_2_answer.trim()        || null,
+      hint_2_location_clue: f.hint_2_location_clue.trim() || null,
+      hint_3_text:          f.hint_3_text.trim()          || null,
+      hint_3_answer:        f.hint_3_answer.trim()        || null,
+      hint_3_location_clue: f.hint_3_location_clue.trim() || null,
     }
-    setHuntSavingKey(null)
-  }
-
-  async function handleDeleteQuestion(locId: string, qId: string) {
-    const key = `${locId}-del-${qId}`
-    setHuntSavingKey(key)
-    setHuntErrors(prev => ({ ...prev, [key]: null }))
-    const { error } = await db.from('hunt_questions').delete().eq('id', qId)
+    const { error } = existing
+      ? await db.from('hunt_hints').update(payload).eq('hunt_location_id', locId)
+      : await db.from('hunt_hints').insert(payload)
     if (error) setHuntErrors(prev => ({ ...prev, [key]: error.message }))
     else       await fetchHuntData(locId)
-    setHuntSavingKey(null)
-  }
-
-  async function handleReorderQuestion(locId: string, qId: string, dir: 'up' | 'down') {
-    const qs      = huntQuestions[locId] ?? []
-    const idx     = qs.findIndex(q => q.id === qId)
-    if (idx < 0) return
-    const swapIdx = dir === 'up' ? idx - 1 : idx + 1
-    if (swapIdx < 0 || swapIdx >= qs.length) return
-    const a   = qs[idx]
-    const b   = qs[swapIdx]
-    const key = `${locId}-reorder-${qId}`
-    setHuntSavingKey(key)
-    const [r1, r2] = await Promise.all([
-      db.from('hunt_questions').update({ order_index: b.order_index }).eq('id', a.id),
-      db.from('hunt_questions').update({ order_index: a.order_index }).eq('id', b.id),
-    ])
-    if (r1.error || r2.error) {
-      setHuntErrors(prev => ({
-        ...prev,
-        [key]: (r1.error ?? r2.error)?.message ?? 'Reorder failed',
-      }))
-    } else {
-      await fetchHuntData(locId)
-    }
     setHuntSavingKey(null)
   }
 
@@ -706,8 +687,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     if (modalTab === 'nfc_tags')
       return (
         <>
-          {fi('uid',     'UID *',    'text', 'NFC tag UID')}
-          {fi('tag_uid', 'Tag UID',  'text', 'Alternate UID')}
+          {fi('tag_uid', 'Tag UID *', 'text', 'NFC tag UID')}
           {locSelect('hunt_location_id', 'Location')}
           {tog('is_active', 'Active')}
         </>
@@ -833,17 +813,17 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                   const isExpanded = expandedHuntId === loc.id
                   const isLoaded   = huntLoadedIds.has(loc.id)
                   const clue       = huntClues[loc.id]
-                  const questions  = huntQuestions[loc.id] ?? []
+                  const hints      = huntHints[loc.id]
                   const reveal     = huntReveals[loc.id]
                   const cForm      = clueForms[loc.id]   ?? { image_url: '', text_content: '', code_type_hint: '' }
                   const rForm      = revealForms[loc.id] ?? { reveal_image_url: '', reveal_directions: '' }
-                  const nqForm     = newQForms[loc.id]   ?? { question_text: '', answer_normalised: '', hint_text: '', hint_after_attempts: '3' }
-                  const savingClue   = huntSavingKey === `${loc.id}-clue`
+                  const hForm      = hintForms[loc.id]   ?? { hint_1_text: '', hint_1_answer: '', hint_1_location_clue: '', hint_2_text: '', hint_2_answer: '', hint_2_location_clue: '', hint_3_text: '', hint_3_answer: '', hint_3_location_clue: '' }
+                  const savingClue  = huntSavingKey === `${loc.id}-clue`
                   const savingReveal = huntSavingKey === `${loc.id}-reveal`
-                  const savingNewQ   = huntSavingKey === `${loc.id}-newq`
-                  const clueErr      = huntErrors[`${loc.id}-clue`]   ?? null
-                  const revealErr    = huntErrors[`${loc.id}-reveal`] ?? null
-                  const newQErr      = huntErrors[`${loc.id}-newq`]   ?? null
+                  const savingHints = huntSavingKey === `${loc.id}-hints`
+                  const clueErr    = huntErrors[`${loc.id}-clue`]   ?? null
+                  const revealErr  = huntErrors[`${loc.id}-reveal`] ?? null
+                  const hintsErr   = huntErrors[`${loc.id}-hints`]  ?? null
 
                   return (
                     <div key={loc.id} className="admin-hunt-card">
@@ -914,102 +894,54 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                                 </div>
                               </div>
 
-                              {/* Section B: Questions */}
+                              {/* Section B: Hints */}
                               <div className="admin-hunt-section">
-                                <h3 className="admin-hunt-section-title">B — Questions</h3>
-                                {questions.length === 0 && (
-                                  <p className="admin-empty admin-empty--inline">No questions yet.</p>
+                                <h3 className="admin-hunt-section-title">B — Hints</h3>
+                                {hints && (
+                                  <div className="admin-hunt-current">
+                                    {[1, 2, 3].filter(n => (hints as any)[`hint_${n}_text`]).map(n => (
+                                      <p key={n}><strong>Hint {n}:</strong> {(hints as any)[`hint_${n}_text`]}</p>
+                                    ))}
+                                  </div>
                                 )}
-                                {questions.map((q, qi) => {
-                                  const isFirst = qi === 0
-                                  const isLast  = qi === questions.length - 1
-                                  const delKey  = `${loc.id}-del-${q.id}`
-                                  const isDel   = huntSavingKey === delKey
-                                  const qErr    = huntErrors[delKey] ?? null
-                                  return (
-                                    <div key={q.id} className="admin-hunt-question">
-                                      <div className="admin-hunt-question-header">
-                                        <span className="admin-hunt-q-num">Q{q.order_index + 1}</span>
-                                        <div className="admin-hunt-q-actions">
-                                          <button
-                                            className="admin-btn admin-btn--small"
-                                            onClick={() => handleReorderQuestion(loc.id, q.id, 'up')}
-                                            disabled={isFirst || !!huntSavingKey}
-                                            title="Move up"
-                                          >\u2191</button>
-                                          <button
-                                            className="admin-btn admin-btn--small"
-                                            onClick={() => handleReorderQuestion(loc.id, q.id, 'down')}
-                                            disabled={isLast || !!huntSavingKey}
-                                            title="Move down"
-                                          >\u2193</button>
-                                          <button
-                                            className="admin-btn admin-btn--small admin-btn--danger"
-                                            onClick={() => handleDeleteQuestion(loc.id, q.id)}
-                                            disabled={isDel || !!huntSavingKey}
-                                          >
-                                            {isDel ? '…' : 'Delete'}
-                                          </button>
-                                        </div>
+                                {!hints && <p className="admin-empty admin-empty--inline">No hints set yet.</p>}
+                                <div className="admin-hunt-form">
+                                  {[1, 2, 3].map(n => (
+                                    <div key={n} style={{ borderTop: n > 1 ? '1px solid #e0e0e0' : 'none', paddingTop: n > 1 ? '1rem' : 0 }}>
+                                      <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Hint {n}{n === 1 ? ' *' : ' (optional)'}</p>
+                                      <div className="admin-form-group">
+                                        <label>Question text</label>
+                                        <textarea rows={2}
+                                          value={(hForm as any)[`hint_${n}_text`]}
+                                          onChange={e => setHintForms(prev => ({ ...prev, [loc.id]: { ...hForm, [`hint_${n}_text`]: e.target.value } }))}
+                                          placeholder="What is…?"
+                                        />
                                       </div>
-                                      <p className="admin-hunt-q-text">{q.question_text}</p>
-                                      <p className="admin-hunt-q-meta">
-                                        Hint: {q.hint_text ?? '—'} · Show after {q.hint_after_attempts ?? 3} wrong
-                                      </p>
-                                      {qErr && <p className="admin-error admin-error--form">{qErr}</p>}
+                                      <div className="admin-form-group">
+                                        <label>Answer <span className="admin-field-note">(normalised — lowercase, trimmed)</span></label>
+                                        <input type="text"
+                                          value={(hForm as any)[`hint_${n}_answer`]}
+                                          onChange={e => setHintForms(prev => ({ ...prev, [loc.id]: { ...hForm, [`hint_${n}_answer`]: e.target.value } }))}
+                                          placeholder="correct answer"
+                                        />
+                                      </div>
+                                      <div className="admin-form-group">
+                                        <label>Location clue <span className="admin-field-note">(shown after 3 wrong attempts)</span></label>
+                                        <input type="text"
+                                          value={(hForm as any)[`hint_${n}_location_clue`]}
+                                          onChange={e => setHintForms(prev => ({ ...prev, [loc.id]: { ...hForm, [`hint_${n}_location_clue`]: e.target.value } }))}
+                                          placeholder="Optional location clue"
+                                        />
+                                      </div>
                                     </div>
-                                  )
-                                })}
-
-                                {/* Add question form */}
-                                <div className="admin-hunt-form admin-hunt-form--addq">
-                                  <h4 className="admin-hunt-form-title">Add Question</h4>
-                                  <div className="admin-form-group">
-                                    <label>Question</label>
-                                    <textarea
-                                      rows={2}
-                                      value={nqForm.question_text}
-                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, question_text: e.target.value } }))}
-                                      placeholder="What is…?"
-                                    />
-                                  </div>
-                                  <div className="admin-form-group">
-                                    <label>
-                                      Answer{' '}
-                                      <span className="admin-field-note">(stored normalised — lowercase, trimmed)</span>
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={nqForm.answer_normalised}
-                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, answer_normalised: e.target.value } }))}
-                                      placeholder="correct answer"
-                                    />
-                                  </div>
-                                  <div className="admin-form-group">
-                                    <label>Hint text</label>
-                                    <input
-                                      type="text"
-                                      value={nqForm.hint_text}
-                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, hint_text: e.target.value } }))}
-                                      placeholder="Optional hint"
-                                    />
-                                  </div>
-                                  <div className="admin-form-group">
-                                    <label>Show hint after # attempts</label>
-                                    <input
-                                      type="number"
-                                      value={nqForm.hint_after_attempts}
-                                      min={1}
-                                      onChange={e => setNewQForms(prev => ({ ...prev, [loc.id]: { ...nqForm, hint_after_attempts: e.target.value } }))}
-                                    />
-                                  </div>
-                                  {newQErr && <p className="admin-error admin-error--form">{newQErr}</p>}
+                                  ))}
+                                  {hintsErr && <p className="admin-error admin-error--form">{hintsErr}</p>}
                                   <button
                                     className="admin-btn admin-btn--primary admin-btn--small"
-                                    onClick={() => handleAddQuestion(loc.id)}
-                                    disabled={savingNewQ || !nqForm.question_text.trim()}
+                                    onClick={() => handleSaveHints(loc.id)}
+                                    disabled={savingHints}
                                   >
-                                    {savingNewQ ? 'Adding…' : '+ Add Question'}
+                                    {savingHints ? 'Saving…' : 'Save Hints'}
                                   </button>
                                 </div>
                               </div>
@@ -1141,7 +1073,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>UID</th><th>Tag UID</th><th>Location</th>
+                    <th>Tag UID</th><th>Location</th>
                     <th>Active</th><th>Actions</th>
                   </tr>
                 </thead>
@@ -1150,7 +1082,6 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                     <tr><td colSpan={5} className="admin-empty">No tags yet.</td></tr>
                   ) : nfcTags.map((tag) => (
                     <tr key={tag.id}>
-                      <td><code>{fmt.trunc(tag.uid, 18)}</code></td>
                       <td><code>{fmt.trunc(tag.tag_uid, 18)}</code></td>
                       <td>{tag.location_name ?? '—'}</td>
                       <td>{fmt.bool(tag.is_active)}</td>
@@ -1158,7 +1089,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                         <button
                           className="admin-btn admin-btn--small"
                           onClick={() => openEdit('nfc_tags', {
-                            id: tag.id, uid: tag.uid, tag_uid: tag.tag_uid,
+                            id: tag.id, tag_uid: tag.tag_uid,
                             hunt_location_id: tag.hunt_location_id,
                             is_active: tag.is_active,
                           })}

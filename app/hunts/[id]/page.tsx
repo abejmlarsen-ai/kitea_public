@@ -61,18 +61,18 @@ export default async function HuntPage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = createServiceRoleClient() as any
 
-    // Fetch clue, questions, and progress first
-    const [clueRes, questionsRes, progressRes] = await Promise.all([
+    // Fetch clue, hints, and progress first
+    const [clueRes, hintsRes, progressRes] = await Promise.all([
       db
         .from('hunt_clues')
         .select('image_url, text_content, code_type_hint, initial_clue_hint')
         .eq('hunt_location_id', id)
         .maybeSingle(),
       db
-        .from('hunt_questions')
-        .select('id, question_text, order_index, hint_after_attempts')
+        .from('hunt_hints')
+        .select('hint_1_text, hint_1_answer, hint_1_location_clue, hint_2_text, hint_2_answer, hint_2_location_clue, hint_3_text, hint_3_answer, hint_3_location_clue')
         .eq('hunt_location_id', id)
-        .order('order_index', { ascending: true }),
+        .maybeSingle(),
       db
         .from('hunt_progress')
         .select('current_question_index, location_revealed, completed_at')
@@ -81,17 +81,33 @@ export default async function HuntPage({
         .maybeSingle(),
     ])
 
-    if (clueRes.error)      console.error('[hunt/page] clue error:',      clueRes.error.message)
-    if (questionsRes.error) console.error('[hunt/page] questions error:',  questionsRes.error.message)
-    if (progressRes.error)  console.error('[hunt/page] progress error:',   progressRes.error.message)
+    if (clueRes.error)     console.error('[hunt/page] clue error:',     clueRes.error.message)
+    if (hintsRes.error)    console.error('[hunt/page] hints error:',     hintsRes.error.message)
+    if (progressRes.error) console.error('[hunt/page] progress error:',  progressRes.error.message)
 
-    const clue      = clueRes.data
-    const questions = (questionsRes.data ?? []) as { id: string; question_text: string; order_index: number; hint_after_attempts: number }[]
-    const progress  = progressRes.data
+    const clue     = clueRes.data
+    const hintsRow = hintsRes.data as Record<string, string | null> | null
+    const progress = progressRes.data
+
+    // Convert flat hunt_hints row to questions array with synthetic IDs
+    const questions: { id: string; question_text: string; order_index: number; hint_after_attempts: number }[] = []
+    if (hintsRow) {
+      for (let n = 1; n <= 3; n++) {
+        const text = hintsRow[`hint_${n}_text`]
+        if (text) {
+          questions.push({
+            id:                  `${id}__hint__${n}`,
+            question_text:       text,
+            order_index:         n - 1,
+            hint_after_attempts: 3,
+          })
+        }
+      }
+    }
 
     console.log('[hunt/page] clue:', !!clue, '| questions:', questions.length, '| progress:', progress ? `idx:${progress.current_question_index}` : 'none')
 
-    // Fetch attempts scoped to this hunt's question IDs.
+    // Fetch attempts scoped to this hunt's synthetic hint question IDs.
     // hunt_attempts has no hunt_location_id column — filter via question_id set.
     // The initial-clue attempt is stored with question_id = hunt location id.
     const questionIds = questions.map(q => q.id)
@@ -140,7 +156,7 @@ export default async function HuntPage({
       .from('scans')
       .select('id')
       .eq('user_id', user.id)
-      .eq('location_id', id)
+      .eq('hunt_location_id', id)
       .maybeSingle()
     hasScanned = !!scanRow
     console.log('[hunt/page] hasScanned:', hasScanned)

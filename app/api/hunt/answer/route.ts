@@ -8,7 +8,7 @@
 //
 // DB schema — hunt_attempts: id, user_id, question_id, attempt_count, solved, updated_at
 // (NO hunt_location_id column — do not try to insert/filter by it)
-// NOTE: hunt_attempts_question_id_fkey (FK → hunt_questions.id) was DROPPED via migration.
+// NOTE: hunt_attempts_question_id_fkey (FK → hunt_hints) was DROPPED via migration.
 //       question_id may hold a hunt_location UUID as a pseudo-ID for initial-clue attempts.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -187,21 +187,49 @@ export async function POST(req: NextRequest) {
 
     const db: any = createServiceRoleClient()
 
-    // ── 2. Fetch the question ─────────────────────────────────────────────────
-    const { data: question, error: qErr } = await db
-      .from('hunt_questions')
-      .select('id, answer_normalised, hint_text, hint_after_attempts, hunt_location_id, order_index')
-      .eq('id', question_id)
-      .single()
-
-    if (qErr || !question) {
-      console.error('[hunt/answer] question not found:', qErr?.message ?? 'no row')
+    // ── 2. Parse synthetic hint question_id ({locId}__hint__{N}) ────────────────
+    const hintSep = '__hint__'
+    const sepIdx  = question_id.lastIndexOf(hintSep)
+    if (sepIdx === -1) {
+      console.error('[hunt/answer] invalid question_id format:', question_id)
+      return NextResponse.json({ error: 'Question not found.' }, { status: 404 })
+    }
+    const hintLocId  = question_id.slice(0, sepIdx)
+    const hintNum    = parseInt(question_id.slice(sepIdx + hintSep.length), 10)
+    if (isNaN(hintNum) || hintNum < 1 || hintNum > 3) {
+      console.error('[hunt/answer] invalid hint number in question_id:', question_id)
       return NextResponse.json({ error: 'Question not found.' }, { status: 404 })
     }
 
-    // ── 3. Normalise + compare via Levenshtein ────────────────────────────────
-    // BOTH sides must be normalised — the stored value may not have been saved
-    // with exactly the same normalisation the client applies.
+    // ── 3. Fetch hunt_hints row ────────────────────────────────────────────────
+    const { data: hintsRow, error: hintsErr } = await db
+      .from('hunt_hints')
+      .select('hint_1_text, hint_1_answer, hint_1_location_clue, hint_2_text, hint_2_answer, hint_2_location_clue, hint_3_text, hint_3_answer, hint_3_location_clue')
+      .eq('hunt_location_id', hintLocId)
+      .single()
+
+    if (hintsErr || !hintsRow) {
+      console.error('[hunt/answer] hunt_hints not found:', hintsErr?.message ?? 'no row')
+      return NextResponse.json({ error: 'Question not found.' }, { status: 404 })
+    }
+
+    const answerNormalised = (hintsRow as any)[`hint_${hintNum}_answer`] as string | null
+    const hintText         = (hintsRow as any)[`hint_${hintNum}_location_clue`] as string | null
+    const orderIndex       = hintNum - 1
+
+    // Count total populated hints for isLastQuestion check
+    const totalHints = [1, 2, 3].filter(n => (hintsRow as any)[`hint_${n}_text`] != null).length
+
+    // Build a question-like object for the logic below
+    const question = {
+      answer_normalised: answerNormalised,
+      hint_text:         hintText,
+      hint_after_attempts: 3,
+      hunt_location_id:  hintLocId,
+      order_index:       orderIndex,
+    }
+
+    // ── 4. Normalise + compare via Levenshtein ────────────────────────────────
     const rawSubmitted = String(answer)
     const normInput    = normaliseAnswer(rawSubmitted)
     const normTarget   = normaliseAnswer(String(question.answer_normalised ?? ''))
@@ -216,7 +244,7 @@ export async function POST(req: NextRequest) {
       '\n[hunt/answer] question dist:', dist, '| correct:', isCorrect
     )
 
-    // ── 4. Fetch or create hunt_attempts row ──────────────────────────────────
+    // ── 5. Fetch or create hunt_attempts row ──────────────────────────────────
     // hunt_attempts has NO hunt_location_id column — do NOT include it in inserts.
     const { data: existing, error: fetchErr } = await db
       .from('hunt_attempts')
@@ -272,24 +300,14 @@ export async function POST(req: NextRequest) {
 
     console.log('[hunt/answer] attempt_id:', attemptId, '| attempt_count:', attemptCount)
 
-    // ── 5. Correct branch — update hunt_progress ──────────────────────────────
+    // ── 6. Correct branch — update hunt_progress ──────────────────────────────
     if (isCorrect) {
-      const { count: totalQ, error: cntErr } = await db
-        .from('hunt_questions')
-        .select('id', { count: 'exact', head: true })
-        .eq('hunt_location_id', question.hunt_location_id)
-
-      if (cntErr) {
-        console.error('[hunt/answer] count questions error:', cntErr.message)
-        return NextResponse.json({ error: 'Failed to count questions.' }, { status: 500 })
-      }
-
       const orderIndex     = question.order_index as number
-      const isLastQuestion = orderIndex + 1 >= (totalQ ?? 1)
+      const isLastQuestion = hintNum >= totalHints
 
       console.log(
         '[hunt/answer] correct — order_index:', orderIndex,
-        '| total:', totalQ, '| isLast:', isLastQuestion
+        '| totalHints:', totalHints, '| isLast:', isLastQuestion
       )
 
       const { data: prog } = await db
@@ -326,7 +344,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── 6. Wrong branch ───────────────────────────────────────────────────────
+    // ── 7. Wrong branch ───────────────────────────────────────────────────────
     const hintThreshold = question.hint_after_attempts as number ?? 3
     const showHint      = Boolean(question.hint_text) && attemptCount >= hintThreshold
 

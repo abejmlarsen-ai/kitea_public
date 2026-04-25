@@ -102,7 +102,7 @@ export type Database = {
           },
         ]
       }
-      nft_tokens: {
+      collectibles: {
         Row: {
           chain: string | null
           contract_address: string | null
@@ -147,14 +147,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "nft_tokens_hunt_location_id_fkey"
+            foreignKeyName: "collectibles_hunt_location_id_fkey"
             columns: ["hunt_location_id"]
             isOneToOne: false
             referencedRelation: "hunt_locations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "nft_tokens_scan_id_fkey"
+            foreignKeyName: "collectibles_scan_id_fkey"
             columns: ["scan_id"]
             isOneToOne: false
             referencedRelation: "scans"
@@ -247,35 +247,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_unlocks: {
-        Row: {
-          id: string
-          product_id: string
-          unlocked_at: string | null
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          product_id: string
-          unlocked_at?: string | null
-          user_id: string
-        }
-        Update: {
-          id?: string
-          product_id?: string
-          unlocked_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_unlocks_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

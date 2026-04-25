@@ -98,7 +98,7 @@ export default function HuntClient({ huntLocation, userId, progressData, hasScan
         supabase
           .from('scans')
           .select('user_id')
-          .eq('location_id', huntLocation.id),
+          .eq('hunt_location_id', huntLocation.id),
         supabase
           .from('hunt_locations')
           .select('nft_image_url')

@@ -52,7 +52,7 @@ export default async function LibraryPage() {
   let nfts: MintedNFT[] = []
   if (user) {
     const { data } = await supabase
-      .from('nft_tokens')
+      .from('collectibles')
       .select(
         'id, token_id, edition_number, hunt_location_id, status, transaction_hash, minted_at, hunt_locations(name, nft_image_url)'
       )

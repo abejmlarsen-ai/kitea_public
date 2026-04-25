@@ -42,24 +42,23 @@ export async function GET(req: NextRequest) {
     // Service-role client bypasses RLS — these tables are server-managed only
     const db: any = createServiceRoleClient()
 
-    // ── 2. Fetch clue, questions, and progress in parallel ────────────────────
-    // NOTE: hunt_attempts is fetched separately after questions so we can
-    // filter attempts by the known question IDs for this location.
-    const [clueRes, questionsRes, progressRes] = await Promise.all([
+    // ── 2. Fetch clue, hints, and progress in parallel ────────────────────────
+    // NOTE: hunt_attempts is fetched separately after hints so we can
+    // filter attempts by the known synthetic hint IDs for this location.
+    const [clueRes, hintsRes, progressRes] = await Promise.all([
       // Clue content — only select columns that actually exist in the DB.
-      // reveal_image_url / reveal_directions do NOT exist as of 2026-03.
       db
         .from('hunt_clues')
         .select('image_url, text_content, code_type_hint, initial_clue_hint')
         .eq('hunt_location_id', hunt_location_id)
         .maybeSingle(),
 
-      // Questions ordered by position
+      // Hints (flat row, up to 3 per hunt)
       db
-        .from('hunt_questions')
-        .select('id, question_text, order_index, hint_after_attempts')
+        .from('hunt_hints')
+        .select('hint_1_text, hint_1_answer, hint_1_location_clue, hint_2_text, hint_2_answer, hint_2_location_clue, hint_3_text, hint_3_answer, hint_3_location_clue')
         .eq('hunt_location_id', hunt_location_id)
-        .order('order_index', { ascending: true }),
+        .maybeSingle(),
 
       // User's progress at this location
       db
@@ -71,18 +70,34 @@ export async function GET(req: NextRequest) {
     ])
 
     console.log('[hunt/progress] clue:', clueRes.error ? 'ERROR:' + clueRes.error.message : (clueRes.data ? 'found' : 'null'))
-    console.log('[hunt/progress] questions:', questionsRes.error ? 'ERROR:' + questionsRes.error.message : (questionsRes.data?.length ?? 0))
+    console.log('[hunt/progress] hints:', hintsRes.error ? 'ERROR:' + hintsRes.error.message : (hintsRes.data ? 'found' : 'null'))
     console.log('[hunt/progress] progress:', progressRes.error ? 'ERROR:' + progressRes.error.message : (progressRes.data ? 'found' : 'null'))
 
-    if (clueRes.error)      console.error('[hunt/progress] clue error:',      clueRes.error.message)
-    if (questionsRes.error) console.error('[hunt/progress] questions error:',  questionsRes.error.message)
-    if (progressRes.error)  console.error('[hunt/progress] progress error:',   progressRes.error.message)
+    if (clueRes.error)     console.error('[hunt/progress] clue error:',     clueRes.error.message)
+    if (hintsRes.error)    console.error('[hunt/progress] hints error:',     hintsRes.error.message)
+    if (progressRes.error) console.error('[hunt/progress] progress error:',  progressRes.error.message)
 
-    const clue      = clueRes.data      as Record<string, any> | null
-    const questions = (questionsRes.data ?? []) as any[]
-    const progress  = progressRes.data  as Record<string, any> | null
+    const clue     = clueRes.data  as Record<string, any> | null
+    const hintsRow = hintsRes.data as Record<string, any> | null
+    const progress = progressRes.data as Record<string, any> | null
 
-    // ── 3. Fetch attempts filtered by this hunt's question IDs ────────────────
+    // Convert flat hunt_hints row to questions array with synthetic IDs
+    const questions: any[] = []
+    if (hintsRow) {
+      for (let n = 1; n <= 3; n++) {
+        const text = hintsRow[`hint_${n}_text`]
+        if (text) {
+          questions.push({
+            id:                  `${hunt_location_id}__hint__${n}`,
+            question_text:       text,
+            order_index:         n - 1,
+            hint_after_attempts: 3,
+          })
+        }
+      }
+    }
+
+    // ── 3. Fetch attempts filtered by this hunt's synthetic hint IDs ────────────
     // hunt_attempts has no hunt_location_id column — scope via question_id set.
     // The initial-clue attempt is stored with question_id = hunt_location_id.
     const questionIds = new Set(questions.map((q: any) => q.id as string))

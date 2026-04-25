@@ -1,5 +1,5 @@
 // ─── NFT Mint Route — database-only ─────────────────────────────────────────
-// No blockchain calls. Records a collectible directly in nft_tokens as 'minted'.
+// No blockchain calls. Records a collectible directly in collectibles as 'minted'.
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // ── Idempotency: return early if already minted ────────────────────────
     const idempotencyQuery = supabase
-      .from('nft_tokens')
+      .from('collectibles')
       .select('id, edition_number')
       .eq('user_id', user_id)
       .eq('status', 'minted')
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     // ── Edition number: count existing minted rows for this location + 1 ──
     const countQuery = supabase
-      .from('nft_tokens')
+      .from('collectibles')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'minted')
 
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     // ── Insert minted row ──────────────────────────────────────────────────
     const { data: newRow, error: insertError } = await supabase
-      .from('nft_tokens')
+      .from('collectibles')
       .insert({
         user_id,
         hunt_location_id: hunt_location_id ?? null,
