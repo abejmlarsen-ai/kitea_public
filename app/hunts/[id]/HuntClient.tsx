@@ -151,32 +151,36 @@ export default function HuntClient({
     }
   }
 
-  async function submitHintAnswer() {
-    if (!hintInput.trim() || hintSubmitting) return
-    setHintSubmitting(true)
-    setHintWrongMsg(false)
-    try {
-      const res  = await fetch('/api/hunt/answer', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'question', user_id: userId,
-          question_id: `${huntLocation.id}__hint__${activeHintNum}`,
-          answer: hintInput,
-        }),
-      })
-      const data = await res.json() as { correct: boolean }
-      if (data.correct) {
-        if (activeHintNum === 1) setHint1Correct(true)
-        else if (activeHintNum === 2) setHint2Correct(true)
-        else if (activeHintNum === 3) setHint3Correct(true)
-        setHintInput('')
-      } else {
-        setHintWrong(true)
-        setHintWrongMsg(true)
-        setTimeout(() => setHintWrong(false), 600)
-      }
-    } finally {
-      setHintSubmitting(false)
+  function submitHintAnswer() {
+    const raw = hintInput.trim()
+    if (!raw) return
+    const storedRaw =
+      activeHintNum === 1 ? hints?.hint_1_answer
+      : activeHintNum === 2 ? hints?.hint_2_answer
+      : hints?.hint_3_answer
+    const stored = (storedRaw ?? '').trim().toLowerCase()
+    const input  = raw.toLowerCase()
+
+    console.log('Hint check:', { hintNum: activeHintNum, input, stored, match: input === stored })
+
+    if (!stored) {
+      // No answer stored for this hint — treat as wrong
+      setHintWrong(true)
+      setHintWrongMsg(true)
+      setTimeout(() => setHintWrong(false), 600)
+      return
+    }
+
+    if (input === stored) {
+      if (activeHintNum === 1) setHint1Correct(true)
+      else if (activeHintNum === 2) setHint2Correct(true)
+      else if (activeHintNum === 3) setHint3Correct(true)
+      setHintInput('')
+      setHintWrongMsg(false)
+    } else {
+      setHintWrong(true)
+      setHintWrongMsg(true)
+      setTimeout(() => setHintWrong(false), 600)
     }
   }
 
@@ -300,7 +304,7 @@ export default function HuntClient({
       <section style={{ ...SECTION, background: '#E8DCC8', padding: '2rem 1.5rem' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           {clue?.text_content ? (
-            <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.8, color: '#0B2838', whiteSpace: 'pre-wrap' }}>
+            <p style={{ margin: 0, fontSize: 'clamp(0.78rem, 1.5vw, 0.9rem)', lineHeight: 1.6, color: '#0B2838', whiteSpace: 'pre-wrap', maxWidth: '100%' }}>
               {clue.text_content}
             </p>
           ) : (
