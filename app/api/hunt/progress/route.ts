@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       // Hints (flat row, up to 3 per hunt)
       db
         .from('hunt_hints')
-        .select('hint_1_text, hint_1_answer, hint_1_location_clue, hint_2_text, hint_2_answer, hint_2_location_clue, hint_3_text, hint_3_answer, hint_3_location_clue')
+        .select('hint_1_text, hint_1_answer, hint_2_text, hint_2_answer, hint_3_text, hint_3_answer')
         .eq('hunt_location_id', hunt_location_id)
         .maybeSingle(),
 

@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       // ── ic.1 Fetch the clue record ──────────────────────────────────────────
       const { data: clue, error: clueErr } = await db
         .from('hunt_clues')
-        .select('initial_clue_answer, initial_clue_hint')
+        .select('answer, initial_clue_hint')
         .eq('hunt_location_id', hunt_location_id)
         .single()
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       // ── ic.2 Normalise + compare via Levenshtein ────────────────────────────
       const rawSubmitted  = String(answer)
       const normInput     = normaliseAnswer(rawSubmitted)
-      const normTarget    = normaliseAnswer(String(clue.initial_clue_answer ?? ''))
+      const normTarget    = normaliseAnswer(String(clue.answer ?? ''))
 
       const dist      = distance(normInput, normTarget)
       const isCorrect = dist <= 3
@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
     // ── 3. Fetch hunt_hints row ────────────────────────────────────────────────
     const { data: hintsRow, error: hintsErr } = await db
       .from('hunt_hints')
-      .select('hint_1_text, hint_1_answer, hint_1_location_clue, hint_2_text, hint_2_answer, hint_2_location_clue, hint_3_text, hint_3_answer, hint_3_location_clue')
+      .select('hint_1_text, hint_1_answer, hint_2_text, hint_2_answer, hint_3_text, hint_3_answer')
       .eq('hunt_location_id', hintLocId)
       .single()
 
@@ -214,7 +214,7 @@ export async function POST(req: NextRequest) {
     }
 
     const answerNormalised = (hintsRow as any)[`hint_${hintNum}_answer`] as string | null
-    const hintText         = (hintsRow as any)[`hint_${hintNum}_location_clue`] as string | null
+    const hintText: string | null = null
     const orderIndex       = hintNum - 1
 
     // Count total populated hints for isLastQuestion check
@@ -357,9 +357,9 @@ export async function POST(req: NextRequest) {
       correct:      false,
       attemptCount,
       showHint,
-      hint:         showHint ? (question.hint_text as string) : null,
+      hint:         showHint ? (question.hint_text ?? null) : null,
       message:      showHint
-        ? `Incorrect — hint: ${question.hint_text as string}`
+        ? `Incorrect — hint: ${question.hint_text ?? ''}`
         : `Incorrect. Try again. (Attempt ${attemptCount})`,
     })
 

@@ -88,15 +88,12 @@ type HuntClue = {
 }
 
 type HintRow = {
-  hint_1_text:          string | null
-  hint_1_answer:        string | null
-  hint_1_location_clue: string | null
-  hint_2_text:          string | null
-  hint_2_answer:        string | null
-  hint_2_location_clue: string | null
-  hint_3_text:          string | null
-  hint_3_answer:        string | null
-  hint_3_location_clue: string | null
+  hint_1_text:   string | null
+  hint_1_answer: string | null
+  hint_2_text:   string | null
+  hint_2_answer: string | null
+  hint_3_text:   string | null
+  hint_3_answer: string | null
 }
 
 type HuntReveal = {
@@ -107,10 +104,10 @@ type HuntReveal = {
 
 type ClueForm   = { image_url: string; text_content: string; code_type_hint: string }
 type RevealForm = { reveal_image_url: string; reveal_directions: string }
-type HintForm   = {
-  hint_1_text: string; hint_1_answer: string; hint_1_location_clue: string
-  hint_2_text: string; hint_2_answer: string; hint_2_location_clue: string
-  hint_3_text: string; hint_3_answer: string; hint_3_location_clue: string
+type HintForm = {
+  hint_1_text: string; hint_1_answer: string
+  hint_2_text: string; hint_2_answer: string
+  hint_3_text: string; hint_3_answer: string
 }
 
 // ── Tab labels ─────────────────────────────────────────────────────────────────
@@ -335,30 +332,24 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setHuntHints(prev => ({
       ...prev,
       [locId]: hintsData ? {
-        hint_1_text:          hintsData.hint_1_text          ?? null,
-        hint_1_answer:        hintsData.hint_1_answer        ?? null,
-        hint_1_location_clue: hintsData.hint_1_location_clue ?? null,
-        hint_2_text:          hintsData.hint_2_text          ?? null,
-        hint_2_answer:        hintsData.hint_2_answer        ?? null,
-        hint_2_location_clue: hintsData.hint_2_location_clue ?? null,
-        hint_3_text:          hintsData.hint_3_text          ?? null,
-        hint_3_answer:        hintsData.hint_3_answer        ?? null,
-        hint_3_location_clue: hintsData.hint_3_location_clue ?? null,
+        hint_1_text:   hintsData.hint_1_text   ?? null,
+        hint_1_answer: hintsData.hint_1_answer ?? null,
+        hint_2_text:   hintsData.hint_2_text   ?? null,
+        hint_2_answer: hintsData.hint_2_answer ?? null,
+        hint_3_text:   hintsData.hint_3_text   ?? null,
+        hint_3_answer: hintsData.hint_3_answer ?? null,
       } : null,
     }))
 
     setHintForms(prev => ({
       ...prev,
       [locId]: {
-        hint_1_text:          hintsData?.hint_1_text          ?? '',
-        hint_1_answer:        hintsData?.hint_1_answer        ?? '',
-        hint_1_location_clue: hintsData?.hint_1_location_clue ?? '',
-        hint_2_text:          hintsData?.hint_2_text          ?? '',
-        hint_2_answer:        hintsData?.hint_2_answer        ?? '',
-        hint_2_location_clue: hintsData?.hint_2_location_clue ?? '',
-        hint_3_text:          hintsData?.hint_3_text          ?? '',
-        hint_3_answer:        hintsData?.hint_3_answer        ?? '',
-        hint_3_location_clue: hintsData?.hint_3_location_clue ?? '',
+        hint_1_text:   hintsData?.hint_1_text   ?? '',
+        hint_1_answer: hintsData?.hint_1_answer ?? '',
+        hint_2_text:   hintsData?.hint_2_text   ?? '',
+        hint_2_answer: hintsData?.hint_2_answer ?? '',
+        hint_3_text:   hintsData?.hint_3_text   ?? '',
+        hint_3_answer: hintsData?.hint_3_answer ?? '',
       },
     }))
 
@@ -578,16 +569,13 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setHuntErrors(prev => ({ ...prev, [key]: null }))
     const existing = huntHints[locId]
     const payload  = {
-      hunt_location_id:     locId,
-      hint_1_text:          f.hint_1_text.trim()          || null,
-      hint_1_answer:        f.hint_1_answer.trim()        || null,
-      hint_1_location_clue: f.hint_1_location_clue.trim() || null,
-      hint_2_text:          f.hint_2_text.trim()          || null,
-      hint_2_answer:        f.hint_2_answer.trim()        || null,
-      hint_2_location_clue: f.hint_2_location_clue.trim() || null,
-      hint_3_text:          f.hint_3_text.trim()          || null,
-      hint_3_answer:        f.hint_3_answer.trim()        || null,
-      hint_3_location_clue: f.hint_3_location_clue.trim() || null,
+      hunt_location_id: locId,
+      hint_1_text:   f.hint_1_text.trim()   || null,
+      hint_1_answer: f.hint_1_answer.trim() || null,
+      hint_2_text:   f.hint_2_text.trim()   || null,
+      hint_2_answer: f.hint_2_answer.trim() || null,
+      hint_3_text:   f.hint_3_text.trim()   || null,
+      hint_3_answer: f.hint_3_answer.trim() || null,
     }
     const { error } = existing
       ? await db.from('hunt_hints').update(payload).eq('hunt_location_id', locId)
@@ -817,7 +805,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                   const reveal     = huntReveals[loc.id]
                   const cForm      = clueForms[loc.id]   ?? { image_url: '', text_content: '', code_type_hint: '' }
                   const rForm      = revealForms[loc.id] ?? { reveal_image_url: '', reveal_directions: '' }
-                  const hForm      = hintForms[loc.id]   ?? { hint_1_text: '', hint_1_answer: '', hint_1_location_clue: '', hint_2_text: '', hint_2_answer: '', hint_2_location_clue: '', hint_3_text: '', hint_3_answer: '', hint_3_location_clue: '' }
+                  const hForm      = hintForms[loc.id]   ?? { hint_1_text: '', hint_1_answer: '', hint_2_text: '', hint_2_answer: '', hint_3_text: '', hint_3_answer: '' }
                   const savingClue  = huntSavingKey === `${loc.id}-clue`
                   const savingReveal = huntSavingKey === `${loc.id}-reveal`
                   const savingHints = huntSavingKey === `${loc.id}-hints`
@@ -923,14 +911,6 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                                           value={(hForm as any)[`hint_${n}_answer`]}
                                           onChange={e => setHintForms(prev => ({ ...prev, [loc.id]: { ...hForm, [`hint_${n}_answer`]: e.target.value } }))}
                                           placeholder="correct answer"
-                                        />
-                                      </div>
-                                      <div className="admin-form-group">
-                                        <label>Location clue <span className="admin-field-note">(shown after 3 wrong attempts)</span></label>
-                                        <input type="text"
-                                          value={(hForm as any)[`hint_${n}_location_clue`]}
-                                          onChange={e => setHintForms(prev => ({ ...prev, [loc.id]: { ...hForm, [`hint_${n}_location_clue`]: e.target.value } }))}
-                                          placeholder="Optional location clue"
                                         />
                                       </div>
                                     </div>
