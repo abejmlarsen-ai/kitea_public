@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       // ── ic.1 Fetch the clue record ──────────────────────────────────────────
       const { data: clue, error: clueErr } = await db
         .from('hunt_clues')
-        .select('answer, initial_clue_hint')
+        .select('answer')
         .eq('hunt_location_id', hunt_location_id)
         .single()
 
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         correct:      false,
         showHint,
-        hint:         showHint ? (clue.initial_clue_hint as string | null) : null,
+        hint:         null,
         attemptCount,
       })
     }

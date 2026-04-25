@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       // Clue content — only select columns that actually exist in the DB.
       db
         .from('hunt_clues')
-        .select('image_url, text_content, code_type_hint, initial_clue_hint')
+        .select('image_url, text_content, code_type_hint')
         .eq('hunt_location_id', hunt_location_id)
         .maybeSingle(),
 
@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
     const questionAttempts = allAttempts.filter(a => a.question_id !== hunt_location_id)
 
     const initial_clue_attempts: number      = initialClueRow?.attempt_count ?? 0
-    const initial_clue_hint:     string|null = (clue?.initial_clue_hint as string|null) ?? null
+    const initial_clue_hint:     string|null = null
 
     console.log(
       '[hunt/progress] returning: clue=', !!clue,
