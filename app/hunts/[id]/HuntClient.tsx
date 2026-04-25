@@ -3,10 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-
-const HuntAreaMap = dynamic(() => import('./HuntAreaMap'), { ssr: false })
 
 // Parchment palette: #F5F0E8 · #E8DCC8 · #D4C4A0 · #C4A882
 // Text: #0B2838 · Accent: #4A7C8C · Mid: #8A7A5E
@@ -42,12 +39,14 @@ const BTN_PRIMARY: React.CSSProperties = {
   background: '#4A7C8C', color: '#FFFFFF', border: 'none',
   borderRadius: '6px', fontSize: '1rem', fontWeight: 600,
   cursor: 'pointer', transition: 'background 0.2s ease',
+  position: 'relative', zIndex: 2,
 }
 const INPUT_STYLE: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.75rem 1rem',
   background: 'rgba(255,255,255,0.85)', border: '1px solid #8A7A5E',
   borderRadius: '6px', color: '#0B2838', fontSize: '1rem',
   boxSizing: 'border-box', marginBottom: '0.75rem', outline: 'none',
+  position: 'relative', zIndex: 2,
 }
 const SECTION: React.CSSProperties = { position: 'relative', zIndex: 2 }
 
@@ -58,10 +57,10 @@ export default function HuntClient({
   const router = useRouter()
 
   // ── clue answer state ─────────────────────────────────────────────────────
-  const [clueInput,            setClueInput]            = useState('')
-  const [clueWrong,            setClueWrong]            = useState(false)
-  const [clueWrongMsg,         setClueWrongMsg]         = useState(false)
-  const [clueSubmitting,       setClueSubmitting]       = useState(false)
+  const [clueInput,             setClueInput]             = useState('')
+  const [clueWrong,             setClueWrong]             = useState(false)
+  const [clueWrongMsg,          setClueWrongMsg]          = useState(false)
+  const [clueSubmitting,        setClueSubmitting]        = useState(false)
   const [clueAnsweredCorrectly, setClueAnsweredCorrectly] = useState(false)
 
   // ── hint panel state ──────────────────────────────────────────────────────
@@ -73,7 +72,9 @@ export default function HuntClient({
   const [hintInput,      setHintInput]      = useState('')
   const [hintWrong,      setHintWrong]      = useState(false)
   const [hintWrongMsg,   setHintWrongMsg]   = useState(false)
-  const [hintSubmitting, setHintSubmitting] = useState(false)
+
+  // ── lightbox state ────────────────────────────────────────────────────────
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   // ── scan popup state ──────────────────────────────────────────────────────
   const [isScanned,      setIsScanned]      = useState(hasScanned)
@@ -104,6 +105,7 @@ export default function HuntClient({
     }, 250)
   }, [router])
 
+  // ── scan URL param effect ─────────────────────────────────────────────────
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('scanned') === 'true') {
@@ -128,6 +130,14 @@ export default function HuntClient({
       })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Escape key closes lightbox ────────────────────────────────────────────
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [lightboxOpen])
 
   async function submitClueAnswer() {
     if (!clueInput.trim() || clueSubmitting) return
@@ -164,7 +174,6 @@ export default function HuntClient({
     console.log('Hint check:', { hintNum: activeHintNum, input, stored, match: input === stored })
 
     if (!stored) {
-      // No answer stored for this hint — treat as wrong
       setHintWrong(true)
       setHintWrongMsg(true)
       setTimeout(() => setHintWrong(false), 600)
@@ -193,6 +202,34 @@ export default function HuntClient({
 
   return (
     <div style={{ color: '#0B2838', minHeight: '100vh' }}>
+
+      {/* ── LIGHTBOX ──────────────────────────────────────────────────────── */}
+      {lightboxOpen && clueImageUrl && (
+        <div
+          onClick={() => setLightboxOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <button
+            onClick={e => { e.stopPropagation(); setLightboxOpen(false) }}
+            aria-label="Close lightbox"
+            style={{
+              position: 'absolute', top: '1rem', right: '1rem',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: '#FFFFFF', fontSize: '2rem', lineHeight: 1, padding: '0.5rem',
+              zIndex: 1001,
+            }}
+          >✕</button>
+          <img
+            src={clueImageUrl}
+            alt="Hunt clue — full size"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
+          />
+        </div>
+      )}
 
       {/* ── SCAN POPUP MODAL ──────────────────────────────────────────────── */}
       {showPopup && (
@@ -265,44 +302,51 @@ export default function HuntClient({
 
       {/* ── 1. HERO ───────────────────────────────────────────────────────── */}
       <section style={{ ...SECTION, background: '#F5F0E8', padding: '2.5rem 1.5rem 2rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <h1 style={{ fontSize: 'clamp(1.75rem,6vw,2.5rem)', fontWeight: 700, color: '#0B2838', margin: 0 }}>
             {huntLocation.name}
           </h1>
         </div>
       </section>
 
-      {/* ── 2. TWO-COLUMN: CLUE IMAGE + MAP ──────────────────────────────── */}
+      {/* ── 2. CLUE IMAGE (full-width, max 600px) ─────────────────────────── */}
       <section style={{ ...SECTION, background: '#F5F0E8', padding: '0 1.5rem 2rem' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'stretch' }}>
-          {/* Left — clue image */}
-          <div style={{ flex: '1 1 300px', minWidth: 0 }}>
-            {clueImageUrl ? (
+        <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
+          {clueImageUrl ? (
+            <>
               <img
                 src={clueImageUrl}
                 alt="Hunt clue"
-                style={{ display: 'block', width: '100%', maxHeight: '380px', objectFit: 'contain', borderRadius: '8px' }}
+                onClick={() => setLightboxOpen(true)}
+                style={{
+                  display: 'block', width: '100%', maxHeight: '380px',
+                  objectFit: 'contain', borderRadius: '8px', cursor: 'pointer',
+                  position: 'relative', zIndex: 2,
+                }}
               />
-            ) : (
-              <div style={{
-                background: '#E8DCC8', borderRadius: '8px', height: '300px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#8A7A5E', fontSize: '0.9rem',
+              <p style={{
+                margin: '0.4rem 0 0', fontSize: '0.75rem', color: '#8A7A5E',
+                fontStyle: 'italic', textAlign: 'center', position: 'relative', zIndex: 2,
               }}>
-                Clue image coming soon
-              </div>
-            )}
-          </div>
-          {/* Right — area map */}
-          <div style={{ flex: '1 1 300px', minWidth: 0, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
-            <HuntAreaMap lat={huntLocation.latitude} lng={huntLocation.longitude} height={300} />
-          </div>
+                click to enlarge
+              </p>
+            </>
+          ) : (
+            <div style={{
+              background: '#E8DCC8', borderRadius: '8px', height: '300px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#8A7A5E', fontSize: '0.9rem',
+              position: 'relative', zIndex: 2,
+            }}>
+              Clue image coming soon
+            </div>
+          )}
         </div>
       </section>
 
       {/* ── 3. CLUE TEXT ──────────────────────────────────────────────────── */}
       <section style={{ ...SECTION, background: '#E8DCC8', padding: '2rem 1.5rem' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
           {clue?.text_content ? (
             <p style={{ margin: 0, fontSize: 'clamp(0.78rem, 1.5vw, 0.9rem)', lineHeight: 1.6, color: '#0B2838', whiteSpace: 'pre-wrap', maxWidth: '100%' }}>
               {clue.text_content}
@@ -317,8 +361,8 @@ export default function HuntClient({
 
       {/* ── 4. ANSWER INPUT ───────────────────────────────────────────────── */}
       <section style={{ ...SECTION, background: '#F5F0E8', padding: '2rem 1.5rem' }}>
-        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-          <label style={{ display: 'block', fontWeight: 700, color: '#0B2838', marginBottom: '0.75rem', fontSize: '1rem' }}>
+        <div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
+          <label style={{ display: 'block', fontWeight: 700, color: '#0B2838', marginBottom: '0.75rem', fontSize: '1rem', position: 'relative', zIndex: 2 }}>
             What is the answer?
           </label>
 
@@ -327,6 +371,7 @@ export default function HuntClient({
               background: 'rgba(74,124,140,0.12)', border: '1.5px solid #4A7C8C',
               borderRadius: '8px', padding: '1rem 1.25rem', color: '#4A7C8C',
               fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              position: 'relative', zIndex: 2,
             }}>
               <span style={{ fontSize: '1.25rem' }}>✓</span>
               Correct! The reveal is now unlocked below.
@@ -350,21 +395,20 @@ export default function HuntClient({
                 {clueSubmitting ? 'Checking…' : 'Submit'}
               </button>
               {clueWrongMsg && (
-                <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600 }}>
+                <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600, position: 'relative', zIndex: 2 }}>
                   Not quite — try again
                 </p>
               )}
             </>
           )}
 
-          {/* "Do you want a hint?" link — only if hints exist */}
           {availableHints.length > 0 && !clueAnsweredCorrectly && (
             <button
               onClick={() => setShowHintPanel(true)}
               style={{
                 marginTop: '1rem', background: 'none', border: 'none', padding: 0,
                 color: '#4A7C8C', fontSize: '0.9rem', textDecoration: 'underline',
-                cursor: 'pointer', fontWeight: 500,
+                cursor: 'pointer', fontWeight: 500, position: 'relative', zIndex: 2,
               }}
             >
               Do you want a hint?
@@ -376,13 +420,12 @@ export default function HuntClient({
       {/* ── 5. HINT PANEL ─────────────────────────────────────────────────── */}
       {showHintPanel && availableHints.length > 0 && (
         <section style={{ ...SECTION, background: '#F5F0E8', padding: '0 1.5rem 2rem' }}>
-          <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-            <div style={{ background: '#E8DCC8', borderRadius: '8px', padding: '1.5rem' }}>
+          <div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
+            <div style={{ background: '#E8DCC8', borderRadius: '8px', padding: '1.5rem', position: 'relative', zIndex: 2 }}>
               <p style={{ margin: '0 0 1.25rem', fontWeight: 600, color: '#0B2838', lineHeight: 1.5 }}>
                 Answer the three location based questions below for a hint.
               </p>
 
-              {/* Dot navigation */}
               <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', justifyContent: 'center' }}>
                 {availableHints.map((hintNum, i) => {
                   const correct = hintCorrectMap[hintNum]
@@ -400,10 +443,9 @@ export default function HuntClient({
                         color: correct || active ? '#FFFFFF' : '#8A7A5E',
                         cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: correct ? '1rem' : '0.85rem',
-                        fontWeight: 700,
-                        transition: 'all 0.2s',
-                        flexShrink: 0,
+                        fontSize: correct ? '1rem' : '0.85rem', fontWeight: 700,
+                        transition: 'all 0.2s', flexShrink: 0,
+                        position: 'relative', zIndex: 2,
                       }}
                     >
                       {correct ? '✓' : hintNum}
@@ -412,38 +454,37 @@ export default function HuntClient({
                 })}
               </div>
 
-              {/* Active question */}
               {hintCorrectMap[activeHintNum] ? (
                 <div style={{
                   background: 'rgba(74,124,140,0.12)', border: '1.5px solid #4A7C8C',
                   borderRadius: '6px', padding: '0.75rem 1rem', color: '#4A7C8C',
                   fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  position: 'relative', zIndex: 2,
                 }}>
                   <span>✓</span> Answered correctly
                 </div>
               ) : (
                 <>
-                  <p style={{ margin: '0 0 0.75rem', fontWeight: 600, color: '#0B2838', lineHeight: 1.5 }}>
+                  <p style={{ margin: '0 0 0.75rem', fontWeight: 600, color: '#0B2838', lineHeight: 1.5, position: 'relative', zIndex: 2 }}>
                     {hintTextMap[activeHintNum]}
                   </p>
                   <input
                     type="text"
                     value={hintInput}
                     onChange={e => setHintInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { void submitHintAnswer() } }}
+                    onKeyDown={e => { if (e.key === 'Enter') { submitHintAnswer() } }}
                     className={hintWrong ? 'shake' : undefined}
                     placeholder="Your answer..."
                     style={{ ...INPUT_STYLE }}
                   />
                   <button
-                    onClick={() => { void submitHintAnswer() }}
-                    disabled={hintSubmitting}
-                    style={{ ...BTN_PRIMARY, opacity: hintSubmitting ? 0.7 : 1 }}
+                    onClick={submitHintAnswer}
+                    style={{ ...BTN_PRIMARY }}
                   >
-                    {hintSubmitting ? 'Checking…' : 'Submit'}
+                    Submit
                   </button>
                   {hintWrongMsg && (
-                    <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600 }}>
+                    <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600, position: 'relative', zIndex: 2 }}>
                       Not quite — try again
                     </p>
                   )}
@@ -454,7 +495,7 @@ export default function HuntClient({
         </section>
       )}
 
-      {/* ── CELEBRATION BANNER (above Where to Scan) ───────────────────────── */}
+      {/* ── CELEBRATION BANNER ────────────────────────────────────────────── */}
       {isScanned && (
         <section style={{
           ...SECTION, background: '#0B2838', color: '#F5F0E8',
@@ -470,7 +511,7 @@ export default function HuntClient({
           <Link href="/library" style={{
             display: 'inline-block', background: '#F5F0E8', color: '#0B2838',
             padding: '0.65rem 1.5rem', borderRadius: '6px', fontWeight: 700,
-            fontSize: '0.95rem', textDecoration: 'none',
+            fontSize: '0.95rem', textDecoration: 'none', position: 'relative', zIndex: 2,
           }}>
             View Collection
           </Link>
@@ -479,7 +520,7 @@ export default function HuntClient({
 
       {/* ── 6. WHERE TO SCAN ──────────────────────────────────────────────── */}
       <section style={{ ...SECTION, background: '#D4C4A0', padding: '2rem 1.5rem 3rem' }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '640px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0B2838', margin: '0 0 1rem' }}>
             Where to Scan
           </h2>
@@ -487,7 +528,7 @@ export default function HuntClient({
           {showReveal ? (
             <>
               {reveals?.reveal_directions ? (
-                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#0B2838', margin: '0 0 1.5rem', whiteSpace: 'pre-wrap' }}>
+                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#0B2838', margin: '0 0 1.5rem', whiteSpace: 'pre-wrap', position: 'relative', zIndex: 2 }}>
                   {reveals.reveal_directions}
                 </p>
               ) : (
@@ -496,28 +537,27 @@ export default function HuntClient({
                 </p>
               )}
               {revealImageUrl ? (
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                  <img
-                    src={revealImageUrl}
-                    alt="Reveal"
-                    style={{
-                      display: 'block', width: '100%', maxHeight: '400px',
-                      objectFit: 'contain', borderRadius: '8px', margin: '0 auto',
-                    }}
-                  />
-                </div>
+                <img
+                  src={revealImageUrl}
+                  alt="Reveal"
+                  style={{
+                    display: 'block', width: '100%', maxHeight: '400px',
+                    objectFit: 'contain', borderRadius: '8px', margin: '0 auto',
+                    position: 'relative', zIndex: 2,
+                  }}
+                />
               ) : (
                 <div style={{
                   background: '#E8DCC8', borderRadius: '8px', height: '200px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#8A7A5E', fontSize: '0.875rem',
+                  color: '#8A7A5E', fontSize: '0.875rem', position: 'relative', zIndex: 2,
                 }}>
                   Reveal image coming soon
                 </div>
               )}
             </>
           ) : (
-            <p style={{ fontSize: '1rem', color: '#0B2838', margin: 0, lineHeight: 1.7 }}>
+            <p style={{ fontSize: '1rem', color: '#0B2838', margin: 0, lineHeight: 1.7, position: 'relative', zIndex: 2 }}>
               Solve the clue. Find the Kitea tag and scan.
             </p>
           )}
