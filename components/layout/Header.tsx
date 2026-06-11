@@ -41,7 +41,7 @@ export default async function Header() {
               alt=""
               width={40}
               height={40}
-              style={{ objectFit: 'contain', filter: 'brightness(0)' }}
+              style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
             />
             Kitea
           </Link>

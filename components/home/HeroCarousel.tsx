@@ -100,13 +100,17 @@ export default function HeroCarousel() {
         {/* Brand name */}
         <h1
           style={{
-            color: LOGO_COLOR,
+            color: '#FFFFFF',
+            backgroundColor: FRAME_COLOR,
+            padding: '0.2em 0.6em',
+            borderRadius: '4px',
             fontFamily: 'var(--font-heading)',
             fontSize: 'clamp(2rem, 6vw, 4rem)',
             fontWeight: 700,
             letterSpacing: '0.15em',
             margin: 0,
             textShadow: `0 2px 16px ${FRAME_COLOR}99`,
+            transition: 'background-color 800ms ease',
           }}
         >
           KITEA
@@ -115,15 +119,18 @@ export default function HeroCarousel() {
         {/* Tagline */}
         <p
           style={{
-            color: LOGO_COLOR,
+            color: '#FFFFFF',
+            backgroundColor: FRAME_COLOR,
+            padding: '0.15em 0.5em',
+            borderRadius: '4px',
             fontFamily: 'var(--font-heading)',
             fontSize: 'clamp(0.85rem, 2vw, 1.1rem)',
             letterSpacing: '0.05em',
             textAlign: 'center',
-            padding: '0 1rem',
             margin: 0,
-            opacity: 0.85,
+            opacity: 1,
             textShadow: `0 2px 16px ${FRAME_COLOR}99`,
+            transition: 'background-color 800ms ease',
           }}
         >
           Inspire adventure and connection through stories and shared journeys.
