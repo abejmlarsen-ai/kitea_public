@@ -147,7 +147,14 @@ body {
   align-items: center;
 }
 
+.main-nav li {
+  display: flex;
+  align-items: center;
+}
+
 .main-nav a {
+  display: inline-flex;
+  align-items: center;
   color: var(--color-text);
   text-decoration: none;
   font-weight: 600;
@@ -2123,6 +2130,8 @@ body {
 #logout-btn:hover { color: var(--color-accent); }
 
 .nav-login-link {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-heading);
   font-size: 0.875rem;
   font-weight: 600;
@@ -2864,6 +2873,7 @@ body {
 .footer-social-link svg {
   flex-shrink: 0;
   vertical-align: middle;
+  color: #FFFFFF;
 }
 
 .footer-copy {

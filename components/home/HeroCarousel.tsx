@@ -40,6 +40,7 @@ export default function HeroCarousel() {
     <div
       style={{
         position: 'relative',
+        zIndex: 2,
         width: '100%',
         height: '100vh',
         overflow: 'hidden',
@@ -105,7 +106,7 @@ export default function HeroCarousel() {
             fontWeight: 700,
             letterSpacing: '0.15em',
             margin: 0,
-            textShadow: '0 2px 20px rgba(0,0,0,0.4)',
+            textShadow: `0 2px 12px ${FRAME_COLOR}80`,
           }}
         >
           KITEA
@@ -122,7 +123,7 @@ export default function HeroCarousel() {
             padding: '0 1rem',
             margin: 0,
             opacity: 0.85,
-            textShadow: '0 1px 10px rgba(0,0,0,0.3)',
+            textShadow: `0 2px 12px ${FRAME_COLOR}80`,
           }}
         >
           Inspire adventure and connection through stories and shared journeys.
