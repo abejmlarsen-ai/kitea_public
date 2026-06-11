@@ -106,7 +106,7 @@ export default function HeroCarousel() {
             fontWeight: 700,
             letterSpacing: '0.15em',
             margin: 0,
-            textShadow: `0 2px 12px ${FRAME_COLOR}80`,
+            textShadow: `0 2px 16px ${FRAME_COLOR}99`,
           }}
         >
           KITEA
@@ -123,7 +123,7 @@ export default function HeroCarousel() {
             padding: '0 1rem',
             margin: 0,
             opacity: 0.85,
-            textShadow: `0 2px 12px ${FRAME_COLOR}80`,
+            textShadow: `0 2px 16px ${FRAME_COLOR}99`,
           }}
         >
           Inspire adventure and connection through stories and shared journeys.

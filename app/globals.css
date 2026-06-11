@@ -2774,18 +2774,6 @@ body {
 
 /* ── Homepage ──────────────────────────────────────────────────────────────── */
 .page-theme--home .section_1        { background: #F2EDE3; color: #0B2838; }
-.page-theme--home .section_1::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.12;
-  pointer-events: none;
-  background-image: url('/images/Kitea Logo Only.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 55%;
-}
 .page-theme--home .section_1 > * {
   position: relative;
   z-index: 1;
@@ -2869,6 +2857,9 @@ body {
 .footer-social-link:hover {
   opacity: 1;
   transform: translateY(-1px);
+}
+.footer-social-link {
+  color: #FFFFFF;
 }
 .footer-social-link svg {
   flex-shrink: 0;
