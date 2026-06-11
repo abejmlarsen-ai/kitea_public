@@ -22,7 +22,7 @@ import { useRef, useEffect } from 'react'
 
 const HERO_VIDEO   = '/videos/kurnell-1.mp4'
 const FRAME_COLOR  = '#3D8B7A'
-const FRAME_SIZE   = 'clamp(12px, 2.5vw, 32px)'
+const FRAME_SIZE   = '1px'
 const LOGO_COLOR   = '#F2EDE3'
 
 /* ═══════════════════════════════════════════════════════════════════════════════ */

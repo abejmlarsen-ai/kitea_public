@@ -103,6 +103,7 @@ body {
   position: fixed;
   top: 0;
   width: 100%;
+  min-height: 80px;
   z-index: 10;
   background: #FFFFFF;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -2661,6 +2662,7 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 80px;
   padding: 0 2rem;
 }
 .header-row1 {
