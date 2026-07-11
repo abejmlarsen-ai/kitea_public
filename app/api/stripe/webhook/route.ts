@@ -13,7 +13,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceRoleClient } from '@/lib/supabase/server'
+import type { Json } from '@/lib/types/database'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover'
@@ -41,10 +42,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Step 2 — Create Supabase admin client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabase = createServiceRoleClient()
 
   // Step 3 — Handle the payment completed event
   if (event.type === 'checkout.session.completed') {
@@ -56,7 +54,7 @@ export async function POST(request: NextRequest) {
       .update({
         status: 'paid',
         stripe_payment_intent: session.payment_intent as string,
-        shipping_address: session.collected_information?.shipping_details ?? null,
+        shipping_address: (session.collected_information?.shipping_details ?? null) as unknown as Json | null,
         updated_at: new Date().toISOString()
       })
       .eq('stripe_session_id', session.id)

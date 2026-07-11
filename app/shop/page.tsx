@@ -72,9 +72,9 @@ export default async function ShopPage() {
         .eq('user_id', user.id)
         .eq('hunt_location_id', locId)
 
-      // Check nft_tokens table
+      // Check collectibles table
       const { count: nftCount } = await serviceClient
-        .from('nft_tokens')
+        .from('collectibles')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('hunt_location_id', locId)
@@ -85,7 +85,7 @@ export default async function ShopPage() {
 
       if (hasScan !== hasNft) {
         console.warn(
-          `[shop] scan/nft discrepancy for user=${user.id} hunt=${locId}: scans=${scanCount} nft_tokens=${nftCount}`
+          `[shop] scan/nft discrepancy for user=${user.id} hunt=${locId}: scans=${scanCount} collectibles=${nftCount}`
         )
       }
 

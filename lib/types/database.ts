@@ -7,13 +7,209 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
+      collectibles: {
+        Row: {
+          chain: string | null
+          contract_address: string | null
+          edition_number: number | null
+          hunt_location_id: string | null
+          hunt_name: string | null
+          id: string
+          metadata_uri: string | null
+          minted_at: string | null
+          scan_id: string | null
+          status: string | null
+          token_id: string | null
+          transaction_hash: string | null
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          chain?: string | null
+          contract_address?: string | null
+          edition_number?: number | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          metadata_uri?: string | null
+          minted_at?: string | null
+          scan_id?: string | null
+          status?: string | null
+          token_id?: string | null
+          transaction_hash?: string | null
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          chain?: string | null
+          contract_address?: string | null
+          edition_number?: number | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          metadata_uri?: string | null
+          minted_at?: string | null
+          scan_id?: string | null
+          status?: string | null
+          token_id?: string | null
+          transaction_hash?: string | null
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collectibles_hunt_location_id_fkey"
+            columns: ["hunt_location_id"]
+            isOneToOne: false
+            referencedRelation: "hunt_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collectibles_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hunt_attempts: {
+        Row: {
+          attempt_count: number | null
+          id: string
+          question_id: string | null
+          solved: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          id?: string
+          question_id?: string | null
+          solved?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          id?: string
+          question_id?: string | null
+          solved?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      hunt_clues: {
+        Row: {
+          answer: string | null
+          code_type_hint: string | null
+          created_at: string | null
+          hunt_location_id: string | null
+          hunt_name: string | null
+          id: string
+          image_url: string | null
+          text_content: string | null
+        }
+        Insert: {
+          answer?: string | null
+          code_type_hint?: string | null
+          created_at?: string | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          image_url?: string | null
+          text_content?: string | null
+        }
+        Update: {
+          answer?: string | null
+          code_type_hint?: string | null
+          created_at?: string | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          image_url?: string | null
+          text_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hunt_clues_hunt_location_id_fkey"
+            columns: ["hunt_location_id"]
+            isOneToOne: false
+            referencedRelation: "hunt_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hunt_hints: {
+        Row: {
+          created_at: string | null
+          hint_1_answer: string | null
+          hint_1_location_clue: string | null
+          hint_1_text: string | null
+          hint_2_answer: string | null
+          hint_2_location_clue: string | null
+          hint_2_text: string | null
+          hint_3_answer: string | null
+          hint_3_location_clue: string | null
+          hint_3_text: string | null
+          hunt_location_id: string | null
+          hunt_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          hint_1_answer?: string | null
+          hint_1_location_clue?: string | null
+          hint_1_text?: string | null
+          hint_2_answer?: string | null
+          hint_2_location_clue?: string | null
+          hint_2_text?: string | null
+          hint_3_answer?: string | null
+          hint_3_location_clue?: string | null
+          hint_3_text?: string | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          hint_1_answer?: string | null
+          hint_1_location_clue?: string | null
+          hint_1_text?: string | null
+          hint_2_answer?: string | null
+          hint_2_location_clue?: string | null
+          hint_2_text?: string | null
+          hint_3_answer?: string | null
+          hint_3_location_clue?: string | null
+          hint_3_text?: string | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hunt_hints_hunt_location_id_fkey"
+            columns: ["hunt_location_id"]
+            isOneToOne: false
+            referencedRelation: "hunt_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hunt_locations: {
         Row: {
+          city: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -24,10 +220,12 @@ export type Database = {
           nft_image_url: string | null
           nft_token_id: number | null
           page_path: string | null
+          region: string | null
           total_scans: number | null
           updated_at: string | null
         }
         Insert: {
+          city?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -38,10 +236,12 @@ export type Database = {
           nft_image_url?: string | null
           nft_token_id?: number | null
           page_path?: string | null
+          region?: string | null
           total_scans?: number | null
           updated_at?: string | null
         }
         Update: {
+          city?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -52,10 +252,84 @@ export type Database = {
           nft_image_url?: string | null
           nft_token_id?: number | null
           page_path?: string | null
+          region?: string | null
           total_scans?: number | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      hunt_progress: {
+        Row: {
+          completed_at: string | null
+          current_question_index: number | null
+          hunt_location_id: string | null
+          id: string
+          location_revealed: boolean | null
+          started_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          current_question_index?: number | null
+          hunt_location_id?: string | null
+          id?: string
+          location_revealed?: boolean | null
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          current_question_index?: number | null
+          hunt_location_id?: string | null
+          id?: string
+          location_revealed?: boolean | null
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hunt_progress_hunt_location_id_fkey"
+            columns: ["hunt_location_id"]
+            isOneToOne: false
+            referencedRelation: "hunt_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hunt_reveals: {
+        Row: {
+          created_at: string | null
+          hunt_location_id: string | null
+          hunt_name: string | null
+          id: string
+          reveal_directions: string
+          reveal_image_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          reveal_directions: string
+          reveal_image_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          hunt_location_id?: string | null
+          hunt_name?: string | null
+          id?: string
+          reveal_directions?: string
+          reveal_image_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hunt_reveals_hunt_location_id_fkey"
+            columns: ["hunt_location_id"]
+            isOneToOne: false
+            referencedRelation: "hunt_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nfc_tags: {
         Row: {
@@ -63,27 +337,21 @@ export type Database = {
           hunt_location_id: string | null
           id: string
           is_active: boolean | null
-          location_id: string | null
           tag_uid: string | null
-          uid: string
         }
         Insert: {
           created_at?: string | null
           hunt_location_id?: string | null
           id?: string
           is_active?: boolean | null
-          location_id?: string | null
           tag_uid?: string | null
-          uid: string
         }
         Update: {
           created_at?: string | null
           hunt_location_id?: string | null
           id?: string
           is_active?: boolean | null
-          location_id?: string | null
           tag_uid?: string | null
-          uid?: string
         }
         Relationships: [
           {
@@ -91,73 +359,6 @@ export type Database = {
             columns: ["hunt_location_id"]
             isOneToOne: false
             referencedRelation: "hunt_locations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nfc_tags_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "hunt_locations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nft_tokens: {
-        Row: {
-          chain: string | null
-          contract_address: string | null
-          edition_number: number | null
-          hunt_location_id: string | null
-          id: string
-          metadata_uri: string | null
-          minted_at: string | null
-          scan_id: string | null
-          status: string | null
-          token_id: string | null
-          transaction_hash: string | null
-          user_id: string
-        }
-        Insert: {
-          chain?: string | null
-          contract_address?: string | null
-          edition_number?: number | null
-          hunt_location_id?: string | null
-          id?: string
-          metadata_uri?: string | null
-          minted_at?: string | null
-          scan_id?: string | null
-          status?: string | null
-          token_id?: string | null
-          transaction_hash?: string | null
-          user_id: string
-        }
-        Update: {
-          chain?: string | null
-          contract_address?: string | null
-          edition_number?: number | null
-          hunt_location_id?: string | null
-          id?: string
-          metadata_uri?: string | null
-          minted_at?: string | null
-          scan_id?: string | null
-          status?: string | null
-          token_id?: string | null
-          transaction_hash?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nft_tokens_hunt_location_id_fkey"
-            columns: ["hunt_location_id"]
-            isOneToOne: false
-            referencedRelation: "hunt_locations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nft_tokens_scan_id_fkey"
-            columns: ["scan_id"]
-            isOneToOne: false
-            referencedRelation: "scans"
             referencedColumns: ["id"]
           },
         ]
@@ -247,35 +448,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_unlocks: {
-        Row: {
-          id: string
-          product_id: string
-          unlocked_at: string | null
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          product_id: string
-          unlocked_at?: string | null
-          user_id: string
-        }
-        Update: {
-          id?: string
-          product_id?: string
-          unlocked_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_unlocks_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -382,45 +554,41 @@ export type Database = {
       scans: {
         Row: {
           hunt_location_id: string | null
+          hunt_name: string | null
           id: string
-          location_id: string | null
           nfc_tag_id: string | null
           scan_number: number | null
           scanned_at: string | null
           tag_uid: string | null
+          user_email: string | null
           user_id: string
         }
         Insert: {
           hunt_location_id?: string | null
+          hunt_name?: string | null
           id?: string
-          location_id?: string | null
           nfc_tag_id?: string | null
           scan_number?: number | null
           scanned_at?: string | null
           tag_uid?: string | null
+          user_email?: string | null
           user_id: string
         }
         Update: {
           hunt_location_id?: string | null
+          hunt_name?: string | null
           id?: string
-          location_id?: string | null
           nfc_tag_id?: string | null
           scan_number?: number | null
           scanned_at?: string | null
           tag_uid?: string | null
+          user_email?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "scans_hunt_location_id_fkey"
             columns: ["hunt_location_id"]
-            isOneToOne: false
-            referencedRelation: "hunt_locations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scans_location_id_fkey"
-            columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "hunt_locations"
             referencedColumns: ["id"]

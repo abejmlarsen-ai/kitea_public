@@ -52,7 +52,7 @@ export default async function LibraryPage() {
   let nfts: MintedNFT[] = []
   if (user) {
     const { data } = await supabase
-      .from('nft_tokens')
+      .from('collectibles')
       .select(
         'id, token_id, edition_number, hunt_location_id, status, transaction_hash, minted_at, hunt_locations(name, nft_image_url)'
       )
@@ -62,8 +62,7 @@ export default async function LibraryPage() {
 
     if (data) {
       // Generate 1-hour signed URLs for any NFT that has a private image path.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const srClient = createServiceRoleClient() as any
+      const srClient = createServiceRoleClient()
       const rawNfts = data as unknown as Omit<MintedNFT, 'nft_signed_image_url'>[]
 
       nfts = await Promise.all(

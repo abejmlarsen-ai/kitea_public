@@ -184,12 +184,20 @@ export default function AccountClient({ userId, email, profile: initialProfile, 
   }
 
   async function saveProfileField(field: keyof typeof profile, val: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any
-    const { error } = await db
-      .from('profiles')
-      .update({ [field]: val || null, updated_at: new Date().toISOString() })
-      .eq('id', userId)
+    const trimmed = val.trim()
+    const updated_at = new Date().toISOString()
+
+    // first_name/last_name are NOT NULL in the DB — never send them as null.
+    if (field === 'first_name' || field === 'last_name') {
+      if (!trimmed) return { error: 'This field is required' }
+    }
+
+    const { error } =
+      field === 'first_name'    ? await supabase.from('profiles').update({ first_name: trimmed, updated_at }).eq('id', userId) :
+      field === 'last_name'     ? await supabase.from('profiles').update({ last_name: trimmed, updated_at }).eq('id', userId) :
+      field === 'mobile_number' ? await supabase.from('profiles').update({ mobile_number: trimmed || null, updated_at }).eq('id', userId) :
+                                   await supabase.from('profiles').update({ date_of_birth: trimmed || null, updated_at }).eq('id', userId)
+
     if (!error) setProfile(prev => ({ ...prev, [field]: val }))
     return { error: error?.message }
   }

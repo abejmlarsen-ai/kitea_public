@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
         // ── 2. Idempotency — skip if founder collectible already exists ────
         const { data: existing } = await db
-          .from('nft_tokens')
+          .from('collectibles')
           .select('id, status')
           .eq('user_id', user.id)
           .is('hunt_location_id', null)
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         } else {
           // ── 3. Count existing founder collectibles for edition number ────
           const { count } = await db
-            .from('nft_tokens')
+            .from('collectibles')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'minted')
             .is('hunt_location_id', null)
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
           console.log('[auth/callback] inserting founder collectible — edition_number:', edition_number)
 
           const { error: insertError } = await db
-            .from('nft_tokens')
+            .from('collectibles')
             .insert({
               user_id:          user.id,
               hunt_location_id: null,

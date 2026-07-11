@@ -2,7 +2,7 @@
 // POST /api/nfc/scan
 // Verifies a scanned NFC tag UID and records the scan in the database.
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@supabase/supabase-js'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Step 2 — Service-role Supabase client (bypasses RLS) ─────────────
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabase = createServiceRoleClient()
 
     // ── Step 3 — Verify authenticated user from Authorization header ──────
     const authHeader = request.headers.get('authorization')
@@ -60,7 +57,7 @@ export async function POST(request: NextRequest) {
       tag_uid.toUpperCase().replace(/:/g, ''),
     ]))
     const orFilter = uidVariants
-      .flatMap((v) => [`tag_uid.eq.${v}`, `uid.eq.${v}`])
+      .map((v) => `tag_uid.eq.${v}`)
       .join(',')
 
     console.log('[scan] uid variants tried:', uidVariants)
@@ -85,12 +82,19 @@ export async function POST(request: NextRequest) {
 
     const huntLocationId = tag.hunt_location_id
 
+    if (!huntLocationId) {
+      return NextResponse.json(
+        { error: 'This tag is not yet linked to a hunt location.' },
+        { status: 409 }
+      )
+    }
+
     // ── Step 5 — Check if user has already scanned this location ──────────
     const { data: existingScan, error: existingError } = await supabase
       .from('scans')
       .select('id, scan_number')
       .eq('user_id', user.id)
-      .eq('location_id', huntLocationId)
+      .eq('hunt_location_id', huntLocationId)
       .single()
 
     console.log('[scan] existingScan:', JSON.stringify(existingScan, null, 2))
@@ -123,7 +127,7 @@ export async function POST(request: NextRequest) {
       .from('scans')
       .insert({
         user_id: user.id,
-        location_id: huntLocationId,
+        hunt_location_id: huntLocationId,
         tag_uid: tag_uid,
         scan_number: scan_number,
         scanned_at: new Date().toISOString()

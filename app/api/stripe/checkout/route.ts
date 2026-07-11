@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover'
@@ -24,10 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 2 — Create Supabase admin client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabase = createServiceRoleClient()
 
     // Step 3 — Verify each product exists and is available
     // Also check scan requirements are met
@@ -68,7 +65,7 @@ export async function POST(request: NextRequest) {
           .from('scans')
           .select('id')
           .eq('user_id', user_id)
-          .eq('location_id', product.required_location_id)
+          .eq('hunt_location_id', product.required_location_id)
           .single()
 
         if (!scan) {

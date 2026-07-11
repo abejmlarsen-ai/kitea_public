@@ -10,23 +10,20 @@ export default async function AccountPage() {
   if (!user) redirect('/login')
 
   // ── Profile ──────────────────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anonDb = supabase as any
-  const { data: profile } = await anonDb
+  const { data: profile } = await supabase
     .from('profiles')
     .select('first_name, last_name, mobile_number, date_of_birth, created_at')
     .eq('id', user.id)
     .maybeSingle()
 
   // ── Stats (service-role to bypass RLS safely) ────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceRoleClient() as any
+  const db = createServiceRoleClient()
 
   const [scansRes, nftRes, huntRes] = await Promise.all([
     db.from('scans')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id),
-    db.from('nft_tokens')
+    db.from('collectibles')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('status', 'minted'),

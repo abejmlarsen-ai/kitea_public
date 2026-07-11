@@ -33,23 +33,38 @@ export default async function Header() {
     <header className="site-header">
       <div className="header-inner">
 
-        {/* ── Row 1: logo (left) + settings icon + logout/login (right) ── */}
-        <div className="header-row1">
+          {/* ── Left: logo + wordmark ── */}
           <Link href="/" className="logo">
             <Image
               src="/images/Kitea Logo Only.png"
               alt=""
               width={40}
               height={40}
-              style={{ objectFit: 'contain', filter: 'brightness(0)' }}
+              style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
             />
             Kitea
           </Link>
 
+          {/* ── Centre: nav links (absolutely centred) ── */}
+          <nav className="main-nav">
+            <ul>
+              <li><Link href="/how-it-works">How It Works</Link></li>
+              <li><Link href="/map">Map</Link></li>
+
+              {user && (
+                <>
+                  <li><Link href="/library">Library</Link></li>
+                  <li><Link href="/shop">Shop</Link></li>
+                  {isAdmin && <AdminDropdown />}
+                </>
+              )}
+            </ul>
+          </nav>
+
+          {/* ── Right: settings icon + logout/login ── */}
           <div className="header-row1-right">
             {user && (
               <Link href="/account" className="header-settings-link" aria-label="Account settings">
-                {/* Settings icon — lucide-react Settings path data */}
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                   stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                   aria-hidden="true">
@@ -64,23 +79,6 @@ export default async function Header() {
               : <Link href="/login" className="nav-login-link">Login</Link>
             }
           </div>
-        </div>
-
-        {/* ── Row 2: nav links centred ── */}
-        <nav className="main-nav">
-          <ul>
-            <li><Link href="/how-it-works">How It Works</Link></li>
-            <li><Link href="/map">Map</Link></li>
-
-            {user && (
-              <>
-                <li><Link href="/library">Library</Link></li>
-                <li><Link href="/shop">Shop</Link></li>
-                {isAdmin && <AdminDropdown />}
-              </>
-            )}
-          </ul>
-        </nav>
 
       </div>
     </header>

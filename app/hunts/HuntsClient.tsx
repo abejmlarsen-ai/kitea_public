@@ -7,12 +7,12 @@ const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false })
 interface Location {
   id: string
   name: string
-  description: string
-  latitude: number
-  longitude: number
-  total_scans: number
-  region: string
-  city: string
+  description: string | null
+  latitude: number | null
+  longitude: number | null
+  total_scans: number | null
+  region: string | null
+  city: string | null
 }
 
 interface Props {
