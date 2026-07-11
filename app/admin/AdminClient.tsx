@@ -38,6 +38,7 @@ type Product = {
   is_active: boolean | null
   requires_scan: boolean | null
   hunt_location_id: string | null
+  required_location_id: string | null
 }
 
 type NfcTag = {
@@ -213,6 +214,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
         price:            r.price ?? 0,
         stock_quantity:   r.stock_quantity ?? null,
         requires_scan:    r.requires_scan ?? null,
+        required_location_id: r.required_location_id ?? null,
       }))
     )
     setLoading(false)
@@ -443,6 +445,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           is_active:        Boolean(form.is_active),
           requires_scan:    Boolean(form.requires_scan),
           hunt_location_id: (form.hunt_location_id as string) || null,
+          required_location_id: (form.required_location_id as string) || null,
         }
         if (!payload.name) throw new Error('Name is required')
         const { error } = modalMode === 'add'
@@ -668,8 +671,9 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           {fi('stock_quantity', 'Stock Quantity', 'number')}
           {fi('image_url',      'Image URL',      'url')}
           {tog('is_active',     'Active')}
+          {locSelect('hunt_location_id', 'Hunt (for shop grouping)')}
           {tog('requires_scan', 'Requires Scan')}
-          {locSelect('hunt_location_id', 'Required Location')}
+          {locSelect('required_location_id', 'Required Scan Location')}
         </>
       )
     if (modalTab === 'nfc_tags')
@@ -995,20 +999,21 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                 <thead>
                   <tr>
                     <th>Name</th><th>Price</th><th>Stock</th><th>Active</th>
-                    <th>Req. Scan</th><th>Location</th><th>Actions</th>
+                    <th>Hunt</th><th>Req. Scan</th><th>Required Location</th><th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.length === 0 ? (
-                    <tr><td colSpan={7} className="admin-empty">No products yet.</td></tr>
+                    <tr><td colSpan={8} className="admin-empty">No products yet.</td></tr>
                   ) : products.map((p) => (
                     <tr key={p.id}>
                       <td>{p.name}</td>
                       <td>{fmt.currency(p.price)}</td>
                       <td>{p.stock_quantity ?? '\u221e'}</td>
                       <td>{fmt.bool(p.is_active)}</td>
-                      <td>{fmt.bool(p.requires_scan)}</td>
                       <td>{locations.find((l) => l.id === p.hunt_location_id)?.name ?? '—'}</td>
+                      <td>{fmt.bool(p.requires_scan)}</td>
+                      <td>{locations.find((l) => l.id === p.required_location_id)?.name ?? '—'}</td>
                       <td className="admin-actions">
                         <button
                           className="admin-btn admin-btn--small"
@@ -1018,6 +1023,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                             image_url: p.image_url, is_active: p.is_active,
                             requires_scan: p.requires_scan,
                             hunt_location_id: p.hunt_location_id,
+                            required_location_id: p.required_location_id,
                           })}
                         >
                           Edit
