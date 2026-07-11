@@ -4,11 +4,16 @@ import HuntsClient from '../hunts/HuntsClient'
 
 export const metadata: Metadata = { title: 'Map | Kitea' }
 
+// This route calls no Next.js "dynamic" API (no cookies/headers/searchParams),
+// so without this it's a candidate for build-time static prerendering — which
+// would freeze the hunt list at the last deploy instead of reading it fresh
+// from Supabase on every request. Force dynamic rendering explicitly.
+export const dynamic = 'force-dynamic'
+
 export default async function MapPage() {
   // Use service-role client so locations always load regardless of auth state.
   // RLS on hunt_locations requires authenticated role, but the map is public.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceRoleClient() as any
+  const db = createServiceRoleClient()
 
   const isProd = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
   const baseQuery = db

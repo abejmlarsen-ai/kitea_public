@@ -7,8 +7,7 @@
 // is_admin without being blocked by RLS.
 
 import { NextResponse } from 'next/server'
-import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 // ── Helper: verify calling user is admin ──────────────────────────────────────
 async function getAdminUser() {
@@ -24,18 +23,9 @@ async function getAdminUser() {
     .eq('id', user.id)
     .single()
 
-  const isAdmin =
-    (profileRaw as Record<string, unknown> | null)?.is_admin === true
+  const isAdmin = profileRaw?.is_admin === true
 
   return isAdmin ? user : null
-}
-
-// ── Service-role client factory ────────────────────────────────────────────────
-function serviceClient() {
-  return createSupabaseAdmin(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
 }
 
 // ── GET /api/admin/users ───────────────────────────────────────────────────────
@@ -45,7 +35,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const client = serviceClient()
+  const client = createServiceRoleClient()
 
   const [{ data: authData }, { data: profiles }] = await Promise.all([
     client.auth.admin.listUsers({ perPage: 1000 }),
@@ -63,8 +53,7 @@ export async function GET() {
     last_name: p.last_name,
     email: emailMap.get(p.id) ?? null,
     mobile_number: p.mobile_number ?? null,
-    // is_admin was added to the DB after types were generated
-    is_admin: Boolean((p as Record<string, unknown>).is_admin),
+    is_admin: Boolean(p.is_admin),
     created_at: p.created_at ?? null,
   }))
 
@@ -87,10 +76,9 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'userId required' }, { status: 400 })
   }
 
-  const client = serviceClient()
+  const client = createServiceRoleClient()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (client as any)
+  const { error } = await client
     .from('profiles')
     .update({ is_admin: isAdmin })
     .eq('id', userId)

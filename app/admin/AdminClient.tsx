@@ -2,14 +2,9 @@
 // ─── Admin Client ─────────────────────────────────────────────────────────────
 // Full admin UI: 7 tabs (Locations, Hunts, Products, NFC Tags, Orders, Users, Stats).
 //
-// All Supabase queries use an `any`-cast client.  This is intentional:
-//  • Several tables (orders) and columns (price, tag_uid, is_admin,
-//    total_scans) were added to the DB after the last type-generation run.
-//  • Our local types (Location, Product, etc.) still enforce shape
-//    correctness at the React-state level.
-//  • eslint-disable comment is placed once at the client declaration.
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// The Supabase client is fully typed against the generated Database schema
+// (lib/types/database.ts), so a column-name or table-name mismatch here is a
+// compile-time TypeScript error, not a silent runtime failure.
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -169,9 +164,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
   const [huntSavingKey,  setHuntSavingKey]  = useState<string | null>(null)
   const [huntErrors,     setHuntErrors]     = useState<Record<string, string | null>>({})
 
-  // Single any-cast client — avoids TS errors for columns / tables that were
-  // added to the DB after the last `supabase gen types` run.
-  const db: any = useMemo(() => createClient() as any, [])
+  const db = useMemo(() => createClient(), [])
 
   // ── Data fetchers ───────────────────────────────────────────────────────────
 
@@ -183,7 +176,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
       .order('name')
     if (error) { setPageError(error.message); setLoading(false); return }
     setLocations(
-      (data ?? []).map((r: any) => ({
+      (data ?? []).map((r) => ({
         id:          r.id,
         name:        r.name,
         description: r.description ?? null,
@@ -204,7 +197,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
       .order('name')
     if (error) { setPageError(error.message); setLoading(false); return }
     setProducts(
-      (data ?? []).map((r: any) => ({
+      (data ?? []).map((r) => ({
         id:               r.id,
         name:             r.name,
         description:      r.description ?? null,
@@ -228,7 +221,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
       .order('created_at', { ascending: false })
     if (error) { setPageError(error.message); setLoading(false); return }
     setNfcTags(
-      (data ?? []).map((r: any) => ({
+      (data ?? []).map((r) => ({
         id:               r.id,
         tag_uid:          r.tag_uid ?? '',
         hunt_location_id: r.hunt_location_id ?? null,
@@ -281,10 +274,10 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           .maybeSingle(),
       ])
 
-      const ordersData: any[] = ordersRes.data ?? []
+      const ordersData = ordersRes.data ?? []
       const revenue = ordersData
-        .filter((o: any) => o.status === 'paid')
-        .reduce((sum: number, o: any) => sum + (o.total_amount ?? 0), 0)
+        .filter((o) => o.status === 'paid')
+        .reduce((sum, o) => sum + (o.total_amount ?? 0), 0)
 
       setStats({
         totalUsers:   usersRes.count  ?? 0,
@@ -308,9 +301,9 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
       db.from('hunt_reveals').select('*').eq('hunt_location_id', locId).maybeSingle(),
     ])
 
-    const clueRow:   any = clueRes.data
-    const hintsData: any = hintsRes.data
-    const revealRow: any = revealRes.data
+    const clueRow   = clueRes.data
+    const hintsData = hintsRes.data
+    const revealRow = revealRes.data
 
     setHuntClues(prev => ({
       ...prev,
@@ -418,8 +411,10 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     setSaving(true); setSaveError(null)
     try {
       if (modalTab === 'locations') {
+        const name = (form.name as string)?.trim()
+        if (!name) throw new Error('Name is required')
         const payload = {
-          name:        (form.name as string)?.trim(),
+          name,
           description: (form.description as string) || null,
           latitude:    form.latitude != null && form.latitude !== ''
                          ? Number(form.latitude) : null,
@@ -427,16 +422,17 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
                          ? Number(form.longitude) : null,
           is_active:   Boolean(form.is_active),
         }
-        if (!payload.name) throw new Error('Name is required')
         const { error } = modalMode === 'add'
           ? await db.from('hunt_locations').insert(payload)
-          : await db.from('hunt_locations').update(payload).eq('id', editingId)
+          : await db.from('hunt_locations').update(payload).eq('id', editingId!)
         if (error) throw error
         await fetchLocations()
 
       } else if (modalTab === 'products') {
+        const name = (form.name as string)?.trim()
+        if (!name) throw new Error('Name is required')
         const payload = {
-          name:             (form.name as string)?.trim(),
+          name,
           description:      (form.description as string) || null,
           price:            Number(form.price) || 0,
           stock_quantity:   form.stock_quantity != null && form.stock_quantity !== ''
@@ -447,23 +443,23 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
           hunt_location_id: (form.hunt_location_id as string) || null,
           required_location_id: (form.required_location_id as string) || null,
         }
-        if (!payload.name) throw new Error('Name is required')
         const { error } = modalMode === 'add'
           ? await db.from('products').insert(payload)
-          : await db.from('products').update(payload).eq('id', editingId)
+          : await db.from('products').update(payload).eq('id', editingId!)
         if (error) throw error
         await fetchProducts()
 
       } else if (modalTab === 'nfc_tags') {
+        const tag_uid = (form.tag_uid as string)?.trim()
+        if (!tag_uid) throw new Error('Tag UID is required')
         const payload = {
-          tag_uid:          (form.tag_uid as string)?.trim() || null,
+          tag_uid,
           hunt_location_id: (form.hunt_location_id as string) || null,
           is_active:        Boolean(form.is_active),
         }
-        if (!payload.tag_uid) throw new Error('Tag UID is required')
         const { error } = modalMode === 'add'
           ? await db.from('nfc_tags').insert(payload)
-          : await db.from('nfc_tags').update(payload).eq('id', editingId)
+          : await db.from('nfc_tags').update(payload).eq('id', editingId!)
         if (error) throw error
         await fetchNfcTags()
       }
@@ -483,7 +479,7 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
 
   async function handleDelete() {
     if (!deleteId || !deleteTabName) return
-    const tableMap: Record<string, string> = {
+    const tableMap: Record<string, 'hunt_locations' | 'products' | 'nfc_tags'> = {
       locations: 'hunt_locations',
       products:  'products',
       nfc_tags:  'nfc_tags',
@@ -551,11 +547,17 @@ export default function AdminClient({ initialTab = 'locations' }: { initialTab?:
     const key      = `${locId}-reveal`
     setHuntSavingKey(key)
     setHuntErrors(prev => ({ ...prev, [key]: null }))
+    const reveal_directions = f.reveal_directions.trim()
+    if (!reveal_directions) {
+      setHuntErrors(prev => ({ ...prev, [key]: 'Reveal Directions is required' }))
+      setHuntSavingKey(null)
+      return
+    }
     const existing = huntReveals[locId]
     const payload  = {
       hunt_location_id:  locId,
-      reveal_image_url:  f.reveal_image_url  || null,
-      reveal_directions: f.reveal_directions || null,
+      reveal_image_url:  f.reveal_image_url || null,
+      reveal_directions,
     }
     const { error } = existing?.id
       ? await db.from('hunt_reveals').update(payload).eq('id', existing.id)

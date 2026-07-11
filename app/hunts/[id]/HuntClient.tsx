@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 // Text: #0B2838 · Accent: #4A7C8C · Mid: #8A7A5E
 
 interface HuntLocation {
-  id: string; name: string; description: string; total_scans: number; latitude: number; longitude: number
+  id: string; name: string; description: string | null; total_scans: number | null; latitude: number | null; longitude: number | null
 }
 interface ClueData {
   text_content: string | null; answer: string | null; image_url: string | null

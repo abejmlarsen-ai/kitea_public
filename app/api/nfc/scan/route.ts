@@ -2,7 +2,7 @@
 // POST /api/nfc/scan
 // Verifies a scanned NFC tag UID and records the scan in the database.
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@supabase/supabase-js'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Step 2 — Service-role Supabase client (bypasses RLS) ─────────────
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabase = createServiceRoleClient()
 
     // ── Step 3 — Verify authenticated user from Authorization header ──────
     const authHeader = request.headers.get('authorization')
@@ -84,6 +81,13 @@ export async function POST(request: NextRequest) {
     }
 
     const huntLocationId = tag.hunt_location_id
+
+    if (!huntLocationId) {
+      return NextResponse.json(
+        { error: 'This tag is not yet linked to a hunt location.' },
+        { status: 409 }
+      )
+    }
 
     // ── Step 5 — Check if user has already scanned this location ──────────
     const { data: existingScan, error: existingError } = await supabase

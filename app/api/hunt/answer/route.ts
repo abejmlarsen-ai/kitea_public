@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
       console.log('[hunt/answer] initial_clue — user:', user_id, '| location:', hunt_location_id)
 
-      const db: any = createServiceRoleClient()
+      const db = createServiceRoleClient()
 
       // ── ic.1 Fetch the clue record ──────────────────────────────────────────
       const { data: clue, error: clueErr } = await db
@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     console.log('[hunt/answer] question — user:', user_id, '| question:', question_id)
 
-    const db: any = createServiceRoleClient()
+    const db = createServiceRoleClient()
 
     // ── 2. Parse synthetic hint question_id ({locId}__hint__{N}) ────────────────
     const hintSep = '__hint__'

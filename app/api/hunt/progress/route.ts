@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Service-role client bypasses RLS — these tables are server-managed only
-    const db: any = createServiceRoleClient()
+    const db = createServiceRoleClient()
 
     // ── 2. Fetch clue, hints, and progress in parallel ────────────────────────
     // NOTE: hunt_attempts is fetched separately after hints so we can

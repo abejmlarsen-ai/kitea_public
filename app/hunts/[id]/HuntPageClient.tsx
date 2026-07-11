@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 const HuntClient = dynamic(() => import('./HuntClient'), { ssr: false })
 
 interface HuntLocation {
-  id: string; name: string; description: string; total_scans: number; latitude: number; longitude: number
+  id: string; name: string; description: string | null; total_scans: number | null; latitude: number | null; longitude: number | null
 }
 interface ClueData {
   text_content: string | null; answer: string | null; image_url: string | null

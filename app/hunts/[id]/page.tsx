@@ -2,6 +2,11 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import HuntPageClient from './HuntPageClient'
 
+// Clue/hint/reveal content and scan status must be read fresh on every visit,
+// not baked in at build/deploy time. createClient() already calls cookies()
+// which implicitly forces dynamic rendering — this makes that guarantee explicit.
+export const dynamic = 'force-dynamic'
+
 export default async function HuntPage({
   params,
 }: {
@@ -12,8 +17,7 @@ export default async function HuntPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceRoleClient() as any
+  const db = createServiceRoleClient()
 
   const { data: huntLocation } = await db
     .from('hunt_locations')
@@ -41,28 +45,24 @@ export default async function HuntPage({
   }
 
   const [clueRes, hintsRes, revealsRes, scansRes] = await Promise.all([
-    db.from('hunt_clues').select('*').eq('hunt_location_id', id).maybeSingle(),
-    db.from('hunt_hints').select('*').eq('hunt_location_id', id).maybeSingle(),
-    db.from('hunt_reveals').select('*').eq('hunt_location_id', id).maybeSingle(),
+    db.from('hunt_clues').select('text_content, answer, image_url').eq('hunt_location_id', id).maybeSingle(),
+    db.from('hunt_hints')
+      .select('hint_1_text, hint_1_answer, hint_2_text, hint_2_answer, hint_3_text, hint_3_answer')
+      .eq('hunt_location_id', id).maybeSingle(),
+    db.from('hunt_reveals').select('reveal_directions, reveal_image_url').eq('hunt_location_id', id).maybeSingle(),
     db.from('scans').select('id').eq('hunt_location_id', id).eq('user_id', user.id).maybeSingle(),
   ])
 
-  const clue    = clueRes.data    as { text_content: string | null; answer: string | null; image_url: string | null } | null
-  const hints   = hintsRes.data   as {
-    hint_1_text: string | null; hint_1_answer: string | null
-    hint_2_text: string | null; hint_2_answer: string | null
-    hint_3_text: string | null; hint_3_answer: string | null
-  } | null
-  const reveals = revealsRes.data as { reveal_directions: string | null; reveal_image_url: string | null } | null
+  const clue    = clueRes.data
+  const hints   = hintsRes.data
+  const reveals = revealsRes.data
 
   const [clueImageUrl, revealImageUrl] = await Promise.all([
     clue?.image_url
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? db.storage.from('hunt-assets-private').createSignedUrl(clue.image_url, 3600).then((r: any) => r.data?.signedUrl ?? null)
+      ? db.storage.from('hunt-assets-private').createSignedUrl(clue.image_url, 3600).then((r) => r.data?.signedUrl ?? null)
       : Promise.resolve(null),
     reveals?.reveal_image_url
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? db.storage.from('hunt-assets-private').createSignedUrl(reveals.reveal_image_url, 3600).then((r: any) => r.data?.signedUrl ?? null)
+      ? db.storage.from('hunt-assets-private').createSignedUrl(reveals.reveal_image_url, 3600).then((r) => r.data?.signedUrl ?? null)
       : Promise.resolve(null),
   ])
 

@@ -14,12 +14,12 @@ L.Icon.Default.mergeOptions({ iconUrl: '', shadowUrl: '' })
 interface Location {
   id:           string
   name:         string
-  description:  string
-  latitude:     number
-  longitude:    number
-  total_scans:  number
-  region:       string
-  city:         string
+  description:  string | null
+  latitude:     number | null
+  longitude:    number | null
+  total_scans:  number | null
+  region:       string | null
+  city:         string | null
 }
 
 interface Props {
@@ -98,7 +98,10 @@ export default function MapComponent({ locations }: Props) {
   console.log('[MapComponent] locations received:', locations.length,
     '| first:', locations[0] ? JSON.stringify({ id: locations[0].id, name: locations[0].name }) : 'none')
 
-  const mappable = locations.filter(l => l.id && l.latitude != null && l.longitude != null)
+  const mappable = locations.filter(
+    (l): l is Location & { latitude: number; longitude: number } =>
+      !!l.id && l.latitude != null && l.longitude != null
+  )
 
   const defaultCentre: [number, number] =
     mappable.length > 0
@@ -285,7 +288,7 @@ export default function MapComponent({ locations }: Props) {
                       color:        '#888',
                       marginBottom: '12px',
                     }}>
-                      {loc.total_scans} explorers
+                      {loc.total_scans ?? 0} explorers
                     </span>
                     <a
                       href={loc.id ? `/hunts/${loc.id}` : '#'}

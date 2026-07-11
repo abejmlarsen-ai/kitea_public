@@ -29,8 +29,7 @@ export async function GET(req: NextRequest) {
     }
 
     // ── 3. Generate signed URL (1 hour) ────────────────────────────────────────
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceRoleClient() as any
+    const db = createServiceRoleClient()
     const { data, error } = await db.storage
       .from('hunt-assets-private')
       .createSignedUrl(path, 3600)
