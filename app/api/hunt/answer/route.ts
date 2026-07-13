@@ -39,11 +39,12 @@ export async function POST(req: NextRequest) {
       user_id?:          string
       question_id?:      string
       hunt_location_id?: string
+      hint_number?:      number
       answer?:           unknown
-      type?:             'question' | 'initial_clue'
+      type?:             'question' | 'initial_clue' | 'location_hint'
     }
 
-    const { user_id, question_id, hunt_location_id, answer, type: reqType = 'question' } = body
+    const { user_id, question_id, hunt_location_id, hint_number, answer, type: reqType = 'question' } = body
 
     // ── Initial clue branch ───────────────────────────────────────────────────
     if (reqType === 'initial_clue') {
@@ -136,7 +137,12 @@ export async function POST(req: NextRequest) {
 
       console.log('[hunt/answer] initial_clue attempt_count:', attemptCount)
 
-      // ── ic.4 Correct branch — reveal the location ───────────────────────────
+      // ── ic.4 Correct branch — mark the coded-clue path solved ───────────────
+      // Do NOT set location_revealed directly here — the
+      // trg_check_hunt_completion trigger (added in the hunt_progress
+      // dual-path migration) flips it automatically once coded_clue_solved
+      // is true, so the reveal page's RLS-gated read is the sole source of
+      // truth for whether the location is actually revealed.
       if (isCorrect) {
         const { data: prog } = await db
           .from('hunt_progress')
@@ -145,8 +151,7 @@ export async function POST(req: NextRequest) {
           .eq('hunt_location_id', hunt_location_id)
           .maybeSingle()
 
-        const now   = new Date().toISOString()
-        const patch = { location_revealed: true, completed_at: now }
+        const patch = { coded_clue_solved: true }
 
         if (prog) {
           await db.from('hunt_progress').update(patch).eq('id', prog.id)
@@ -154,7 +159,7 @@ export async function POST(req: NextRequest) {
           await db.from('hunt_progress').insert({ user_id, hunt_location_id, ...patch })
         }
 
-        console.log('[hunt/answer] initial_clue correct — location_revealed: true')
+        console.log('[hunt/answer] initial_clue correct — coded_clue_solved: true')
 
         return NextResponse.json({ correct: true })
       }
@@ -173,6 +178,82 @@ export async function POST(req: NextRequest) {
         hint:         null,
         attemptCount,
       })
+    }
+
+    // ── Location hint branch ────────────────────────────────────────────────────
+    // Checks one of the three independent location-path questions. The
+    // answer is compared server-side only — hunt_hints.hint_N_answer is
+    // never sent to the client. On correct, sets
+    // hunt_progress.location_hint_N_solved (insert-if-missing). Does NOT
+    // touch location_revealed — trg_check_hunt_completion flips it once all
+    // three location_hint_*_solved columns are true.
+    if (reqType === 'location_hint') {
+      const hintNumber = hint_number
+
+      if (
+        !user_id?.trim() || !hunt_location_id?.trim() ||
+        answer === undefined || answer === null ||
+        hintNumber === undefined || ![1, 2, 3].includes(hintNumber)
+      ) {
+        return NextResponse.json(
+          { error: 'user_id, hunt_location_id, hint_number (1-3), and answer are required.' },
+          { status: 400 }
+        )
+      }
+
+      console.log('[hunt/answer] location_hint', hintNumber, '— user:', user_id, '| location:', hunt_location_id)
+
+      const db = createServiceRoleClient()
+
+      const { data: hintsRow, error: hintsErr } = await db
+        .from('hunt_hints')
+        .select('hint_1_answer, hint_2_answer, hint_3_answer')
+        .eq('hunt_location_id', hunt_location_id)
+        .single()
+
+      if (hintsErr || !hintsRow) {
+        console.error('[hunt/answer] location_hint hunt_hints not found:', hintsErr?.message ?? 'no row')
+        return NextResponse.json({ error: 'Hint not found.' }, { status: 404 })
+      }
+
+      const target =
+        hintNumber === 1 ? hintsRow.hint_1_answer :
+        hintNumber === 2 ? hintsRow.hint_2_answer :
+                            hintsRow.hint_3_answer
+
+      const normInput  = normaliseAnswer(String(answer))
+      const normTarget = normaliseAnswer(String(target ?? ''))
+      const dist        = distance(normInput, normTarget)
+      const isCorrect  = dist <= 3
+
+      console.log(
+        '[hunt/answer] location_hint', hintNumber, 'norm submitted:', JSON.stringify(normInput),
+        '| norm target:', JSON.stringify(normTarget), '| dist:', dist, '| correct:', isCorrect
+      )
+
+      if (isCorrect) {
+        const { data: prog } = await db
+          .from('hunt_progress')
+          .select('id')
+          .eq('user_id', user_id)
+          .eq('hunt_location_id', hunt_location_id)
+          .maybeSingle()
+
+        const patch =
+          hintNumber === 1 ? { location_hint_1_solved: true } :
+          hintNumber === 2 ? { location_hint_2_solved: true } :
+                              { location_hint_3_solved: true }
+
+        if (prog) {
+          await db.from('hunt_progress').update(patch).eq('id', prog.id)
+        } else {
+          await db.from('hunt_progress').insert({ user_id, hunt_location_id, ...patch })
+        }
+
+        console.log('[hunt/answer] location_hint', hintNumber, 'correct —', JSON.stringify(patch))
+      }
+
+      return NextResponse.json({ correct: isCorrect })
     }
 
     // ── Question branch ────────────────────────────────────────────────────────

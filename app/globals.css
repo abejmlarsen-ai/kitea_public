@@ -4312,6 +4312,53 @@ body {
   padding: 1.25rem;
 }
 
+/* ── Hunt entry / path-selection screen ─────────────────────────────────────── */
+
+.hunt-entry-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  min-height: calc(100vh - 65px);
+}
+
+.hunt-entry-half {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.hunt-entry-half:first-child { background: #F5F0E8; border-right: 1px solid #8A7A5E; }
+.hunt-entry-half:last-child  { background: #E8DCC8; }
+
+.hunt-entry-bubble {
+  width: min(240px, 60vw);
+  height: min(240px, 60vw);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: #4A7C8C;
+  color: #FFFFFF;
+  border: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(11, 40, 56, 0.18);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.hunt-entry-bubble:hover:not(:disabled) { background: #1B4965; transform: scale(1.03); }
+.hunt-entry-bubble:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.hunt-entry-caption {
+  max-width: 320px;
+  font-size: 0.9rem;
+  color: #8A7A5E;
+  line-height: 1.5;
+}
+
 /* ══ Account page ═════════════════════════════════════════════════════════════ */
 
 /* Section card (account details panel on the lighter upper gradient) */

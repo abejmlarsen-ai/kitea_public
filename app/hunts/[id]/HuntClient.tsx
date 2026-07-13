@@ -12,24 +12,13 @@ interface HuntLocation {
   id: string; name: string; description: string | null; total_scans: number | null; latitude: number | null; longitude: number | null
 }
 interface ClueData {
-  text_content: string | null; answer: string | null; image_url: string | null
-}
-interface HintsData {
-  hint_1_text: string | null; hint_1_answer: string | null
-  hint_2_text: string | null; hint_2_answer: string | null
-  hint_3_text: string | null; hint_3_answer: string | null
-}
-interface RevealsData {
-  reveal_directions: string | null; reveal_image_url: string | null
+  text_content: string | null; answer: string | null; image_url: string | null; hint_text: string | null
 }
 interface Props {
   huntLocation:   HuntLocation
   userId:         string
   clue:           ClueData | null
-  hints:          HintsData | null
-  reveals:        RevealsData | null
   clueImageUrl:   string | null
-  revealImageUrl: string | null
   hasScanned:     boolean
 }
 interface CollectibleData { scan_count: number; nft_image_url: string | null }
@@ -51,27 +40,15 @@ const INPUT_STYLE: React.CSSProperties = {
 const SECTION: React.CSSProperties = { position: 'relative', zIndex: 2 }
 
 export default function HuntClient({
-  huntLocation, userId, clue, hints, reveals,
-  clueImageUrl, revealImageUrl, hasScanned,
+  huntLocation, userId, clue, clueImageUrl, hasScanned,
 }: Props) {
   const router = useRouter()
 
   // ── clue answer state ─────────────────────────────────────────────────────
-  const [clueInput,             setClueInput]             = useState('')
-  const [clueWrong,             setClueWrong]             = useState(false)
-  const [clueWrongMsg,          setClueWrongMsg]          = useState(false)
-  const [clueSubmitting,        setClueSubmitting]        = useState(false)
-  const [clueAnsweredCorrectly, setClueAnsweredCorrectly] = useState(false)
-
-  // ── hint panel state ──────────────────────────────────────────────────────
-  const [showHintPanel,  setShowHintPanel]  = useState(false)
-  const [activeHintIdx,  setActiveHintIdx]  = useState(0)
-  const [hint1Correct,   setHint1Correct]   = useState(false)
-  const [hint2Correct,   setHint2Correct]   = useState(false)
-  const [hint3Correct,   setHint3Correct]   = useState(false)
-  const [hintInput,      setHintInput]      = useState('')
-  const [hintWrong,      setHintWrong]      = useState(false)
-  const [hintWrongMsg,   setHintWrongMsg]   = useState(false)
+  const [clueInput,      setClueInput]      = useState('')
+  const [clueWrong,      setClueWrong]      = useState(false)
+  const [clueWrongMsg,   setClueWrongMsg]   = useState(false)
+  const [clueSubmitting, setClueSubmitting] = useState(false)
 
   // ── lightbox state ────────────────────────────────────────────────────────
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -82,18 +59,6 @@ export default function HuntClient({
   const [popupVisible,   setPopupVisible]   = useState(false)
   const [collectible,    setCollectible]    = useState<CollectibleData | null>(null)
   const [collectibleErr, setCollectibleErr] = useState(false)
-
-  // ── derived ───────────────────────────────────────────────────────────────
-  const h1 = hints?.hint_1_text ?? null
-  const h2 = hints?.hint_2_text ?? null
-  const h3 = hints?.hint_3_text ?? null
-  const availableHints: number[] = [...(h1 ? [1] : []), ...(h2 ? [2] : []), ...(h3 ? [3] : [])]
-  const hintCorrectMap: Record<number, boolean> = { 1: hint1Correct, 2: hint2Correct, 3: hint3Correct }
-  const hintTextMap:    Record<number, string>  = { 1: h1 ?? '', 2: h2 ?? '', 3: h3 ?? '' }
-  const allHintsAnswered = availableHints.length > 0 && availableHints.every(n => hintCorrectMap[n])
-  const revealUnlocked   = clueAnsweredCorrectly || allHintsAnswered
-  const showReveal       = revealUnlocked || isScanned
-  const activeHintNum    = availableHints[activeHintIdx] ?? availableHints[0] ?? 1
 
   const dismissPopup = useCallback(() => {
     setPopupVisible(false)
@@ -150,54 +115,18 @@ export default function HuntClient({
       })
       const data = await res.json() as { correct: boolean }
       if (data.correct) {
-        setClueAnsweredCorrectly(true)
-      } else {
-        setClueWrong(true)
-        setClueWrongMsg(true)
-        setTimeout(() => setClueWrong(false), 600)
+        // coded_clue_solved is now true server-side; the completion trigger
+        // has already flipped location_revealed if applicable. The reveal
+        // page decides what to show purely from the hunt_reveals RLS policy.
+        router.push(`/hunts/${huntLocation.id}/reveal`)
+        return
       }
+      setClueWrong(true)
+      setClueWrongMsg(true)
+      setTimeout(() => setClueWrong(false), 600)
     } finally {
       setClueSubmitting(false)
     }
-  }
-
-  function submitHintAnswer() {
-    const raw = hintInput.trim()
-    if (!raw) return
-    const storedRaw =
-      activeHintNum === 1 ? hints?.hint_1_answer
-      : activeHintNum === 2 ? hints?.hint_2_answer
-      : hints?.hint_3_answer
-    const stored = (storedRaw ?? '').trim().toLowerCase()
-    const input  = raw.toLowerCase()
-
-    console.log('Hint check:', { hintNum: activeHintNum, input, stored, match: input === stored })
-
-    if (!stored) {
-      setHintWrong(true)
-      setHintWrongMsg(true)
-      setTimeout(() => setHintWrong(false), 600)
-      return
-    }
-
-    if (input === stored) {
-      if (activeHintNum === 1) setHint1Correct(true)
-      else if (activeHintNum === 2) setHint2Correct(true)
-      else if (activeHintNum === 3) setHint3Correct(true)
-      setHintInput('')
-      setHintWrongMsg(false)
-    } else {
-      setHintWrong(true)
-      setHintWrongMsg(true)
-      setTimeout(() => setHintWrong(false), 600)
-    }
-  }
-
-  function switchHint(idx: number) {
-    setActiveHintIdx(idx)
-    setHintInput('')
-    setHintWrong(false)
-    setHintWrongMsg(false)
   }
 
   return (
@@ -294,10 +223,14 @@ export default function HuntClient({
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: '0.5rem',
         padding: '0.75rem 1.5rem', background: '#F5F0E8', borderBottom: '1px solid #8A7A5E',
       }}>
         <img src="/images/Kitea Logo Only.png" alt="Kitea" style={{ height: '36px', width: 'auto' }} />
-        <a href="/map" className="hunt-btn-return">← Return to Map</a>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <a href={`/hunts/${huntLocation.id}?select=1`} className="hunt-btn-return">Back to selection</a>
+          <a href="/map" className="hunt-btn-return">← Return to Map</a>
+        </div>
       </div>
 
       {/* ── 1. HERO ───────────────────────────────────────────────────────── */}
@@ -359,141 +292,55 @@ export default function HuntClient({
         </div>
       </section>
 
-      {/* ── 4. ANSWER INPUT ───────────────────────────────────────────────── */}
+      {/* ── 4. PLAIN HINT (read-only, not a question) ───────────────────────── */}
+      {clue?.hint_text && (
+        <section style={{ ...SECTION, background: '#F5F0E8', padding: '0 1.5rem 2rem' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
+            <div style={{ background: '#E8DCC8', borderRadius: '8px', padding: '1rem 1.25rem' }}>
+              <p style={{
+                margin: 0, fontSize: '0.78rem', fontWeight: 700, color: '#8A7A5E',
+                textTransform: 'uppercase', letterSpacing: '0.06em',
+              }}>
+                Hint
+              </p>
+              <p style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', lineHeight: 1.6, color: '#0B2838', whiteSpace: 'pre-wrap' }}>
+                {clue.hint_text}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── 5. ANSWER INPUT ───────────────────────────────────────────────── */}
       <section style={{ ...SECTION, background: '#F5F0E8', padding: '2rem 1.5rem' }}>
         <div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <label style={{ display: 'block', fontWeight: 700, color: '#0B2838', marginBottom: '0.75rem', fontSize: '1rem', position: 'relative', zIndex: 2 }}>
             What is the answer?
           </label>
 
-          {clueAnsweredCorrectly ? (
-            <div style={{
-              background: 'rgba(74,124,140,0.12)', border: '1.5px solid #4A7C8C',
-              borderRadius: '8px', padding: '1rem 1.25rem', color: '#4A7C8C',
-              fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
-              position: 'relative', zIndex: 2,
-            }}>
-              <span style={{ fontSize: '1.25rem' }}>✓</span>
-              Correct! The reveal is now unlocked below.
-            </div>
-          ) : (
-            <>
-              <input
-                type="text"
-                value={clueInput}
-                onChange={e => setClueInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { void submitClueAnswer() } }}
-                className={clueWrong ? 'shake' : undefined}
-                placeholder="Your answer..."
-                style={INPUT_STYLE}
-              />
-              <button
-                onClick={() => { void submitClueAnswer() }}
-                disabled={clueSubmitting}
-                style={{ ...BTN_PRIMARY, opacity: clueSubmitting ? 0.7 : 1 }}
-              >
-                {clueSubmitting ? 'Checking…' : 'Submit'}
-              </button>
-              {clueWrongMsg && (
-                <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600, position: 'relative', zIndex: 2 }}>
-                  Not quite — try again
-                </p>
-              )}
-            </>
-          )}
-
-          {availableHints.length > 0 && !clueAnsweredCorrectly && (
-            <button
-              onClick={() => setShowHintPanel(true)}
-              style={{
-                marginTop: '1rem', background: 'none', border: 'none', padding: 0,
-                color: '#4A7C8C', fontSize: '0.9rem', textDecoration: 'underline',
-                cursor: 'pointer', fontWeight: 500, position: 'relative', zIndex: 2,
-              }}
-            >
-              Do you want a hint?
-            </button>
+          <input
+            type="text"
+            value={clueInput}
+            onChange={e => setClueInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { void submitClueAnswer() } }}
+            className={clueWrong ? 'shake' : undefined}
+            placeholder="Your answer..."
+            style={INPUT_STYLE}
+          />
+          <button
+            onClick={() => { void submitClueAnswer() }}
+            disabled={clueSubmitting}
+            style={{ ...BTN_PRIMARY, opacity: clueSubmitting ? 0.7 : 1 }}
+          >
+            {clueSubmitting ? 'Checking…' : 'Submit'}
+          </button>
+          {clueWrongMsg && (
+            <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600, position: 'relative', zIndex: 2 }}>
+              Not quite — try again
+            </p>
           )}
         </div>
       </section>
-
-      {/* ── 5. HINT PANEL ─────────────────────────────────────────────────── */}
-      {showHintPanel && availableHints.length > 0 && (
-        <section style={{ ...SECTION, background: '#F5F0E8', padding: '0 1.5rem 2rem' }}>
-          <div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ background: '#E8DCC8', borderRadius: '8px', padding: '1.5rem', position: 'relative', zIndex: 2 }}>
-              <p style={{ margin: '0 0 1.25rem', fontWeight: 600, color: '#0B2838', lineHeight: 1.5 }}>
-                Answer the three location based questions below for a hint.
-              </p>
-
-              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', justifyContent: 'center' }}>
-                {availableHints.map((hintNum, i) => {
-                  const correct = hintCorrectMap[hintNum]
-                  const active  = i === activeHintIdx
-                  return (
-                    <button
-                      key={hintNum}
-                      onClick={() => switchHint(i)}
-                      style={{
-                        width: active ? '38px' : '30px',
-                        height: active ? '38px' : '30px',
-                        borderRadius: '50%',
-                        background: correct ? '#4A7C8C' : active ? '#C4A882' : 'transparent',
-                        border: `2px solid ${correct ? '#4A7C8C' : active ? '#C4A882' : '#8A7A5E'}`,
-                        color: correct || active ? '#FFFFFF' : '#8A7A5E',
-                        cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: correct ? '1rem' : '0.85rem', fontWeight: 700,
-                        transition: 'all 0.2s', flexShrink: 0,
-                        position: 'relative', zIndex: 2,
-                      }}
-                    >
-                      {correct ? '✓' : hintNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {hintCorrectMap[activeHintNum] ? (
-                <div style={{
-                  background: 'rgba(74,124,140,0.12)', border: '1.5px solid #4A7C8C',
-                  borderRadius: '6px', padding: '0.75rem 1rem', color: '#4A7C8C',
-                  fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  position: 'relative', zIndex: 2,
-                }}>
-                  <span>✓</span> Answered correctly
-                </div>
-              ) : (
-                <>
-                  <p style={{ margin: '0 0 0.75rem', fontWeight: 600, color: '#0B2838', lineHeight: 1.5, position: 'relative', zIndex: 2 }}>
-                    {hintTextMap[activeHintNum]}
-                  </p>
-                  <input
-                    type="text"
-                    value={hintInput}
-                    onChange={e => setHintInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { submitHintAnswer() } }}
-                    className={hintWrong ? 'shake' : undefined}
-                    placeholder="Your answer..."
-                    style={{ ...INPUT_STYLE }}
-                  />
-                  <button
-                    onClick={submitHintAnswer}
-                    style={{ ...BTN_PRIMARY }}
-                  >
-                    Submit
-                  </button>
-                  {hintWrongMsg && (
-                    <p style={{ marginTop: '0.5rem', color: '#C4A882', fontSize: '0.9rem', fontWeight: 600, position: 'relative', zIndex: 2 }}>
-                      Not quite — try again
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── CELEBRATION BANNER ────────────────────────────────────────────── */}
       {isScanned && (
@@ -517,52 +364,6 @@ export default function HuntClient({
           </Link>
         </section>
       )}
-
-      {/* ── 6. WHERE TO SCAN ──────────────────────────────────────────────── */}
-      <section style={{ ...SECTION, background: '#D4C4A0', padding: '2rem 1.5rem 3rem' }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0B2838', margin: '0 0 1rem' }}>
-            Where to Scan
-          </h2>
-
-          {showReveal ? (
-            <>
-              {reveals?.reveal_directions ? (
-                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#0B2838', margin: '0 0 1.5rem', whiteSpace: 'pre-wrap', position: 'relative', zIndex: 2 }}>
-                  {reveals.reveal_directions}
-                </p>
-              ) : (
-                <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem', fontStyle: 'italic' }}>
-                  Directions coming soon.
-                </p>
-              )}
-              {revealImageUrl ? (
-                <img
-                  src={revealImageUrl}
-                  alt="Reveal"
-                  style={{
-                    display: 'block', width: '100%', maxHeight: '400px',
-                    objectFit: 'contain', borderRadius: '8px', margin: '0 auto',
-                    position: 'relative', zIndex: 2,
-                  }}
-                />
-              ) : (
-                <div style={{
-                  background: '#E8DCC8', borderRadius: '8px', height: '200px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#8A7A5E', fontSize: '0.875rem', position: 'relative', zIndex: 2,
-                }}>
-                  Reveal image coming soon
-                </div>
-              )}
-            </>
-          ) : (
-            <p style={{ fontSize: '1rem', color: '#0B2838', margin: 0, lineHeight: 1.7, position: 'relative', zIndex: 2 }}>
-              Solve the clue. Find the Kitea tag and scan.
-            </p>
-          )}
-        </div>
-      </section>
 
     </div>
   )
