@@ -49,16 +49,18 @@ export default async function HuntLocationPage({
   const progress = progressRes.data
 
   return (
-    <HuntLocationClient
-      huntLocation={huntLocation}
-      userId={user.id}
-      hints={hints}
-      initialSolved={{
-        1: progress?.location_hint_1_solved ?? false,
-        2: progress?.location_hint_2_solved ?? false,
-        3: progress?.location_hint_3_solved ?? false,
-      }}
-      hasScanned={!!scansRes.data}
-    />
+    <div className="page-theme page-theme--hunt">
+      <HuntLocationClient
+        huntLocation={huntLocation}
+        userId={user.id}
+        hints={hints}
+        initialSolved={{
+          1: progress?.location_hint_1_solved ?? false,
+          2: progress?.location_hint_2_solved ?? false,
+          3: progress?.location_hint_3_solved ?? false,
+        }}
+        hasScanned={!!scansRes.data}
+      />
+    </div>
   )
 }

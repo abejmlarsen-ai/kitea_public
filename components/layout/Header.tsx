@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import AdminDropdown from './AdminDropdown'
 import LogoutButton from '@/components/auth/LogoutButton'
+import ReturnToMapButton from './ReturnToMapButton'
 
 export default async function Header() {
   const supabase = await createClient()
@@ -61,8 +62,9 @@ export default async function Header() {
             </ul>
           </nav>
 
-          {/* ── Right: settings icon + logout/login ── */}
+          {/* ── Right: return to map + settings icon + logout/login ── */}
           <div className="header-row1-right">
+            <ReturnToMapButton />
             {user && (
               <Link href="/account" className="header-settings-link" aria-label="Account settings">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"

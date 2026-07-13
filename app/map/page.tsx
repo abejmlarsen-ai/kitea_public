@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createServiceRoleClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import HuntsClient from '../hunts/HuntsClient'
 
 export const metadata: Metadata = { title: 'Map | Kitea' }
@@ -28,7 +28,29 @@ export default async function MapPage() {
     console.log('[map/page] first location sample:', JSON.stringify(locations[0]))
   }
 
+  // Which hunts has the current user already scanned (regardless of clue
+  // progress)? Anonymous visitors get an empty set — the map stays public,
+  // scan highlighting is just a bonus for logged-in users.
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let scannedLocationIds: string[] = []
+  if (user) {
+    const { data: scans } = await supabase
+      .from('scans')
+      .select('hunt_location_id')
+      .eq('user_id', user.id)
+
+    scannedLocationIds = Array.from(
+      new Set(
+        (scans ?? [])
+          .map((s) => s.hunt_location_id)
+          .filter((id): id is string => id != null)
+      )
+    )
+  }
+
   return (
-    <HuntsClient locations={locations ?? []} />
+    <HuntsClient locations={locations ?? []} scannedLocationIds={scannedLocationIds} />
   )
 }

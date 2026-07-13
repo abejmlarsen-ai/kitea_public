@@ -224,7 +224,12 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
   const searchParams    = useSearchParams()
-  const [selectedNFT, setSelectedNFT] = useState<MintedNFT | null>(null)
+  // Deep link from the map's "View in Library" overlay: /library?hunt={hunt_location_id}
+  // opens that hunt's collectible directly instead of landing on the grid.
+  const huntParam = searchParams.get('hunt')
+  const [selectedNFT, setSelectedNFT] = useState<MintedNFT | null>(
+    () => (huntParam ? nfts.find((n) => n.hunt_location_id === huntParam) ?? null : null)
+  )
   const [bannerDismissed, setBannerDismissed] = useState(false)
 
   const scanParam     = searchParams.get('scan')

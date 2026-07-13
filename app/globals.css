@@ -4166,24 +4166,6 @@ body {
 /* ══ Hunt page: parchment theme — buttons, inputs, hints, placeholders ═══════
    Palette: #F5F0E8 → #C4A882 (parchment), accent #4A7C8C (ocean), dark #0B2838 */
 
-/* Return to Map button */
-.hunt-btn-return {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  background: #4A7C8C;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.2s ease;
-  cursor: pointer;
-}
-.hunt-btn-return:hover { background: #1B4965; color: #FFFFFF; }
-
 /* Primary submit button (main clue + location answers) */
 .hunt-btn-submit {
   width: 100%;
@@ -4329,8 +4311,10 @@ body {
   padding: 3rem 1.5rem;
   text-align: center;
 }
-.hunt-entry-half:first-child { background: #F5F0E8; border-right: 1px solid #8A7A5E; }
-.hunt-entry-half:last-child  { background: #E8DCC8; }
+/* Left — Coded Clue: sandy background, solid blue bubble */
+.hunt-entry-half:first-child { background: var(--dune-2); border-right: 1px solid var(--dune-4); }
+/* Right — Location based Clue: blue background, solid sandy bubble (inverse of the left half) */
+.hunt-entry-half:last-child  { background: var(--dune-7); }
 
 .hunt-entry-bubble {
   width: min(240px, 60vw);
@@ -4340,17 +4324,32 @@ body {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: #4A7C8C;
-  color: #FFFFFF;
   border: none;
-  font-size: 1.15rem;
-  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(11, 40, 56, 0.18);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: transform 0.15s ease;
 }
-.hunt-entry-bubble:hover:not(:disabled) { background: #1B4965; transform: scale(1.03); }
+.hunt-entry-bubble:hover:not(:disabled) { transform: scale(1.03); }
 .hunt-entry-bubble:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.hunt-entry-half:first-child .hunt-entry-bubble { background: var(--dune-6); }
+.hunt-entry-half:last-child  .hunt-entry-bubble { background: var(--dune-3); }
+
+/* Bubble's own text label — hidden until hover, coloured to match that
+   half's background (not the bubble's own fill) so it reads clearly
+   against the bubble. */
+.hunt-entry-bubble-label {
+  font-size: 1.15rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.hunt-entry-bubble:hover .hunt-entry-bubble-label,
+.hunt-entry-bubble-label--visible {
+  opacity: 1;
+}
+.hunt-entry-half:first-child .hunt-entry-bubble-label { color: var(--dune-2); }
+.hunt-entry-half:last-child  .hunt-entry-bubble-label { color: var(--dune-7); }
 
 .hunt-entry-caption {
   max-width: 320px;
@@ -4486,6 +4485,23 @@ body {
   align-items: center;
   gap: 0.75rem;
 }
+.nav-return-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #4A7C8C;
+  color: #FFFFFF;
+  border-radius: 6px;
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.nav-return-map-btn:hover { background: #1B4965; color: #FFFFFF; }
 .header-settings-link {
   display: inline-flex;
   align-items: center;

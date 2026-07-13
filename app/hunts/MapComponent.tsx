@@ -24,6 +24,7 @@ interface Location {
 
 interface Props {
   locations: Location[]
+  scannedLocationIds: string[]
 }
 
 interface FlyProps {
@@ -73,30 +74,40 @@ function FlyTo({ centre, zoom, trigger }: FlyProps) {
 }
 
 // ── Kitea logo icon ───────────────────────────────────────────────────────
+// Two variants sharing the same shape — only the glow colour differs.
+// Green marks a hunt the current user has scanned at least once, independent
+// of hunt_progress (clue-solved / reveal state).
 
-const kiteaIcon = L.divIcon({
-  html: `<img
-    src="/images/Kitea Logo Only.png"
-    width="32" height="32"
-    style="
-      filter: brightness(0) invert(1)
-              drop-shadow(0 0 2px #CC2200)
-              drop-shadow(0 0 2px #CC2200)
-              drop-shadow(0 0 1px #CC2200);
-      display:block;
-    "
-  />`,
-  iconSize:    [32, 32],
-  iconAnchor:  [16, 32],
-  popupAnchor: [0, -34],
-  className:   '',
-})
+function buildKiteaIcon(glowColor: string) {
+  return L.divIcon({
+    html: `<img
+      src="/images/Kitea Logo Only.png"
+      width="32" height="32"
+      style="
+        filter: brightness(0) invert(1)
+                drop-shadow(0 0 2px ${glowColor})
+                drop-shadow(0 0 2px ${glowColor})
+                drop-shadow(0 0 1px ${glowColor});
+        display:block;
+      "
+    />`,
+    iconSize:    [32, 32],
+    iconAnchor:  [16, 32],
+    popupAnchor: [0, -34],
+    className:   '',
+  })
+}
+
+const kiteaIcon        = buildKiteaIcon('#CC2200')
+const kiteaIconScanned = buildKiteaIcon('#22C55E')
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-export default function MapComponent({ locations }: Props) {
+export default function MapComponent({ locations, scannedLocationIds }: Props) {
   console.log('[MapComponent] locations received:', locations.length,
     '| first:', locations[0] ? JSON.stringify({ id: locations[0].id, name: locations[0].name }) : 'none')
+
+  const scannedSet = new Set(scannedLocationIds)
 
   const mappable = locations.filter(
     (l): l is Location & { latitude: number; longitude: number } =>
@@ -260,7 +271,7 @@ export default function MapComponent({ locations }: Props) {
               />
               <Marker
                 position={[loc.latitude, loc.longitude]}
-                icon={kiteaIcon}
+                icon={scannedSet.has(loc.id) ? kiteaIconScanned : kiteaIcon}
               >
                 <Popup
                   closeButton={true}
@@ -282,29 +293,73 @@ export default function MapComponent({ locations }: Props) {
                     }}>
                       {loc.name}
                     </strong>
-                    <span style={{
-                      display:      'block',
-                      fontSize:     '12px',
-                      color:        '#888',
-                      marginBottom: '12px',
-                    }}>
-                      {loc.total_scans ?? 0} explorers
-                    </span>
-                    <a
-                      href={loc.id ? `/hunts/${loc.id}` : '#'}
-                      style={{
-                        display:        'inline-block',
-                        padding:        '8px 20px',
-                        background:     '#2a9d8f',
-                        color:          'white',
-                        borderRadius:   '5px',
-                        textDecoration: 'none',
-                        fontSize:       '14px',
-                        fontWeight:     600,
-                      }}
-                    >
-                      Begin Hunt →
-                    </a>
+
+                    {scannedSet.has(loc.id) ? (
+                      <>
+                        <span style={{
+                          display:      'block',
+                          fontSize:     '12px',
+                          color:        '#2ECC71',
+                          fontWeight:   700,
+                          marginBottom: '10px',
+                        }}>
+                          Hunt completed
+                        </span>
+                        <a
+                          href={`/library?hunt=${loc.id}`}
+                          style={{
+                            display:        'inline-block',
+                            padding:        '8px 20px',
+                            background:     '#2a9d8f',
+                            color:          'white',
+                            borderRadius:   '5px',
+                            textDecoration: 'none',
+                            fontSize:       '14px',
+                            fontWeight:     600,
+                          }}
+                        >
+                          View in Library
+                        </a>
+                        <a
+                          href={`/hunts/${loc.id}`}
+                          style={{
+                            display:        'block',
+                            marginTop:      '8px',
+                            fontSize:       '11px',
+                            color:          '#888',
+                            textDecoration: 'underline',
+                          }}
+                        >
+                          Continue to hunt
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{
+                          display:      'block',
+                          fontSize:     '12px',
+                          color:        '#888',
+                          marginBottom: '12px',
+                        }}>
+                          {loc.total_scans ?? 0} explorers
+                        </span>
+                        <a
+                          href={loc.id ? `/hunts/${loc.id}` : '#'}
+                          style={{
+                            display:        'inline-block',
+                            padding:        '8px 20px',
+                            background:     '#2a9d8f',
+                            color:          'white',
+                            borderRadius:   '5px',
+                            textDecoration: 'none',
+                            fontSize:       '14px',
+                            fontWeight:     600,
+                          }}
+                        >
+                          Begin Hunt →
+                        </a>
+                      </>
+                    )}
                   </div>
                 </Popup>
               </Marker>

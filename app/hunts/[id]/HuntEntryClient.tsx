@@ -52,16 +52,6 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
   return (
     <div style={{ color: '#0B2838', minHeight: '100vh' }}>
 
-      {/* ── STICKY HEADER ─────────────────────────────────────────────────── */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0.75rem 1.5rem', background: '#F5F0E8', borderBottom: '1px solid #8A7A5E',
-      }}>
-        <img src="/images/Kitea Logo Only.png" alt="Kitea" style={{ height: '36px', width: 'auto' }} />
-        <a href="/map" className="hunt-btn-return">← Return to Map</a>
-      </div>
-
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section style={{ background: '#F5F0E8', padding: '2.5rem 1.5rem 1.25rem', textAlign: 'center' }}>
         <h1 style={{ fontSize: 'clamp(1.75rem,6vw,2.5rem)', fontWeight: 700, margin: '0 0 0.5rem' }}>
@@ -86,7 +76,9 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
             onClick={() => choosePath('coded')}
             disabled={saving !== null}
           >
-            {saving === 'coded' ? 'Loading…' : 'Coded Clue'}
+            <span className={`hunt-entry-bubble-label${saving === 'coded' ? ' hunt-entry-bubble-label--visible' : ''}`}>
+              {saving === 'coded' ? 'Loading…' : 'Coded Clue'}
+            </span>
           </button>
           <p className="hunt-entry-caption">
             Decode the riddle — a picture, a written clue, and an answer box.
@@ -99,7 +91,9 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
             onClick={() => choosePath('location')}
             disabled={saving !== null}
           >
-            {saving === 'location' ? 'Loading…' : 'Location based Clue'}
+            <span className={`hunt-entry-bubble-label${saving === 'location' ? ' hunt-entry-bubble-label--visible' : ''}`}>
+              {saving === 'location' ? 'Loading…' : 'Location based Clue'}
+            </span>
           </button>
           <p className="hunt-entry-caption">
             Answer location-based questions to work out where to go.

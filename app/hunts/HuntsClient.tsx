@@ -17,12 +17,13 @@ interface Location {
 
 interface Props {
   locations: Location[]
+  scannedLocationIds: string[]
 }
 
-export default function HuntsClient({ locations }: Props) {
+export default function HuntsClient({ locations, scannedLocationIds }: Props) {
   return (
     <div className="page-theme page-theme--map" style={{ padding: '2rem', paddingTop: '6.5rem' }}>
-      <MapComponent locations={locations} />
+      <MapComponent locations={locations} scannedLocationIds={scannedLocationIds} />
     </div>
   )
 }

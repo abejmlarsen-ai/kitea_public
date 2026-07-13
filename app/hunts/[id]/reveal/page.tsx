@@ -54,20 +54,16 @@ export default async function HuntRevealPage({
   }
 
   return (
-    <div style={{ color: '#0B2838', minHeight: '100vh' }}>
+    <div className="page-theme page-theme--hunt" style={{ color: '#0B2838' }}>
 
-      {/* ── STICKY HEADER ─────────────────────────────────────────────────── */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: '0.5rem',
-        padding: '0.75rem 1.5rem', background: '#F5F0E8', borderBottom: '1px solid #8A7A5E',
-      }}>
-        <img src="/images/Kitea Logo Only.png" alt="Kitea" style={{ height: '36px', width: 'auto' }} />
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <a href={`/hunts/${huntLocation.id}?select=1`} className="hunt-btn-return">Back to selection</a>
-          <a href="/map" className="hunt-btn-return">← Return to Map</a>
-        </div>
+      {/* ── BACK TO SELECTION ────────────────────────────────────────────── */}
+      <div style={{ background: '#F5F0E8', padding: '1rem 1.5rem 0', textAlign: 'center' }}>
+        <a
+          href={`/hunts/${huntLocation.id}?select=1`}
+          style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
+        >
+          ← Back to selection
+        </a>
       </div>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
