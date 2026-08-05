@@ -10,7 +10,7 @@
 //
 // Protected (valid session required):
 //   /library  /profile  /hunts/*  /admin
-//   /api/nft/mint  /api/hunt/*
+//   /api/collectible/mint  /api/hunt/*
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -21,7 +21,7 @@ const PROTECTED_PREFIXES = [
   '/profile',
   '/hunts',
   '/admin',
-  '/api/nft/mint',
+  '/api/collectible/mint',
   '/api/hunt',
 ]
 

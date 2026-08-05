@@ -30,9 +30,11 @@ export default async function HuntCodedPage({
     return <HuntNotFound />
   }
 
-  const [clueRes, scansRes] = await Promise.all([
+  const [clueRes, scansRes, progressRes, revealRes] = await Promise.all([
     db.from('hunt_clues').select('text_content, answer, image_url, hint_text').eq('hunt_location_id', id).maybeSingle(),
     db.from('scans').select('id').eq('hunt_location_id', id).eq('user_id', user.id).maybeSingle(),
+    db.from('hunt_progress').select('location_revealed').eq('user_id', user.id).eq('hunt_location_id', id).maybeSingle(),
+    db.from('hunt_reveals').select('id').eq('hunt_location_id', id).maybeSingle(),
   ])
 
   const clue = clueRes.data
@@ -48,6 +50,8 @@ export default async function HuntCodedPage({
       clue={clue}
       clueImageUrl={clueImageUrl}
       hasScanned={!!scansRes.data}
+      hasRevealData={!!revealRes.data}
+      initialRevealed={!!progressRes.data?.location_revealed}
     />
   )
 }

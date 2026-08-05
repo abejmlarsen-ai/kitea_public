@@ -12,11 +12,13 @@ interface ClueData {
 }
 
 interface Props {
-  huntLocation:  HuntLocation
-  userId:        string
-  clue:          ClueData | null
-  clueImageUrl:  string | null
-  hasScanned:    boolean
+  huntLocation:    HuntLocation
+  userId:          string
+  clue:            ClueData | null
+  clueImageUrl:    string | null
+  hasScanned:      boolean
+  hasRevealData:   boolean
+  initialRevealed: boolean
 }
 
 export default function HuntPageClient(props: Props) {

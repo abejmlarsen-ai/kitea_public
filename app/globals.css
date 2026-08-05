@@ -1928,22 +1928,22 @@ body {
 }
 
 
-/* ─── NFT Library ─────────────────────────────────────────────────────────── */
+/* ─── Collectible Library ─────────────────────────────────────────────────────────── */
 
-.nft-wallet-area {
+.collectible-wallet-area {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 1.5rem;
 }
 
-.nft-grid {
+.collectible-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.5rem;
   margin-top: 2rem;
 }
 
-.nft-card {
+.collectible-card {
   background: var(--color-surface);
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
@@ -1954,29 +1954,29 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.nft-card:hover {
+.collectible-card:hover {
   transform: translateY(-3px);
 }
 
-.nft-card--founder {
+.collectible-card--founder {
   border-color: #c9a227;
   box-shadow: 0 0 16px rgba(201, 162, 39, 0.35);
 }
 
-.nft-card--founder:hover {
+.collectible-card--founder:hover {
   box-shadow: 0 0 28px rgba(201, 162, 39, 0.55);
 }
 
-.nft-card--location {
+.collectible-card--location {
   border-color: #3a7bd5;
   box-shadow: 0 0 16px rgba(58, 123, 213, 0.25);
 }
 
-.nft-card--location:hover {
+.collectible-card--location:hover {
   box-shadow: 0 0 28px rgba(58, 123, 213, 0.45);
 }
 
-.nft-badge {
+.collectible-badge {
   display: inline-block;
   font-size: 0.7rem;
   font-weight: 700;
@@ -1986,39 +1986,39 @@ body {
   border-radius: 999px;
 }
 
-.nft-badge--founder {
+.collectible-badge--founder {
   background: rgba(201, 162, 39, 0.2);
   color: #c9a227;
 }
 
-.nft-badge--location {
+.collectible-badge--location {
   background: rgba(58, 123, 213, 0.2);
   color: #3a7bd5;
 }
 
-.nft-card__name {
+.collectible-card__name {
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-text);
 }
 
-.nft-card__edition {
+.collectible-card__edition {
   font-size: 0.85rem;
   color: var(--color-muted);
 }
 
-.nft-card__link {
+.collectible-card__link {
   font-size: 0.78rem;
   color: #3a7bd5;
   text-decoration: none;
   word-break: break-all;
 }
 
-.nft-card__link:hover {
+.collectible-card__link:hover {
   text-decoration: underline;
 }
 
-.nft-empty {
+.collectible-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2028,12 +2028,12 @@ body {
   color: var(--color-muted);
 }
 
-.nft-empty__logo {
+.collectible-empty__logo {
   opacity: 0.25;
 }
 
 @media (max-width: 480px) {
-  .nft-grid {
+  .collectible-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -3111,7 +3111,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   LIBRARY — REDESIGNED NFT CARDS + SCAN BANNER + MODAL
+   LIBRARY — REDESIGNED COLLECTIBLE CARDS + SCAN BANNER + MODAL
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Scan Success Banner ────────────────────────────────────────────────────── */
@@ -3160,10 +3160,10 @@ body {
 }
 .scan-banner-dismiss:hover { color: rgba(255, 255, 255, 0.85); }
 
-/* ─── NFT Cards — Unified Redesign ──────────────────────────────────────────── */
-/* Override old .nft-card styles; these rules appear later in the sheet         */
+/* ─── Collectible Cards — Unified Redesign ──────────────────────────────────────────── */
+/* Override old .collectible-card styles; these rules appear later in the sheet         */
 
-.nft-card {
+.collectible-card {
   border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
@@ -3172,29 +3172,29 @@ body {
   flex-direction: column;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.nft-card--founder {
+.collectible-card--founder {
   border: 2px solid #C8960C;
   box-shadow: 0 3px 14px rgba(200, 150, 12, 0.22);
 }
-.nft-card--location {
+.collectible-card--location {
   border: 2px solid #1D6FA4;
   box-shadow: 0 3px 14px rgba(29, 111, 164, 0.2);
 }
 
-.nft-card:hover {
+.collectible-card:hover {
   transform: translateY(-4px);
 }
-.nft-card--founder:hover {
+.collectible-card--founder:hover {
   border-color: #e5aa0e;
   box-shadow: 0 10px 30px rgba(200, 150, 12, 0.42);
 }
-.nft-card--location:hover {
+.collectible-card--location:hover {
   border-color: #2a8fd4;
   box-shadow: 0 10px 30px rgba(29, 111, 164, 0.4);
 }
 
 /* Image area */
-.nft-card-image-wrapper {
+.collectible-card-image-wrapper {
   position: relative;
   background: #f5f7f9;
   display: flex;
@@ -3203,13 +3203,13 @@ body {
   min-height: 140px;
   padding: 1.4rem;
 }
-.nft-card-img {
+.collectible-card-img {
   object-fit: contain;
   max-width: 100%;
 }
 
 /* Hover overlay */
-.nft-card-overlay {
+.collectible-card-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.54);
@@ -3219,10 +3219,10 @@ body {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
-.nft-card:hover .nft-card-overlay {
+.collectible-card:hover .collectible-card-overlay {
   opacity: 1;
 }
-.nft-card-view-btn {
+.collectible-card-view-btn {
   background: white;
   border-radius: 6px;
   padding: 0.45rem 1.35rem;
@@ -3234,18 +3234,18 @@ body {
 }
 
 /* Edition badge — positioned top-right */
-.nft-card-badge {
+.collectible-card-badge {
   position: absolute !important;
   top: 0.55rem;
   right: 0.55rem;
 }
 
 /* Card name below image */
-.nft-card-info {
+.collectible-card-info {
   padding: 0.75rem 0.9rem 0.85rem;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
-.nft-card-name {
+.collectible-card-name {
   font-family: var(--font-heading);
   font-size: 0.85rem;
   font-weight: 700;
@@ -3256,17 +3256,17 @@ body {
 }
 
 /* Founder card centered — a little wider than hunt cards */
-.library-founder-section .nft-card {
+.library-founder-section .collectible-card {
   width: 100%;
   max-width: 260px;
 }
-.library-founder-section .nft-card-image-wrapper {
+.library-founder-section .collectible-card-image-wrapper {
   min-height: 180px;
   padding: 2rem;
 }
 
-/* ─── NFT Isolation Modal ────────────────────────────────────────────────────── */
-.nft-modal-overlay {
+/* ─── Collectible Isolation Modal ────────────────────────────────────────────────────── */
+.collectible-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.82);
@@ -3276,14 +3276,14 @@ body {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: nft-modal-bg-in 0.22s ease forwards;
+  animation: collectible-modal-bg-in 0.22s ease forwards;
 }
-@keyframes nft-modal-bg-in {
+@keyframes collectible-modal-bg-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
-.nft-modal {
+.collectible-modal {
   background: #13161f;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
@@ -3293,15 +3293,15 @@ body {
   overflow-y: auto;
   position: relative;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.72);
-  animation: nft-modal-slide-in 0.22s ease forwards;
+  animation: collectible-modal-slide-in 0.22s ease forwards;
   padding-bottom: 2.5rem;
 }
-@keyframes nft-modal-slide-in {
+@keyframes collectible-modal-slide-in {
   from { opacity: 0; transform: translateY(-14px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0)     scale(1);    }
 }
 
-.nft-modal-close {
+.collectible-modal-close {
   position: absolute;
   top: 1rem;
   right: 1rem;
@@ -3319,12 +3319,12 @@ body {
   transition: background 0.15s ease, color 0.15s ease;
   z-index: 1;
 }
-.nft-modal-close:hover {
+.collectible-modal-close:hover {
   background: rgba(255, 255, 255, 0.17);
   color: #fff;
 }
 
-.nft-modal-image {
+.collectible-modal-image {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3332,7 +3332,7 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.nft-modal-body {
+.collectible-modal-body {
   padding: 0.5rem 2rem 0;
   display: flex;
   flex-direction: column;
@@ -3341,7 +3341,7 @@ body {
   text-align: center;
 }
 
-.nft-modal-name {
+.collectible-modal-name {
   font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 700;
@@ -3350,7 +3350,7 @@ body {
   line-height: 1.3;
 }
 
-.nft-modal-details {
+.collectible-modal-details {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -3358,31 +3358,31 @@ body {
   margin-top: 0.35rem;
 }
 
-.nft-modal-detail-row {
+.collectible-modal-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
   font-size: 0.87rem;
 }
-.nft-modal-detail-row + .nft-modal-detail-row {
+.collectible-modal-detail-row + .collectible-modal-detail-row {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-.nft-modal-detail-label {
+.collectible-modal-detail-label {
   color: rgba(255, 255, 255, 0.42);
   font-weight: 700;
   font-size: 0.73rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
-.nft-modal-detail-value {
+.collectible-modal-detail-value {
   color: rgba(255, 255, 255, 0.84);
   font-weight: 500;
   text-align: right;
   max-width: 60%;
 }
 
-.nft-modal-basescan {
+.collectible-modal-basescan {
   display: inline-block;
   margin-top: 0.2rem;
   color: #4a9eff;
@@ -3391,14 +3391,14 @@ body {
   text-decoration: none;
   transition: color 0.15s ease;
 }
-.nft-modal-basescan:hover { color: #7fc4fd; }
+.collectible-modal-basescan:hover { color: #7fc4fd; }
 
 @media (max-width: 480px) {
-  .nft-modal {
+  .collectible-modal {
     max-width: 100%;
   }
-  .nft-modal-image   { padding: 2rem 1.5rem 1rem; }
-  .nft-modal-body    { padding: 0.5rem 1.25rem 0; }
+  .collectible-modal-image   { padding: 2rem 1.5rem 1rem; }
+  .collectible-modal-body    { padding: 0.5rem 1.25rem 0; }
 }
 
 
@@ -4054,11 +4054,11 @@ body {
   color: #4a7c8c;
 }
 
-/* ══ Library page: text contrast + NFT card palette ══════════════════════════
+/* ══ Library page: text contrast + collectible card palette ══════════════════════════
    Gradient: --coastal-2 (#FAF3E0) → --coastal-6 (#1A6B5A)
    • section_1 sits on the lighter upper half  → #0F3D35 text
    • library-paper has white bg (inside the dark lower half) → #0F3D35 text
-   • NFT cards: rgba(61,139,122,0.2) bg, #3D8B7A border, #0F3D35 text          */
+   • Collectible cards: rgba(61,139,122,0.2) bg, #3D8B7A border, #0F3D35 text          */
 
 /* ── section_1 (light upper area) ────────────────────────────────────────── */
 .page-theme--library .section_1 h2,
@@ -4106,48 +4106,48 @@ body {
   color: #3d8b7a;
 }
 
-/* ── NFT empty state (inside white paper) ─────────────────────────────────── */
-.page-theme--library .nft-empty {
+/* ── Collectible empty state (inside white paper) ─────────────────────────────────── */
+.page-theme--library .collectible-empty {
   color: #0f3d35;
 }
 
-/* ── NFT card backgrounds, borders, text ─────────────────────────────────── */
-.page-theme--library .nft-card {
+/* ── Collectible card backgrounds, borders, text ─────────────────────────────────── */
+.page-theme--library .collectible-card {
   background:   rgba(61, 139, 122, 0.2);
   border-color: #3d8b7a;
 }
 
-.page-theme--library .nft-card--founder,
-.page-theme--library .nft-card--location {
+.page-theme--library .collectible-card--founder,
+.page-theme--library .collectible-card--location {
   border-color: #3d8b7a;
   box-shadow:   0 3px 14px rgba(61, 139, 122, 0.25);
 }
 
-.page-theme--library .nft-card--founder:hover,
-.page-theme--library .nft-card--location:hover {
+.page-theme--library .collectible-card--founder:hover,
+.page-theme--library .collectible-card--location:hover {
   border-color: #1a6b5a;
   box-shadow:   0 10px 30px rgba(61, 139, 122, 0.45);
 }
 
-.page-theme--library .nft-card-image-wrapper {
+.page-theme--library .collectible-card-image-wrapper {
   background: rgba(61, 139, 122, 0.08);
 }
 
-.page-theme--library .nft-card-info {
+.page-theme--library .collectible-card-info {
   border-top-color: rgba(61, 139, 122, 0.2);
 }
 
-.page-theme--library .nft-card-name {
+.page-theme--library .collectible-card-name {
   color: #0f3d35;
 }
 
-/* ── NFT badges (edition + type) — coastal palette ───────────────────────── */
-.page-theme--library .nft-badge--founder {
+/* ── Collectible badges (edition + type) — coastal palette ───────────────────────── */
+.page-theme--library .collectible-badge--founder {
   background: rgba(61, 139, 122, 0.25);
   color:      #0f3d35;
 }
 
-.page-theme--library .nft-badge--location {
+.page-theme--library .collectible-badge--location {
   background: rgba(26, 107, 90, 0.2);
   color:      #0f3d35;
 }
@@ -4296,6 +4296,29 @@ body {
 
 /* ── Hunt entry / path-selection screen ─────────────────────────────────────── */
 
+/* Title/subtitle card — self-contained, sized to content, sits above the
+   two-tone split rather than spanning full width on a flat band. */
+.hunt-entry-title-card {
+  display:      inline-block;
+  max-width:    90%;
+  background:   var(--dune-1);
+  border-radius: 16px;
+  padding:      1.5rem 2.5rem;
+  box-shadow:   0 6px 20px rgba(11, 40, 56, 0.18);
+  text-align:   center;
+}
+.hunt-entry-title {
+  font-size:   clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 700;
+  margin:      0 0 0.5rem;
+  color:       var(--dune-7);
+}
+.hunt-entry-subtitle {
+  font-size: 1rem;
+  margin:    0;
+  color:     var(--dune-4);
+}
+
 .hunt-entry-split {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -4321,9 +4344,11 @@ body {
   height: min(240px, 60vw);
   border-radius: 50%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  gap: 0.5rem;
+  padding: 1.75rem;
   border: none;
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(11, 40, 56, 0.18);
@@ -4335,28 +4360,29 @@ body {
 .hunt-entry-half:first-child .hunt-entry-bubble { background: var(--dune-6); }
 .hunt-entry-half:last-child  .hunt-entry-bubble { background: var(--dune-3); }
 
-/* Bubble's own text label — hidden until hover, coloured to match that
-   half's background (not the bubble's own fill) so it reads clearly
-   against the bubble. */
+/* Bubble's own text label — always visible, coloured to match that half's
+   background (not the bubble's own fill) so it reads clearly against the
+   bubble. */
 .hunt-entry-bubble-label {
   font-size: 1.15rem;
   font-weight: 700;
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-.hunt-entry-bubble:hover .hunt-entry-bubble-label,
-.hunt-entry-bubble-label--visible {
-  opacity: 1;
 }
 .hunt-entry-half:first-child .hunt-entry-bubble-label { color: var(--dune-2); }
 .hunt-entry-half:last-child  .hunt-entry-bubble-label { color: var(--dune-7); }
 
-.hunt-entry-caption {
-  max-width: 320px;
-  font-size: 0.9rem;
-  color: #8A7A5E;
-  line-height: 1.5;
+/* Explanation text — lives inside the bubble now, hidden until hover. Same
+   background-matching colour logic as the label, just lighter weight/size
+   to read as secondary. */
+.hunt-entry-bubble-desc {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity 0.18s ease;
 }
+.hunt-entry-bubble:hover .hunt-entry-bubble-desc { opacity: 1; }
+.hunt-entry-half:first-child .hunt-entry-bubble-desc { color: var(--dune-2); }
+.hunt-entry-half:last-child  .hunt-entry-bubble-desc { color: var(--dune-7); }
 
 /* ══ Account page ═════════════════════════════════════════════════════════════ */
 
@@ -4717,8 +4743,8 @@ body {
   border-color: rgba(74, 124, 140, 0.5);
 }
 
-/* ── Library NFT cards — Palette 2 mid ────────────────────────────────────── */
-.page-theme--library .nft-card {
+/* ── Library collectible cards — Palette 2 mid ────────────────────────────────────── */
+.page-theme--library .collectible-card {
   background: rgba(139, 168, 136, 0.92) !important;
 }
 

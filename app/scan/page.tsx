@@ -51,7 +51,7 @@ function ScanContent() {
 
         if (result.success) {
           // Fire-and-forget mint — do not await, redirect immediately
-          fetch('/api/nft/mint', {
+          fetch('/api/collectible/mint', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

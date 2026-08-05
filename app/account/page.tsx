@@ -19,7 +19,7 @@ export default async function AccountPage() {
   // ── Stats (service-role to bypass RLS safely) ────────────────────────────
   const db = createServiceRoleClient()
 
-  const [scansRes, nftRes, huntRes] = await Promise.all([
+  const [scansRes, collectiblesRes, huntRes] = await Promise.all([
     db.from('scans')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id),
@@ -34,9 +34,9 @@ export default async function AccountPage() {
   ])
 
   const stats = {
-    tagsScanned:     (scansRes.count  ?? 0) as number,
-    nftsEarned:      (nftRes.count    ?? 0) as number,
-    huntsCompleted:  (huntRes.count   ?? 0) as number,
+    tagsScanned:       (scansRes.count       ?? 0) as number,
+    collectiblesEarned: (collectiblesRes.count ?? 0) as number,
+    huntsCompleted:    (huntRes.count        ?? 0) as number,
     memberSince:     profile?.created_at
       ? new Date(profile.created_at).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
       : '—',

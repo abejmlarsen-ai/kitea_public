@@ -203,7 +203,9 @@ export type Database = {
       }
       hunt_locations: {
         Row: {
+          art_image_url: string | null
           city: string | null
+          collectible_id: number | null
           created_at: string | null
           description: string | null
           id: string
@@ -211,15 +213,15 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
-          nft_image_url: string | null
-          nft_token_id: number | null
           page_path: string | null
           region: string | null
           total_scans: number | null
           updated_at: string | null
         }
         Insert: {
+          art_image_url?: string | null
           city?: string | null
+          collectible_id?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -227,15 +229,15 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
-          nft_image_url?: string | null
-          nft_token_id?: number | null
           page_path?: string | null
           region?: string | null
           total_scans?: number | null
           updated_at?: string | null
         }
         Update: {
+          art_image_url?: string | null
           city?: string | null
+          collectible_id?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -243,8 +245,6 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
-          nft_image_url?: string | null
-          nft_token_id?: number | null
           page_path?: string | null
           region?: string | null
           total_scans?: number | null

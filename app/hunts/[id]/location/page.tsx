@@ -35,14 +35,15 @@ export default async function HuntLocationPage({
     return <HuntNotFound />
   }
 
-  const [hintsRes, progressRes, scansRes] = await Promise.all([
+  const [hintsRes, progressRes, scansRes, revealRes] = await Promise.all([
     db.from('hunt_hints')
       .select('hint_1_text, hint_2_text, hint_3_text')
       .eq('hunt_location_id', id).maybeSingle(),
     db.from('hunt_progress')
-      .select('location_hint_1_solved, location_hint_2_solved, location_hint_3_solved')
+      .select('location_hint_1_solved, location_hint_2_solved, location_hint_3_solved, location_revealed')
       .eq('user_id', user.id).eq('hunt_location_id', id).maybeSingle(),
     db.from('scans').select('id').eq('hunt_location_id', id).eq('user_id', user.id).maybeSingle(),
+    db.from('hunt_reveals').select('id').eq('hunt_location_id', id).maybeSingle(),
   ])
 
   const hints    = hintsRes.data
@@ -60,6 +61,8 @@ export default async function HuntLocationPage({
           3: progress?.location_hint_3_solved ?? false,
         }}
         hasScanned={!!scansRes.data}
+        hasRevealData={!!revealRes.data}
+        initialRevealed={!!progress?.location_revealed}
       />
     </div>
   )

@@ -73,10 +73,16 @@ function FlyTo({ centre, zoom, trigger }: FlyProps) {
   return null
 }
 
+// ── Scanned-state marker colours ────────────────────────────────────────────
+// Single source of truth for both the logo glow and the dashed circle, so
+// the two can't drift apart. Green marks a hunt the current user has scanned
+// at least once, independent of hunt_progress (clue-solved / reveal state).
+
+const MARKER_COLOR_DEFAULT = '#CC2200'
+const MARKER_COLOR_SCANNED = '#22C55E'
+
 // ── Kitea logo icon ───────────────────────────────────────────────────────
 // Two variants sharing the same shape — only the glow colour differs.
-// Green marks a hunt the current user has scanned at least once, independent
-// of hunt_progress (clue-solved / reveal state).
 
 function buildKiteaIcon(glowColor: string) {
   return L.divIcon({
@@ -98,8 +104,8 @@ function buildKiteaIcon(glowColor: string) {
   })
 }
 
-const kiteaIcon        = buildKiteaIcon('#CC2200')
-const kiteaIconScanned = buildKiteaIcon('#22C55E')
+const kiteaIcon        = buildKiteaIcon(MARKER_COLOR_DEFAULT)
+const kiteaIconScanned = buildKiteaIcon(MARKER_COLOR_SCANNED)
 
 // ── Component ─────────────────────────────────────────────────────────────
 
@@ -262,7 +268,7 @@ export default function MapComponent({ locations, scannedLocationIds }: Props) {
                 center={[loc.latitude, loc.longitude]}
                 radius={16}
                 pathOptions={{
-                  color:       '#CC2200',
+                  color:       scannedSet.has(loc.id) ? MARKER_COLOR_SCANNED : MARKER_COLOR_DEFAULT,
                   fillColor:   'transparent',
                   fillOpacity: 0,
                   weight:      2,

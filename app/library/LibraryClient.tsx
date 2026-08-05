@@ -1,38 +1,41 @@
 'use client'
 
-// ─── Library Client — NFT collection display ────────────────────────────
+// ─── Library Client — Collectible collection display ────────────────────
 // Wrapped in Suspense so useSearchParams() works with static rendering.
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import type { MintedNFT } from './page'
+import type { MintedCollectible } from './page'
+import { isPlaceholderArtworkHunt, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
 
 type Props = {
-  nfts: MintedNFT[]
+  collectibles: MintedCollectible[]
   userId?: string | null
   walletAddress?: string | null
 }
 
-// ─── NFT Modal ───────────────────────────────────────────────────────────
+// ─── Collectible Modal ───────────────────────────────────────────────────
 
 type ModalProps = {
-  nft: MintedNFT
+  collectible: MintedCollectible
   onClose: () => void
 }
 
-function NFTModal({ nft, onClose }: ModalProps) {
-  const isFounder = nft.hunt_location_id === null
+function CollectibleModal({ collectible, onClose }: ModalProps) {
+  const isFounder     = collectible.hunt_location_id === null
+  const isPlaceholder = isPlaceholderArtworkHunt(collectible.hunt_location_id)
+  const imageSrc       = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
   const name = isFounder
-    ? `Kitea Founder #${nft.edition_number}`
-    : `Kitea — ${nft.hunt_locations?.name ?? 'Unknown'} #${nft.edition_number}`
+    ? `Kitea Founder #${collectible.edition_number}`
+    : `Kitea — ${collectible.hunt_locations?.name ?? 'Unknown'} #${collectible.edition_number}`
 
   const locationLabel = isFounder
     ? 'Origin Collection'
-    : (nft.hunt_locations?.name ?? 'Unknown')
+    : (collectible.hunt_locations?.name ?? 'Unknown')
 
-  const dateEarned = nft.minted_at
-    ? new Date(nft.minted_at).toLocaleDateString('en-AU', {
+  const dateEarned = collectible.minted_at
+    ? new Date(collectible.minted_at).toLocaleDateString('en-AU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -50,14 +53,14 @@ function NFTModal({ nft, onClose }: ModalProps) {
 
   return (
     <div
-      className="nft-modal-overlay"
+      className="collectible-modal-overlay"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
-      <div className="nft-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="collectible-modal" onClick={(e) => e.stopPropagation()}>
         <button
-          className="nft-modal-close"
+          className="collectible-modal-close"
           onClick={onClose}
           aria-label="Close"
         >
@@ -65,44 +68,53 @@ function NFTModal({ nft, onClose }: ModalProps) {
         </button>
 
         {/* Fixed-height container — objectFit:contain preserves natural aspect ratio */}
-        <div className="nft-modal-image" style={{ position: 'relative', height: '220px', width: '100%' }}>
+        <div className="collectible-modal-image" style={{ position: 'relative', height: '220px', width: '100%' }}>
           <Image
-            src={nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'}
+            src={imageSrc}
             alt={name}
             fill
             style={{ objectFit: 'contain' }}
             sizes="(max-width: 600px) 90vw, 440px"
           />
         </div>
+        {isPlaceholder && (
+          <div style={{
+            ...PLACEHOLDER_CAPTION_STYLE,
+            textAlign: 'center', fontSize: '0.8rem', fontWeight: 700,
+            padding: '0.4rem', borderRadius: '6px', margin: '0.75rem 0 0',
+          }}>
+            Placeholder design
+          </div>
+        )}
 
-        <div className="nft-modal-body">
+        <div className="collectible-modal-body">
           <span
-            className={`nft-badge ${
-              isFounder ? 'nft-badge--founder' : 'nft-badge--location'
+            className={`collectible-badge ${
+              isFounder ? 'collectible-badge--founder' : 'collectible-badge--location'
             }`}
           >
             {isFounder ? 'Founder' : 'Location'}
           </span>
 
-          <h2 className="nft-modal-name">{name}</h2>
+          <h2 className="collectible-modal-name">{name}</h2>
 
-          <div className="nft-modal-details">
-            <div className="nft-modal-detail-row">
-              <span className="nft-modal-detail-label">Location</span>
-              <span className="nft-modal-detail-value">{locationLabel}</span>
+          <div className="collectible-modal-details">
+            <div className="collectible-modal-detail-row">
+              <span className="collectible-modal-detail-label">Location</span>
+              <span className="collectible-modal-detail-value">{locationLabel}</span>
             </div>
-            <div className="nft-modal-detail-row">
-              <span className="nft-modal-detail-label">Date Earned</span>
-              <span className="nft-modal-detail-value">{dateEarned}</span>
+            <div className="collectible-modal-detail-row">
+              <span className="collectible-modal-detail-label">Date Earned</span>
+              <span className="collectible-modal-detail-value">{dateEarned}</span>
             </div>
           </div>
 
-          {nft.transaction_hash && (
+          {collectible.transaction_hash && (
             <a
-              href={`https://sepolia.basescan.org/tx/${nft.transaction_hash}`}
+              href={`https://sepolia.basescan.org/tx/${collectible.transaction_hash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="nft-modal-basescan"
+              className="collectible-modal-basescan"
             >
               View on BaseScan ↗
             </a>
@@ -113,20 +125,21 @@ function NFTModal({ nft, onClose }: ModalProps) {
   )
 }
 
-// ─── NFT Card ──────────────────────────────────────────────────────────────
+// ─── Collectible Card ──────────────────────────────────────────────────────
 
 type CardProps = {
-  nft: MintedNFT
+  collectible: MintedCollectible
   onClick: () => void
 }
 
-function NFTCard({ nft, onClick }: CardProps) {
-  const isFounder = nft.hunt_location_id === null
+function CollectibleCard({ collectible, onClick }: CardProps) {
+  const isFounder     = collectible.hunt_location_id === null
+  const isPlaceholder = isPlaceholderArtworkHunt(collectible.hunt_location_id)
   const name = isFounder
-    ? `Kitea Founder #${nft.edition_number}`
-    : `Kitea — ${nft.hunt_locations?.name ?? 'Unknown'} #${nft.edition_number}`
+    ? `Kitea Founder #${collectible.edition_number}`
+    : `Kitea — ${collectible.hunt_locations?.name ?? 'Unknown'} #${collectible.edition_number}`
 
-  const imageSrc = nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'
+  const imageSrc = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
 
   return (
     <article
@@ -184,9 +197,19 @@ function NFTCard({ nft, onClick }: CardProps) {
           letterSpacing: '0.04em',
           lineHeight:    1.6,
         }}>
-          #{nft.edition_number}
+          #{collectible.edition_number}
         </span>
       </div>
+
+      {isPlaceholder && (
+        <div style={{
+          ...PLACEHOLDER_CAPTION_STYLE,
+          textAlign: 'center', fontSize: '0.72rem', fontWeight: 700,
+          padding: '0.3rem', borderRadius: '6px',
+        }}>
+          Placeholder design
+        </div>
+      )}
 
       {/* Card name */}
       <p style={{
@@ -222,13 +245,13 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 // ─── Inner component (uses useSearchParams + modal state) ────────────────────
 
-function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
+function LibraryClientInner({ collectibles, userId, walletAddress }: Props) {
   const searchParams    = useSearchParams()
   // Deep link from the map's "View in Library" overlay: /library?hunt={hunt_location_id}
   // opens that hunt's collectible directly instead of landing on the grid.
   const huntParam = searchParams.get('hunt')
-  const [selectedNFT, setSelectedNFT] = useState<MintedNFT | null>(
-    () => (huntParam ? nfts.find((n) => n.hunt_location_id === huntParam) ?? null : null)
+  const [selectedCollectible, setSelectedCollectible] = useState<MintedCollectible | null>(
+    () => (huntParam ? collectibles.find((c) => c.hunt_location_id === huntParam) ?? null : null)
   )
   const [bannerDismissed, setBannerDismissed] = useState(false)
 
@@ -251,25 +274,25 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
 
   // Hunt collectibles first (hunt_location_id NOT NULL), ordered by minted_at desc
   // (server already returns minted_at desc, so filter preserves that order)
-  const huntNFTs   = nfts.filter((n) => n.hunt_location_id !== null)
+  const huntCollectibles   = collectibles.filter((c) => c.hunt_location_id !== null)
   // Founder / origin collectibles second (hunt_location_id IS NULL)
-  const founderNFTs = nfts.filter((n) => n.hunt_location_id === null)
+  const founderCollectibles = collectibles.filter((c) => c.hunt_location_id === null)
 
-  // ── Empty state: only when truly no NFTs ───────────────────────────────
-  if (nfts.length === 0) {
+  // ── Empty state: only when truly no collectibles ───────────────────────
+  if (collectibles.length === 0) {
     return (
       <div className="library-paper">
         <div className="library-paper-header">
           <h2>My Collection</h2>
           <p className="library-paper-subtitle">Adventure Log</p>
         </div>
-        <div className="nft-empty">
+        <div className="collectible-empty">
           <Image
             src="/images/Kitea Logo Only.png"
             alt="Kitea star"
             width={64}
             height={64}
-            className="nft-empty__logo"
+            className="collectible-empty__logo"
           />
           <p>
             Your collection is empty. Find a Kitea tag and scan it to earn
@@ -312,15 +335,15 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
         </div>
 
         {/* ── DISCOVERIES — hunt collectibles first ──────────────────────── */}
-        {huntNFTs.length > 0 && (
-          <div style={{ marginBottom: founderNFTs.length > 0 ? '2.5rem' : 0 }}>
+        {huntCollectibles.length > 0 && (
+          <div style={{ marginBottom: founderCollectibles.length > 0 ? '2.5rem' : 0 }}>
             <SectionHeading>Discoveries</SectionHeading>
             <div className="library-hunts-grid">
-              {huntNFTs.map((nft) => (
-                <NFTCard
-                  key={nft.id}
-                  nft={nft}
-                  onClick={() => setSelectedNFT(nft)}
+              {huntCollectibles.map((collectible) => (
+                <CollectibleCard
+                  key={collectible.id}
+                  collectible={collectible}
+                  onClick={() => setSelectedCollectible(collectible)}
                 />
               ))}
             </div>
@@ -328,15 +351,15 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
         )}
 
         {/* ── ORIGIN — founder collectibles below ────────────────────────── */}
-        {founderNFTs.length > 0 && (
+        {founderCollectibles.length > 0 && (
           <div>
             <SectionHeading>Origin</SectionHeading>
             <div className="library-hunts-grid">
-              {founderNFTs.map((nft) => (
-                <NFTCard
-                  key={nft.id}
-                  nft={nft}
-                  onClick={() => setSelectedNFT(nft)}
+              {founderCollectibles.map((collectible) => (
+                <CollectibleCard
+                  key={collectible.id}
+                  collectible={collectible}
+                  onClick={() => setSelectedCollectible(collectible)}
                 />
               ))}
             </div>
@@ -349,9 +372,9 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
         </div>
       </div>
 
-      {/* NFT isolation modal */}
-      {selectedNFT && (
-        <NFTModal nft={selectedNFT} onClose={() => setSelectedNFT(null)} />
+      {/* Collectible isolation modal */}
+      {selectedCollectible && (
+        <CollectibleModal collectible={selectedCollectible} onClose={() => setSelectedCollectible(null)} />
       )}
     </>
   )
@@ -360,14 +383,14 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
 // ─── Default export — wraps inner in Suspense for useSearchParams ─────────────
 
 export default function LibraryClient({
-  nfts,
+  collectibles,
   userId,
   walletAddress,
 }: Props) {
   return (
     <Suspense fallback={null}>
       <LibraryClientInner
-        nfts={nfts}
+        collectibles={collectibles}
         userId={userId}
         walletAddress={walletAddress}
       />

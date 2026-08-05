@@ -53,13 +53,11 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
     <div style={{ color: '#0B2838', minHeight: '100vh' }}>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section style={{ background: '#F5F0E8', padding: '2.5rem 1.5rem 1.25rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: 'clamp(1.75rem,6vw,2.5rem)', fontWeight: 700, margin: '0 0 0.5rem' }}>
-          {huntName}
-        </h1>
-        <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: 0 }}>
-          How do you want to solve this hunt?
-        </p>
+      <section style={{ padding: '2.5rem 1.5rem 1.25rem', display: 'flex', justifyContent: 'center' }}>
+        <div className="hunt-entry-title-card">
+          <h1 className="hunt-entry-title">{huntName}</h1>
+          <p className="hunt-entry-subtitle">How do you want to solve this hunt?</p>
+        </div>
       </section>
 
       {error && (
@@ -76,13 +74,13 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
             onClick={() => choosePath('coded')}
             disabled={saving !== null}
           >
-            <span className={`hunt-entry-bubble-label${saving === 'coded' ? ' hunt-entry-bubble-label--visible' : ''}`}>
+            <span className="hunt-entry-bubble-label">
               {saving === 'coded' ? 'Loading…' : 'Coded Clue'}
             </span>
+            <span className="hunt-entry-bubble-desc">
+              Decode the riddle — a picture, a written clue, and an answer box.
+            </span>
           </button>
-          <p className="hunt-entry-caption">
-            Decode the riddle — a picture, a written clue, and an answer box.
-          </p>
         </div>
 
         <div className="hunt-entry-half">
@@ -91,13 +89,13 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
             onClick={() => choosePath('location')}
             disabled={saving !== null}
           >
-            <span className={`hunt-entry-bubble-label${saving === 'location' ? ' hunt-entry-bubble-label--visible' : ''}`}>
+            <span className="hunt-entry-bubble-label">
               {saving === 'location' ? 'Loading…' : 'Location based Clue'}
             </span>
+            <span className="hunt-entry-bubble-desc">
+              Answer location-based questions to work out where to go.
+            </span>
           </button>
-          <p className="hunt-entry-caption">
-            Answer location-based questions to work out where to go.
-          </p>
         </div>
       </div>
     </div>

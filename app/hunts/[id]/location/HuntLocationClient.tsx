@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import RevealLocationButton from '../RevealLocationButton'
+import { isPlaceholderArtworkHunt, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
 
 // Parchment palette: #F5F0E8 · #E8DCC8 · #D4C4A0 · #C4A882
 // Text: #0B2838 · Accent: #4A7C8C · Mid: #8A7A5E
@@ -20,13 +22,15 @@ interface HintsData {
   hint_3_text: string | null
 }
 interface Props {
-  huntLocation:  HuntLocation
-  userId:        string
-  hints:         HintsData | null
-  initialSolved: Record<HintNum, boolean>
-  hasScanned:    boolean
+  huntLocation:    HuntLocation
+  userId:          string
+  hints:           HintsData | null
+  initialSolved:   Record<HintNum, boolean>
+  hasScanned:      boolean
+  hasRevealData:   boolean
+  initialRevealed: boolean
 }
-interface CollectibleData { scan_count: number; nft_image_url: string | null }
+interface CollectibleData { scan_count: number; art_image_url: string | null }
 
 const BTN_PRIMARY: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.65rem',
@@ -44,9 +48,10 @@ const INPUT_STYLE: React.CSSProperties = {
 const HINT_NUMBERS: HintNum[] = [1, 2, 3]
 
 export default function HuntLocationClient({
-  huntLocation, userId, hints, initialSolved, hasScanned,
+  huntLocation, userId, hints, initialSolved, hasScanned, hasRevealData, initialRevealed,
 }: Props) {
   const router = useRouter()
+  const isPlaceholder = isPlaceholderArtworkHunt(huntLocation.id)
 
   // ── per-hint answer state ─────────────────────────────────────────────────
   const [solved,     setSolved]     = useState<Record<HintNum, boolean>>(initialSolved)
@@ -61,6 +66,7 @@ export default function HuntLocationClient({
   const [popupVisible,   setPopupVisible]   = useState(false)
   const [collectible,    setCollectible]    = useState<CollectibleData | null>(null)
   const [collectibleErr, setCollectibleErr] = useState(false)
+  const [collectibleImgFailed, setCollectibleImgFailed] = useState(false)
 
   const dismissPopup = useCallback(() => {
     setPopupVisible(false)
@@ -80,14 +86,22 @@ export default function HuntLocationClient({
       const supabase = createClient()
       Promise.all([
         supabase.from('scans').select('user_id').eq('hunt_location_id', huntLocation.id),
-        supabase.from('hunt_locations').select('nft_image_url').eq('id', huntLocation.id).maybeSingle(),
-      ]).then(([scansRes, locationRes]) => {
+        supabase.from('hunt_locations').select('art_image_url').eq('id', huntLocation.id).maybeSingle(),
+      ]).then(async ([scansRes, locationRes]) => {
         if (scansRes.error || locationRes.error) {
           setCollectibleErr(true)
         } else {
           const unique = new Set((scansRes.data ?? []).map((r: { user_id: string }) => r.user_id)).size
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setCollectible({ scan_count: unique, nft_image_url: (locationRes.data as any)?.nft_image_url ?? null })
+          let artImageUrl = (locationRes.data as any)?.art_image_url ?? null
+          // art_image_url is a relative path into the private bucket — sign it
+          // before use so it actually resolves as an <img> src.
+          if (artImageUrl && !artImageUrl.startsWith('http')) {
+            const res = await fetch(`/api/collectible/image?path=${encodeURIComponent(artImageUrl)}`)
+            const signed = await res.json().catch(() => null)
+            artImageUrl = signed?.signedUrl ?? null
+          }
+          setCollectible({ scan_count: unique, art_image_url: artImageUrl })
         }
         requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
       }).catch(() => {
@@ -179,16 +193,34 @@ export default function HuntLocationClient({
             {!collectibleErr && !collectible && (
               <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem' }}>Loading your collectible…</p>
             )}
-            {collectible?.nft_image_url && (
-              <div style={{
-                position: 'relative', margin: '0 auto 1.5rem', borderRadius: '0.75rem',
-                overflow: 'hidden', background: '#F5F0E8', maxWidth: '320px', height: '280px',
-              }}>
-                <img src={collectible.nft_image_url} alt="Collectible" style={{
-                  position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
-                }} />
-              </div>
-            )}
+            {!collectibleErr && collectible && (() => {
+              const showFallback = isPlaceholder || collectibleImgFailed
+              return (
+                <>
+                  <div style={{
+                    position: 'relative', margin: showFallback ? '0 auto 0.5rem' : '0 auto 1.5rem',
+                    borderRadius: '0.75rem', overflow: 'hidden', background: '#F5F0E8',
+                    maxWidth: '320px', height: '280px',
+                  }}>
+                    <img
+                      src={showFallback ? '/images/Kitea Logo Only.png' : (collectible.art_image_url ?? '/images/Kitea Logo Only.png')}
+                      alt="Collectible"
+                      onError={() => setCollectibleImgFailed(true)}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  </div>
+                  {showFallback && (
+                    <div style={{
+                      ...PLACEHOLDER_CAPTION_STYLE,
+                      maxWidth: '320px', margin: '0 auto 1.5rem', textAlign: 'center',
+                      fontSize: '0.8rem', fontWeight: 700, padding: '0.4rem', borderRadius: '6px',
+                    }}>
+                      Placeholder design
+                    </div>
+                  )}
+                </>
+              )
+            })()}
             <Link href="/library" style={{
               display: 'inline-block', background: '#0B2838', color: '#FFFFFF',
               padding: '0.75rem 2rem', borderRadius: '0.5rem', fontWeight: 700,
@@ -303,6 +335,14 @@ export default function HuntLocationClient({
           </Link>
         </section>
       )}
+
+      {/* ── REVEAL LOCATION ──────────────────────────────────────────────── */}
+      <RevealLocationButton
+        huntLocationId={huntLocation.id}
+        userId={userId}
+        hasRevealData={hasRevealData}
+        initialRevealed={initialRevealed}
+      />
 
     </div>
   )
