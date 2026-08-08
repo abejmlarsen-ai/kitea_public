@@ -19,20 +19,16 @@ export default async function MapPage() {
   const baseQuery = db
     .from('hunt_locations')
     .select('id, name, description, latitude, longitude, total_scans, region, city')
-  const { data: locations, error: locError } = await (
-    isProd ? baseQuery.eq('is_active', true) : baseQuery
-  )
+  const locationsQuery = isProd ? baseQuery.eq('is_active', true) : baseQuery
 
-  console.log('[map/page] locations count:', locations?.length ?? 0, '| error:', locError?.message ?? null)
-  if (locations && locations.length > 0) {
-    console.log('[map/page] first location sample:', JSON.stringify(locations[0]))
-  }
-
-  // Which hunts has the current user already scanned (regardless of clue
-  // progress)? Anonymous visitors get an empty set — the map stays public,
-  // scan highlighting is just a bonus for logged-in users.
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // The locations query and the auth check are independent — run them
+  // concurrently instead of one after another. Which hunts the current user
+  // has already scanned (regardless of clue progress) is a bonus for logged-in
+  // users only; anonymous visitors get an empty set and the map stays public.
+  const [{ data: locations }, { data: { user }, supabase }] = await Promise.all([
+    locationsQuery,
+    createClient().then(async (sb) => ({ ...(await sb.auth.getUser()), supabase: sb })),
+  ])
 
   let scannedLocationIds: string[] = []
   if (user) {

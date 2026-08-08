@@ -26,20 +26,12 @@ export default function HuntEntryClient({ huntLocationId, huntName, userId, scan
     try {
       const supabase = createClient()
 
-      const { data: existing, error: fetchErr } = await supabase
+      const { error: saveErr } = await supabase
         .from('hunt_progress')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('hunt_location_id', huntLocationId)
-        .maybeSingle()
-      if (fetchErr) throw fetchErr
-
-      const { error: saveErr } = existing
-        ? await supabase.from('hunt_progress')
-            .update({ selected_path: path })
-            .eq('id', existing.id)
-        : await supabase.from('hunt_progress')
-            .insert({ user_id: userId, hunt_location_id: huntLocationId, selected_path: path })
+        .upsert(
+          { user_id: userId, hunt_location_id: huntLocationId, selected_path: path },
+          { onConflict: 'user_id,hunt_location_id' }
+        )
       if (saveErr) throw saveErr
 
       router.push(`/hunts/${huntLocationId}/${path}${scanned ? '?scanned=true' : ''}`)

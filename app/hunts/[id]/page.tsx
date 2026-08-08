@@ -2,6 +2,7 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import HuntNotFound from './HuntNotFound'
 import HuntEntryClient from './HuntEntryClient'
+import HuntBackButton from '@/components/layout/HuntBackButton'
 
 // This is the entry gate for a hunt: it decides whether to show the two-path
 // options screen or skip straight to the user's previously selected path.
@@ -60,6 +61,7 @@ export default async function HuntPage({
 
   return (
     <div className="page-theme page-theme--hunt">
+      <HuntBackButton />
       <HuntEntryClient
         huntLocationId={huntLocation.id}
         huntName={huntLocation.name}

@@ -3,6 +3,7 @@
 // Verifies a scanned NFC tag UID and records the scan in the database.
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import { mintCollectible } from '@/lib/collectibles/mint'
 
 export async function POST(request: NextRequest) {
   try {
@@ -158,15 +159,51 @@ export async function POST(request: NextRequest) {
       console.log('[scan] total_scans updated to', scan_number, 'for location', huntLocationId)
     }
 
-    // ── Step 8 — Return success (mint is triggered client-side, fire-and-forget)
-    console.log('[scan] success — scan_number:', scan_number)
-    console.log('[scan] success — scan_number:', scan_number)
+    // ── Step 8 — Mint the collectible now, in this same request. Success is
+    // only reported once the reward actually exists — no more fire-and-forget
+    // client-side mint racing the redirect and the collectible popup.
+    const mintResult = await mintCollectible(supabase, {
+      user_id: user.id,
+      hunt_location_id: huntLocationId,
+    })
+
+    if (!mintResult.ok) {
+      console.error('[scan] mint failed after scan was logged:', mintResult.error)
+      return NextResponse.json(
+        { error: 'Your scan was recorded, but we could not create your collectible. Please try again or contact support.' },
+        { status: 500 }
+      )
+    }
+
+    // ── Step 9 — Sign the art image URL so the popup can render it directly
+    // from this response — no follow-up round trip to sign it client-side.
+    // Left null if the hunt has no art yet; the client treats null as "show
+    // the placeholder logo" exactly like it already does elsewhere.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let artImageUrl = (tag.hunt_locations as any)?.art_image_url ?? null
+    if (artImageUrl && !artImageUrl.startsWith('http')) {
+      const { data: signed, error: signError } = await supabase.storage
+        .from('hunt-assets-private')
+        .createSignedUrl(artImageUrl, 3600)
+      if (signError || !signed?.signedUrl) {
+        console.error('[scan] failed to sign art image URL:', signError?.message ?? 'no signedUrl')
+        artImageUrl = null
+      } else {
+        artImageUrl = signed.signedUrl
+      }
+    }
+
+    console.log('[scan] success — scan_number:', scan_number, '| collectible:', mintResult.status, mintResult.edition_number)
     return NextResponse.json({
       success: true,
       message: `You are number ${scan_number} to scan ${locationData?.name}!`,
       scan_number: scan_number,
+      total_scanners: scan_number,
+      hunt_name: locationData?.name ?? null,
       hunt_location_id: huntLocationId,
-      location: tag.hunt_locations
+      location: tag.hunt_locations,
+      edition_number: mintResult.edition_number,
+      art_image_url: artImageUrl,
     })
   } catch (error) {
     console.error('[scan] unexpected error:', error)

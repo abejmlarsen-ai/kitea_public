@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import RevealLocationButton from '../RevealLocationButton'
-import { isPlaceholderArtworkHunt, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
+import { isPlaceholderArtwork, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
+import { consumeScanResult } from '@/lib/hunts/scanResult'
 
 // Parchment palette: #F5F0E8 · #E8DCC8 · #D4C4A0 · #C4A882
 // Text: #0B2838 · Accent: #4A7C8C · Mid: #8A7A5E
@@ -29,8 +30,14 @@ interface Props {
   hasScanned:      boolean
   hasRevealData:   boolean
   initialRevealed: boolean
+  clueIsReal:      boolean
 }
-interface CollectibleData { scan_count: number; art_image_url: string | null }
+interface CollectibleData {
+  scan_number:    number
+  hunt_name:      string | null
+  edition_number: number | null
+  art_image_url:  string | null
+}
 
 const BTN_PRIMARY: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.65rem',
@@ -48,10 +55,9 @@ const INPUT_STYLE: React.CSSProperties = {
 const HINT_NUMBERS: HintNum[] = [1, 2, 3]
 
 export default function HuntLocationClient({
-  huntLocation, userId, hints, initialSolved, hasScanned, hasRevealData, initialRevealed,
+  huntLocation, userId, hints, initialSolved, hasScanned, hasRevealData, initialRevealed, clueIsReal,
 }: Props) {
   const router = useRouter()
-  const isPlaceholder = isPlaceholderArtworkHunt(huntLocation.id)
 
   // ── per-hint answer state ─────────────────────────────────────────────────
   const [solved,     setSolved]     = useState<Record<HintNum, boolean>>(initialSolved)
@@ -78,36 +84,26 @@ export default function HuntLocationClient({
     }, 250)
   }, [router])
 
+  // The popup renders straight from what /api/nfc/scan already returned —
+  // stashed by app/scan/page.tsx right before it redirected here. No
+  // Supabase queries, no signing round trip, nothing to await.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('scanned') === 'true') {
       setIsScanned(true)
       setShowPopup(true)
-      const supabase = createClient()
-      Promise.all([
-        supabase.from('scans').select('user_id').eq('hunt_location_id', huntLocation.id),
-        supabase.from('hunt_locations').select('art_image_url').eq('id', huntLocation.id).maybeSingle(),
-      ]).then(async ([scansRes, locationRes]) => {
-        if (scansRes.error || locationRes.error) {
-          setCollectibleErr(true)
-        } else {
-          const unique = new Set((scansRes.data ?? []).map((r: { user_id: string }) => r.user_id)).size
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let artImageUrl = (locationRes.data as any)?.art_image_url ?? null
-          // art_image_url is a relative path into the private bucket — sign it
-          // before use so it actually resolves as an <img> src.
-          if (artImageUrl && !artImageUrl.startsWith('http')) {
-            const res = await fetch(`/api/collectible/image?path=${encodeURIComponent(artImageUrl)}`)
-            const signed = await res.json().catch(() => null)
-            artImageUrl = signed?.signedUrl ?? null
-          }
-          setCollectible({ scan_count: unique, art_image_url: artImageUrl })
-        }
-        requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
-      }).catch(() => {
+      const result = consumeScanResult()
+      if (!result) {
         setCollectibleErr(true)
-        requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
-      })
+      } else {
+        setCollectible({
+          scan_number:    result.scan_number,
+          hunt_name:      result.hunt_name,
+          edition_number: result.edition_number,
+          art_image_url:  result.art_image_url,
+        })
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -182,7 +178,7 @@ export default function HuntLocationClient({
             </h2>
             {!collectibleErr && collectible && (
               <p style={{ fontSize: '1rem', color: '#4A7C8C', margin: '0 0 1.5rem', fontWeight: 500 }}>
-                You are number <strong style={{ color: '#0B2838' }}>{collectible.scan_count}</strong> to find this tag
+                You are number <strong style={{ color: '#0B2838' }}>{collectible.scan_number}</strong> to find this tag
               </p>
             )}
             {collectibleErr && (
@@ -194,7 +190,7 @@ export default function HuntLocationClient({
               <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem' }}>Loading your collectible…</p>
             )}
             {!collectibleErr && collectible && (() => {
-              const showFallback = isPlaceholder || collectibleImgFailed
+              const showFallback = isPlaceholderArtwork(collectible.art_image_url) || collectibleImgFailed
               return (
                 <>
                   <div style={{
@@ -202,11 +198,13 @@ export default function HuntLocationClient({
                     borderRadius: '0.75rem', overflow: 'hidden', background: '#F5F0E8',
                     maxWidth: '320px', height: '280px',
                   }}>
-                    <img
+                    <Image
                       src={showFallback ? '/images/Kitea Logo Only.png' : (collectible.art_image_url ?? '/images/Kitea Logo Only.png')}
                       alt="Collectible"
+                      fill
                       onError={() => setCollectibleImgFailed(true)}
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                      style={{ objectFit: 'contain' }}
+                      sizes="320px"
                     />
                   </div>
                   {showFallback && (
@@ -238,7 +236,7 @@ export default function HuntLocationClient({
           href={`/hunts/${huntLocation.id}?select=1`}
           style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
         >
-          ← Back to selection
+          ← Back
         </a>
       </div>
 
@@ -342,6 +340,7 @@ export default function HuntLocationClient({
         userId={userId}
         hasRevealData={hasRevealData}
         initialRevealed={initialRevealed}
+        clueIsReal={clueIsReal}
       />
 
     </div>

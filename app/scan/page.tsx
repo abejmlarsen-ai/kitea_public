@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { saveScanResult } from '@/lib/hunts/scanResult'
 
 // ─── Inner component ─────────────────────────────────────────────────────
 // useSearchParams() must live inside a component wrapped by <Suspense>.
@@ -50,19 +51,18 @@ function ScanContent() {
         const result = await response.json()
 
         if (result.success) {
-          // Fire-and-forget mint — do not await, redirect immediately
-          fetch('/api/collectible/mint', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id:          session.user.id,
-              hunt_location_id: result.hunt_location_id || null,
-              scan_number:      result.scan_number,
-            }),
-          }).catch(() => { /* non-blocking — ignore errors */ })
-
-          // Redirect immediately to hunt page
+          // The collectible is minted server-side inside /api/nfc/scan before
+          // this response comes back — success here means it already exists.
+          // Stash everything the popup needs so it can render on arrival with
+          // no further round trips, then redirect immediately to hunt page.
           if (result.hunt_location_id) {
+            saveScanResult({
+              scan_number:    result.scan_number,
+              total_scanners: result.total_scanners,
+              hunt_name:      result.hunt_name ?? null,
+              edition_number: result.edition_number ?? null,
+              art_image_url:  result.art_image_url ?? null,
+            })
             router.push(`/hunts/${result.hunt_location_id}?scanned=true`)
           } else {
             router.push(`/library?scan=success&location=${encodeURIComponent(result.location?.name || '')}&edition=${result.scan_number}`)

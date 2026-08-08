@@ -144,20 +144,12 @@ export async function POST(req: NextRequest) {
       // is true, so the reveal page's RLS-gated read is the sole source of
       // truth for whether the location is actually revealed.
       if (isCorrect) {
-        const { data: prog } = await db
+        await db
           .from('hunt_progress')
-          .select('id')
-          .eq('user_id', user_id)
-          .eq('hunt_location_id', hunt_location_id)
-          .maybeSingle()
-
-        const patch = { coded_clue_solved: true }
-
-        if (prog) {
-          await db.from('hunt_progress').update(patch).eq('id', prog.id)
-        } else {
-          await db.from('hunt_progress').insert({ user_id, hunt_location_id, ...patch })
-        }
+          .upsert(
+            { user_id, hunt_location_id, coded_clue_solved: true },
+            { onConflict: 'user_id,hunt_location_id' }
+          )
 
         console.log('[hunt/answer] initial_clue correct — coded_clue_solved: true')
 
@@ -232,23 +224,17 @@ export async function POST(req: NextRequest) {
       )
 
       if (isCorrect) {
-        const { data: prog } = await db
-          .from('hunt_progress')
-          .select('id')
-          .eq('user_id', user_id)
-          .eq('hunt_location_id', hunt_location_id)
-          .maybeSingle()
-
         const patch =
           hintNumber === 1 ? { location_hint_1_solved: true } :
           hintNumber === 2 ? { location_hint_2_solved: true } :
                               { location_hint_3_solved: true }
 
-        if (prog) {
-          await db.from('hunt_progress').update(patch).eq('id', prog.id)
-        } else {
-          await db.from('hunt_progress').insert({ user_id, hunt_location_id, ...patch })
-        }
+        await db
+          .from('hunt_progress')
+          .upsert(
+            { user_id, hunt_location_id, ...patch },
+            { onConflict: 'user_id,hunt_location_id' }
+          )
 
         console.log('[hunt/answer] location_hint', hintNumber, 'correct —', JSON.stringify(patch))
       }
@@ -391,26 +377,16 @@ export async function POST(req: NextRequest) {
         '| totalHints:', totalHints, '| isLast:', isLastQuestion
       )
 
-      const { data: prog } = await db
-        .from('hunt_progress')
-        .select('id')
-        .eq('user_id', user_id)
-        .eq('hunt_location_id', question.hunt_location_id)
-        .maybeSingle()
-
       const progressPatch = isLastQuestion
         ? { current_question_index: orderIndex + 1, location_revealed: true }
         : { current_question_index: orderIndex + 1 }
 
-      if (prog) {
-        await db.from('hunt_progress').update(progressPatch).eq('id', prog.id)
-      } else {
-        await db.from('hunt_progress').insert({
-          user_id,
-          hunt_location_id: question.hunt_location_id as string,
-          ...progressPatch,
-        })
-      }
+      await db
+        .from('hunt_progress')
+        .upsert(
+          { user_id, hunt_location_id: question.hunt_location_id as string, ...progressPatch },
+          { onConflict: 'user_id,hunt_location_id' }
+        )
 
       console.log('[hunt/answer] hunt_progress updated, location_revealed:', isLastQuestion)
 

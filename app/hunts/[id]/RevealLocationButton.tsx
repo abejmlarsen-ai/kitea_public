@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 // Kitea Ao "Dune to Deep" — button gradient #4A7C8C → #0B2838, text #F2EDE3.
@@ -19,6 +20,10 @@ interface Props {
   userId:          string
   hasRevealData:   boolean
   initialRevealed: boolean
+  // True once the hunt has a real (non-[PLACEHOLDER]) clue/answer — once the
+  // puzzle is actually solvable, this manual shortcut goes away and players
+  // have to earn the reveal by playing the clue.
+  clueIsReal:      boolean
 }
 
 async function signImage(path: string): Promise<string | null> {
@@ -28,7 +33,7 @@ async function signImage(path: string): Promise<string | null> {
 }
 
 export default function RevealLocationButton({
-  huntLocationId, userId, hasRevealData, initialRevealed,
+  huntLocationId, userId, hasRevealData, initialRevealed, clueIsReal,
 }: Props) {
   const [revealed, setRevealed] = useState(initialRevealed)
   const [content,  setContent]  = useState<RevealContent | null>(null)
@@ -66,20 +71,12 @@ export default function RevealLocationButton({
     setError(null)
     try {
       const supabase = createClient()
-      const { data: existing, error: fetchErr } = await supabase
+      const { error: saveErr } = await supabase
         .from('hunt_progress')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('hunt_location_id', huntLocationId)
-        .maybeSingle()
-      if (fetchErr) throw fetchErr
-
-      const { error: saveErr } = existing
-        ? await supabase.from('hunt_progress')
-            .update({ location_revealed: true })
-            .eq('id', existing.id)
-        : await supabase.from('hunt_progress')
-            .insert({ user_id: userId, hunt_location_id: huntLocationId, location_revealed: true })
+        .upsert(
+          { user_id: userId, hunt_location_id: huntLocationId, location_revealed: true },
+          { onConflict: 'user_id,hunt_location_id' }
+        )
       if (saveErr) throw saveErr
 
       await loadContent()
@@ -91,7 +88,7 @@ export default function RevealLocationButton({
     }
   }
 
-  if (!hasRevealData) return null
+  if (!hasRevealData || clueIsReal) return null
 
   return (
     <section style={{ background: '#F5F0E8', padding: '2rem 1.5rem 3rem' }}>
@@ -120,24 +117,28 @@ export default function RevealLocationButton({
           </>
         ) : (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0B2838', margin: '0 0 1rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0B2838', margin: '0 0 1rem', textAlign: 'center' }}>
               Where to Scan
             </h2>
             {content?.directions ? (
-              <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#0B2838', margin: '0 0 1.5rem', whiteSpace: 'pre-wrap' }}>
+              <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#0B2838', margin: '0 0 1.5rem', whiteSpace: 'pre-wrap', textAlign: 'center' }}>
                 {content.directions}
               </p>
             ) : (
-              <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem', fontStyle: 'italic' }}>
+              <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem', fontStyle: 'italic', textAlign: 'center' }}>
                 Directions coming soon.
               </p>
             )}
             {content?.imageUrl ? (
-              <img
-                src={content.imageUrl}
-                alt="Reveal"
-                style={{ display: 'block', width: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '8px', margin: '0 auto' }}
-              />
+              <div style={{ position: 'relative', width: '100%', height: '400px', borderRadius: '8px', overflow: 'hidden' }}>
+                <Image
+                  src={content.imageUrl}
+                  alt="Reveal"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                  sizes="(max-width: 640px) 100vw, 640px"
+                />
+              </div>
             ) : (
               <div style={{
                 background: '#E8DCC8', borderRadius: '8px', height: '200px',

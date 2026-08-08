@@ -1,6 +1,8 @@
+import Image from 'next/image'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import HuntNotFound from '../HuntNotFound'
+import HuntBackButton from '@/components/layout/HuntBackButton'
 
 // The reveal — shared destination for both the Coded Clue and Location based
 // Clue paths once solved. Whether the directions/image are visible is
@@ -56,13 +58,15 @@ export default async function HuntRevealPage({
   return (
     <div className="page-theme page-theme--hunt" style={{ color: '#0B2838' }}>
 
+      <HuntBackButton />
+
       {/* ── BACK TO SELECTION ────────────────────────────────────────────── */}
       <div style={{ background: '#F5F0E8', padding: '1rem 1.5rem 0', textAlign: 'center' }}>
         <a
           href={`/hunts/${huntLocation.id}?select=1`}
           style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
         >
-          ← Back to selection
+          ← Back
         </a>
       </div>
 
@@ -92,11 +96,15 @@ export default async function HuntRevealPage({
                 </p>
               )}
               {revealImageUrl ? (
-                <img
-                  src={revealImageUrl}
-                  alt="Reveal"
-                  style={{ display: 'block', width: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '8px', margin: '0 auto' }}
-                />
+                <div style={{ position: 'relative', width: '100%', height: '400px', borderRadius: '8px', overflow: 'hidden' }}>
+                  <Image
+                    src={revealImageUrl}
+                    alt="Reveal"
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    sizes="(max-width: 640px) 100vw, 640px"
+                  />
+                </div>
               ) : (
                 <div style={{
                   background: '#E8DCC8', borderRadius: '8px', height: '200px',

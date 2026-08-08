@@ -18,7 +18,7 @@ export default async function Header() {
   if (user) {
     const { data: profileRaw, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('is_admin')
       .eq('id', user.id)
       .single()
 
@@ -41,7 +41,7 @@ export default async function Header() {
               alt=""
               width={40}
               height={40}
-              style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+              style={{ objectFit: 'contain', filter: 'brightness(0)' }}
             />
             Kitea
           </Link>

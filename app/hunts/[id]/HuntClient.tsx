@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import RevealLocationButton from './RevealLocationButton'
-import { isPlaceholderArtworkHunt, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
+import { isPlaceholderArtwork, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
+import { consumeScanResult } from '@/lib/hunts/scanResult'
 
 // Parchment palette: #F5F0E8 · #E8DCC8 · #D4C4A0 · #C4A882
 // Text: #0B2838 · Accent: #4A7C8C · Mid: #8A7A5E
@@ -24,8 +25,14 @@ interface Props {
   hasScanned:      boolean
   hasRevealData:   boolean
   initialRevealed: boolean
+  clueIsReal:      boolean
 }
-interface CollectibleData { scan_count: number; art_image_url: string | null }
+interface CollectibleData {
+  scan_number:    number
+  hunt_name:      string | null
+  edition_number: number | null
+  art_image_url:  string | null
+}
 
 const BTN_PRIMARY: React.CSSProperties = {
   display: 'block', width: '100%', padding: '0.75rem',
@@ -44,16 +51,17 @@ const INPUT_STYLE: React.CSSProperties = {
 const SECTION: React.CSSProperties = { position: 'relative', zIndex: 2 }
 
 export default function HuntClient({
-  huntLocation, userId, clue, clueImageUrl, hasScanned, hasRevealData, initialRevealed,
+  huntLocation, userId, clue, clueImageUrl, hasScanned, hasRevealData, initialRevealed, clueIsReal,
 }: Props) {
   const router = useRouter()
-  const isPlaceholder = isPlaceholderArtworkHunt(huntLocation.id)
 
   // ── clue answer state ─────────────────────────────────────────────────────
   const [clueInput,      setClueInput]      = useState('')
   const [clueWrong,      setClueWrong]      = useState(false)
   const [clueWrongMsg,   setClueWrongMsg]   = useState(false)
   const [clueSubmitting, setClueSubmitting] = useState(false)
+  const [clueAttempts,   setClueAttempts]   = useState(0)
+  const [hintRevealed,   setHintRevealed]   = useState(false)
 
   // ── lightbox state ────────────────────────────────────────────────────────
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -77,36 +85,26 @@ export default function HuntClient({
   }, [router])
 
   // ── scan URL param effect ─────────────────────────────────────────────────
+  // The popup renders straight from what /api/nfc/scan already returned —
+  // stashed by app/scan/page.tsx right before it redirected here. No
+  // Supabase queries, no signing round trip, nothing to await.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('scanned') === 'true') {
       setIsScanned(true)
       setShowPopup(true)
-      const supabase = createClient()
-      Promise.all([
-        supabase.from('scans').select('user_id').eq('hunt_location_id', huntLocation.id),
-        supabase.from('hunt_locations').select('art_image_url').eq('id', huntLocation.id).maybeSingle(),
-      ]).then(async ([scansRes, locationRes]) => {
-        if (scansRes.error || locationRes.error) {
-          setCollectibleErr(true)
-        } else {
-          const unique = new Set((scansRes.data ?? []).map((r: { user_id: string }) => r.user_id)).size
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let artImageUrl = (locationRes.data as any)?.art_image_url ?? null
-          // art_image_url is a relative path into the private bucket — sign it
-          // before use so it actually resolves as an <img> src.
-          if (artImageUrl && !artImageUrl.startsWith('http')) {
-            const res = await fetch(`/api/collectible/image?path=${encodeURIComponent(artImageUrl)}`)
-            const signed = await res.json().catch(() => null)
-            artImageUrl = signed?.signedUrl ?? null
-          }
-          setCollectible({ scan_count: unique, art_image_url: artImageUrl })
-        }
-        requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
-      }).catch(() => {
+      const result = consumeScanResult()
+      if (!result) {
         setCollectibleErr(true)
-        requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
-      })
+      } else {
+        setCollectible({
+          scan_number:    result.scan_number,
+          hunt_name:      result.hunt_name,
+          edition_number: result.edition_number,
+          art_image_url:  result.art_image_url,
+        })
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() => setPopupVisible(true)))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -137,6 +135,7 @@ export default function HuntClient({
       }
       setClueWrong(true)
       setClueWrongMsg(true)
+      setClueAttempts(prev => prev + 1)
       setTimeout(() => setClueWrong(false), 600)
     } finally {
       setClueSubmitting(false)
@@ -165,12 +164,18 @@ export default function HuntClient({
               zIndex: 1001,
             }}
           >✕</button>
-          <img
-            src={clueImageUrl}
-            alt="Hunt clue — full size"
+          <div
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
-          />
+            style={{ position: 'relative', width: '95vw', height: '95vh' }}
+          >
+            <Image
+              src={clueImageUrl}
+              alt="Hunt clue — full size"
+              fill
+              style={{ objectFit: 'contain' }}
+              sizes="95vw"
+            />
+          </div>
         </div>
       )}
 
@@ -201,7 +206,7 @@ export default function HuntClient({
             </h2>
             {!collectibleErr && collectible && (
               <p style={{ fontSize: '1rem', color: '#4A7C8C', margin: '0 0 1.5rem', fontWeight: 500 }}>
-                You are number <strong style={{ color: '#0B2838' }}>{collectible.scan_count}</strong> to find this tag
+                You are number <strong style={{ color: '#0B2838' }}>{collectible.scan_number}</strong> to find this tag
               </p>
             )}
             {collectibleErr && (
@@ -213,7 +218,7 @@ export default function HuntClient({
               <p style={{ fontSize: '1rem', color: '#8A7A5E', margin: '0 0 1.5rem' }}>Loading your collectible…</p>
             )}
             {!collectibleErr && collectible && (() => {
-              const showFallback = isPlaceholder || collectibleImgFailed
+              const showFallback = isPlaceholderArtwork(collectible.art_image_url) || collectibleImgFailed
               return (
                 <>
                   <div style={{
@@ -221,11 +226,13 @@ export default function HuntClient({
                     borderRadius: '0.75rem', overflow: 'hidden', background: '#F5F0E8',
                     maxWidth: '320px', height: '280px',
                   }}>
-                    <img
+                    <Image
                       src={showFallback ? '/images/Kitea Logo Only.png' : (collectible.art_image_url ?? '/images/Kitea Logo Only.png')}
                       alt="Collectible"
+                      fill
                       onError={() => setCollectibleImgFailed(true)}
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                      style={{ objectFit: 'contain' }}
+                      sizes="320px"
                     />
                   </div>
                   {showFallback && (
@@ -257,7 +264,7 @@ export default function HuntClient({
           href={`/hunts/${huntLocation.id}?select=1`}
           style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
         >
-          ← Back to selection
+          ← Back
         </a>
       </div>
 
@@ -275,16 +282,21 @@ export default function HuntClient({
         <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
           {clueImageUrl ? (
             <>
-              <img
-                src={clueImageUrl}
-                alt="Hunt clue"
+              <div
                 onClick={() => setLightboxOpen(true)}
                 style={{
-                  display: 'block', width: '100%', maxHeight: '380px',
-                  objectFit: 'contain', borderRadius: '8px', cursor: 'pointer',
-                  position: 'relative', zIndex: 2,
+                  position: 'relative', width: '100%', height: '380px',
+                  borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', zIndex: 2,
                 }}
-              />
+              >
+                <Image
+                  src={clueImageUrl}
+                  alt="Hunt clue"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                  sizes="(max-width: 600px) 100vw, 600px"
+                />
+              </div>
               <p style={{
                 margin: '0.4rem 0 0', fontSize: '0.75rem', color: '#8A7A5E',
                 fontStyle: 'italic', textAlign: 'center', position: 'relative', zIndex: 2,
@@ -320,21 +332,34 @@ export default function HuntClient({
         </div>
       </section>
 
-      {/* ── 4. PLAIN HINT (read-only, not a question) ───────────────────────── */}
-      {clue?.hint_text && (
+      {/* ── 4. HINT — offered only after 3 wrong attempts ───────────────────── */}
+      {clue?.hint_text && clueAttempts >= 3 && (
         <section style={{ ...SECTION, background: '#F5F0E8', padding: '0 1.5rem 2rem' }}>
           <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ background: '#E8DCC8', borderRadius: '8px', padding: '1rem 1.25rem' }}>
-              <p style={{
-                margin: 0, fontSize: '0.78rem', fontWeight: 700, color: '#8A7A5E',
-                textTransform: 'uppercase', letterSpacing: '0.06em',
-              }}>
-                Hint
-              </p>
-              <p style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', lineHeight: 1.6, color: '#0B2838', whiteSpace: 'pre-wrap' }}>
-                {clue.hint_text}
-              </p>
-            </div>
+            {!hintRevealed ? (
+              <button
+                onClick={() => setHintRevealed(true)}
+                style={{
+                  display: 'block', margin: '0 auto', padding: '0.5rem 1.25rem',
+                  background: 'transparent', border: '1.5px solid #8A7A5E', borderRadius: '999px',
+                  color: '#8A7A5E', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                Hint?
+              </button>
+            ) : (
+              <div style={{ background: '#E8DCC8', borderRadius: '8px', padding: '1rem 1.25rem' }}>
+                <p style={{
+                  margin: 0, fontSize: '0.78rem', fontWeight: 700, color: '#8A7A5E',
+                  textTransform: 'uppercase', letterSpacing: '0.06em',
+                }}>
+                  Hint
+                </p>
+                <p style={{ margin: '0.4rem 0 0', fontSize: '0.9rem', lineHeight: 1.6, color: '#0B2838', whiteSpace: 'pre-wrap' }}>
+                  {clue.hint_text}
+                </p>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -399,6 +424,7 @@ export default function HuntClient({
         userId={userId}
         hasRevealData={hasRevealData}
         initialRevealed={initialRevealed}
+        clueIsReal={clueIsReal}
       />
 
     </div>

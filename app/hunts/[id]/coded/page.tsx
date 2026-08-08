@@ -2,6 +2,7 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import HuntPageClient from '../HuntPageClient'
 import HuntNotFound from '../HuntNotFound'
+import { getCachedSignedUrl } from '@/lib/storage/signedUrlCache'
 
 // Clue content and scan status must be read fresh on every visit, not baked
 // in at build/deploy time. createClient() already calls cookies() which
@@ -40,7 +41,7 @@ export default async function HuntCodedPage({
   const clue = clueRes.data
 
   const clueImageUrl = clue?.image_url
-    ? await db.storage.from('hunt-assets-private').createSignedUrl(clue.image_url, 3600).then((r) => r.data?.signedUrl ?? null)
+    ? await getCachedSignedUrl(db.storage, 'hunt-assets-private', clue.image_url)
     : null
 
   return (
@@ -52,6 +53,7 @@ export default async function HuntCodedPage({
       hasScanned={!!scansRes.data}
       hasRevealData={!!revealRes.data}
       initialRevealed={!!progressRes.data?.location_revealed}
+      clueIsReal={clue?.answer != null && clue.answer !== '[PLACEHOLDER]'}
     />
   )
 }

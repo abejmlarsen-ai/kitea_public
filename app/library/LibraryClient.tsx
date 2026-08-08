@@ -7,7 +7,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import type { MintedCollectible } from './page'
-import { isPlaceholderArtworkHunt, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
+import { isPlaceholderArtwork, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
 
 type Props = {
   collectibles: MintedCollectible[]
@@ -24,7 +24,10 @@ type ModalProps = {
 
 function CollectibleModal({ collectible, onClose }: ModalProps) {
   const isFounder     = collectible.hunt_location_id === null
-  const isPlaceholder = isPlaceholderArtworkHunt(collectible.hunt_location_id)
+  // Founders have no hunt_locations row at all — they show the logo like
+  // any other missing-art case, but never the "Placeholder design" caption,
+  // since a founder edition isn't "art not ready yet", it just has no art field.
+  const isPlaceholder = !isFounder && isPlaceholderArtwork(collectible.hunt_locations?.art_image_url ?? null)
   const imageSrc       = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
   const name = isFounder
     ? `Kitea Founder #${collectible.edition_number}`
@@ -134,7 +137,7 @@ type CardProps = {
 
 function CollectibleCard({ collectible, onClick }: CardProps) {
   const isFounder     = collectible.hunt_location_id === null
-  const isPlaceholder = isPlaceholderArtworkHunt(collectible.hunt_location_id)
+  const isPlaceholder = !isFounder && isPlaceholderArtwork(collectible.hunt_locations?.art_image_url ?? null)
   const name = isFounder
     ? `Kitea Founder #${collectible.edition_number}`
     : `Kitea — ${collectible.hunt_locations?.name ?? 'Unknown'} #${collectible.edition_number}`

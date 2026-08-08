@@ -87,7 +87,7 @@ const MARKER_COLOR_SCANNED = '#22C55E'
 function buildKiteaIcon(glowColor: string) {
   return L.divIcon({
     html: `<img
-      src="/images/Kitea Logo Only.png"
+      src="/images/kitea-logo-marker.png"
       width="32" height="32"
       style="
         filter: brightness(0) invert(1)

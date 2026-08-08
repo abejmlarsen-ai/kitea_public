@@ -3,9 +3,7 @@ import Script from 'next/script'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
-import ThirdwebAppProvider from '@/components/providers/ThirdwebProvider'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
-import LogoWatermark    from '@/components/ui/LogoWatermark'
 
 export const metadata: Metadata = {
   title: {
@@ -50,15 +48,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="theme-dark">
-        <ThirdwebAppProvider>
-          <div style={{ position: 'relative' }}>
-            <Header />
-            {children}
-            <Footer />
-            <PWAInstallPrompt />
-          </div>
-          <LogoWatermark />
-        </ThirdwebAppProvider>
+        <div style={{ position: 'relative' }}>
+          <Header />
+          {children}
+          <Footer />
+          <PWAInstallPrompt />
+        </div>
 
         {/* Register service worker */}
         <Script

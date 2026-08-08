@@ -2,6 +2,7 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import HuntNotFound from '../HuntNotFound'
 import HuntLocationClient from './HuntLocationClient'
+import HuntBackButton from '@/components/layout/HuntBackButton'
 
 // Hint text and scan status must be read fresh on every visit, not baked in
 // at build/deploy time. createClient() already calls cookies() which
@@ -37,7 +38,7 @@ export default async function HuntLocationPage({
 
   const [hintsRes, progressRes, scansRes, revealRes] = await Promise.all([
     db.from('hunt_hints')
-      .select('hint_1_text, hint_2_text, hint_3_text')
+      .select('hint_1_text, hint_2_text, hint_3_text, hint_1_answer, hint_2_answer, hint_3_answer')
       .eq('hunt_location_id', id).maybeSingle(),
     db.from('hunt_progress')
       .select('location_hint_1_solved, location_hint_2_solved, location_hint_3_solved, location_revealed')
@@ -51,6 +52,7 @@ export default async function HuntLocationPage({
 
   return (
     <div className="page-theme page-theme--hunt">
+      <HuntBackButton />
       <HuntLocationClient
         huntLocation={huntLocation}
         userId={user.id}
@@ -63,6 +65,10 @@ export default async function HuntLocationPage({
         hasScanned={!!scansRes.data}
         hasRevealData={!!revealRes.data}
         initialRevealed={!!progress?.location_revealed}
+        clueIsReal={
+          [hints?.hint_1_answer, hints?.hint_2_answer, hints?.hint_3_answer]
+            .every((a) => a != null && a !== '[PLACEHOLDER]')
+        }
       />
     </div>
   )
