@@ -1936,46 +1936,6 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.collectible-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.collectible-card {
-  background: var(--color-surface);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  border: 1px solid transparent;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.collectible-card:hover {
-  transform: translateY(-3px);
-}
-
-.collectible-card--founder {
-  border-color: #c9a227;
-  box-shadow: 0 0 16px rgba(201, 162, 39, 0.35);
-}
-
-.collectible-card--founder:hover {
-  box-shadow: 0 0 28px rgba(201, 162, 39, 0.55);
-}
-
-.collectible-card--location {
-  border-color: #3a7bd5;
-  box-shadow: 0 0 16px rgba(58, 123, 213, 0.25);
-}
-
-.collectible-card--location:hover {
-  box-shadow: 0 0 28px rgba(58, 123, 213, 0.45);
-}
-
 .collectible-badge {
   display: inline-block;
   font-size: 0.7rem;
@@ -1996,28 +1956,6 @@ body {
   color: #3a7bd5;
 }
 
-.collectible-card__name {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.collectible-card__edition {
-  font-size: 0.85rem;
-  color: var(--color-muted);
-}
-
-.collectible-card__link {
-  font-size: 0.78rem;
-  color: #3a7bd5;
-  text-decoration: none;
-  word-break: break-all;
-}
-
-.collectible-card__link:hover {
-  text-decoration: underline;
-}
-
 .collectible-empty {
   display: flex;
   flex-direction: column;
@@ -2030,12 +1968,6 @@ body {
 
 .collectible-empty__logo {
   opacity: 0.25;
-}
-
-@media (max-width: 480px) {
-  .collectible-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ─── Wallet Display (address pill) ─────────────────────────────────────────── */
@@ -2397,187 +2329,25 @@ body {
   min-height: 40vh;
 }
 
-/* ─── Library Paper Page ──────────────────────────────────────────────────────── */
-.library-paper {
-  background: white;
-  max-width: 800px;
-  margin: 0 auto;
-  border-radius: 10px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.07);
-  padding: 3rem 3rem 2.5rem;
-  min-height: 55vh;
-  position: relative;
-}
-.library-paper-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e8ecf0;
-}
-.library-paper-header h2 {
-  font-family: var(--font-heading);
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0 0 0.3rem;
-}
-.library-paper-subtitle {
-  font-size: 0.8rem;
-  color: #aaa;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-.library-founder-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 3rem;
-}
-.library-founder-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: #c9a227;
-  margin-bottom: 1rem;
-}
-.library-founder-card {
-  background: rgba(201, 162, 39, 0.1);
-  border: 2px solid rgba(201, 162, 39, 0.3);
-  border-radius: 20px;
-  padding: 2rem 2.5rem;
-  text-align: center;
-  max-width: 300px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  transition: box-shadow 0.2s ease;
-}
-.library-founder-card:hover {
-  box-shadow: 0 0 28px rgba(201, 162, 39, 0.3);
-}
-.library-founder-image {
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(201, 162, 39, 0.08);
-  border-radius: 50%;
-  margin: 0 auto;
-}
-.library-founder-card h3 {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-}
-.library-hunts-section {
-  margin-top: 0.5rem;
-}
-.library-hunts-divider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.75rem;
-}
-.library-hunts-divider::before,
-.library-hunts-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #e0e6ec;
-}
-.library-hunts-divider span {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #aaa;
-  white-space: nowrap;
-}
-.library-hunts-grid {
+/* ─── Library Grid — full-bleed, square tiles, Instagram-style ────────────────── */
+.library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
 }
-.library-hunt-card {
-  background: rgba(58, 123, 213, 0.05);
-  border: 1px solid rgba(58, 123, 213, 0.18);
-  border-radius: 14px;
-  padding: 1.25rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  transition: box-shadow 0.2s ease;
+@media (min-width: 600px) {
+  .library-grid { grid-template-columns: repeat(4, 1fr); }
 }
-.library-hunt-card:hover {
-  box-shadow: 0 0 18px rgba(58, 123, 213, 0.2);
+@media (min-width: 900px) {
+  .library-grid { grid-template-columns: repeat(5, 1fr); }
 }
-.library-hunt-image {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(58, 123, 213, 0.08);
-  border-radius: 50%;
-  margin: 0 auto;
-}
-.library-hunt-card h4 {
-  font-family: var(--font-heading);
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-}
-.library-hunt-edition {
-  font-size: 0.78rem;
-  color: #777;
-  margin: 0;
-}
-.library-no-hunts {
-  text-align: center;
-  color: #bbb;
-  font-size: 0.9rem;
-  padding: 2rem;
-  border: 1px dashed #dde4ea;
-  border-radius: 10px;
-  font-style: italic;
-}
-.library-paper-footer {
-  margin-top: 2.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e8ecf0;
-  text-align: center;
-}
-.library-paper-footer p {
-  font-size: 0.72rem;
-  color: #ccc;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+@media (min-width: 1200px) {
+  .library-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .library-paper {
-    padding: 2rem 1.25rem 1.75rem;
-    margin: 0 1rem;
-    border-radius: 8px;
-  }
   .library-section {
     padding: 1rem 0 3rem;
-  }
-}
-@media (max-width: 480px) {
-  .library-paper {
-    padding: 1.5rem 1rem 1.5rem;
-    margin: 0;
-    border-radius: 0;
   }
 }
 
@@ -2679,37 +2449,6 @@ body {
   min-height: 100vh;
   padding-top: var(--header-height, 80px);
 }
-
-/* ─── Content stacking above watermark ───────────────────────────────────────── */
-/* Watermark is position:fixed z-index:1. All content sections must be           */
-/* position:relative z-index:2+ so they render above the watermark.              */
-/* Page gradients (backgrounds on .page-theme) have no z-index so they sit in    */
-/* normal flow below the fixed watermark — giving the desired layering:          */
-/*   gradient → watermark (z:1) → content sections (z:2) → header (z:10)        */
-
-.page-theme .section_1,
-.page-theme .section_2,
-.page-theme .section_3,
-.page-theme .cta,
-.page-theme .about-buckets,
-.page-theme .about-narrative,
-.page-theme .hiw-flow,
-.page-theme .hiw-opportunities,
-.page-theme .hiw-faqs,
-.page-theme .map-section,
-.page-theme .library-section,
-.page-theme .contact-section,
-.page-theme .login-section,
-.page-theme .signup-section,
-.page-theme .scan-page,
-.page-theme .admin-page,
-.page-theme .shop-page,
-.page-theme .location-photo-section,
-.page-theme .location-content {
-  position: relative;
-  z-index: 2;
-}
-
 
 /* ── Home: Palette 1 ───── */
 .page-theme--home {
@@ -3159,111 +2898,6 @@ body {
   line-height: 1;
 }
 .scan-banner-dismiss:hover { color: rgba(255, 255, 255, 0.85); }
-
-/* ─── Collectible Cards — Unified Redesign ──────────────────────────────────────────── */
-/* Override old .collectible-card styles; these rules appear later in the sheet         */
-
-.collectible-card {
-  border-radius: 14px;
-  overflow: hidden;
-  cursor: pointer;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.collectible-card--founder {
-  border: 2px solid #C8960C;
-  box-shadow: 0 3px 14px rgba(200, 150, 12, 0.22);
-}
-.collectible-card--location {
-  border: 2px solid #1D6FA4;
-  box-shadow: 0 3px 14px rgba(29, 111, 164, 0.2);
-}
-
-.collectible-card:hover {
-  transform: translateY(-4px);
-}
-.collectible-card--founder:hover {
-  border-color: #e5aa0e;
-  box-shadow: 0 10px 30px rgba(200, 150, 12, 0.42);
-}
-.collectible-card--location:hover {
-  border-color: #2a8fd4;
-  box-shadow: 0 10px 30px rgba(29, 111, 164, 0.4);
-}
-
-/* Image area */
-.collectible-card-image-wrapper {
-  position: relative;
-  background: #f5f7f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 140px;
-  padding: 1.4rem;
-}
-.collectible-card-img {
-  object-fit: contain;
-  max-width: 100%;
-}
-
-/* Hover overlay */
-.collectible-card-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.54);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.collectible-card:hover .collectible-card-overlay {
-  opacity: 1;
-}
-.collectible-card-view-btn {
-  background: white;
-  border-radius: 6px;
-  padding: 0.45rem 1.35rem;
-  font-family: var(--font-heading);
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #0a0a0a;
-  letter-spacing: 0.04em;
-}
-
-/* Edition badge — positioned top-right */
-.collectible-card-badge {
-  position: absolute !important;
-  top: 0.55rem;
-  right: 0.55rem;
-}
-
-/* Card name below image */
-.collectible-card-info {
-  padding: 0.75rem 0.9rem 0.85rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-.collectible-card-name {
-  font-family: var(--font-heading);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #0a0a0a;
-  margin: 0;
-  text-align: center;
-  line-height: 1.35;
-}
-
-/* Founder card centered — a little wider than hunt cards */
-.library-founder-section .collectible-card {
-  width: 100%;
-  max-width: 260px;
-}
-.library-founder-section .collectible-card-image-wrapper {
-  min-height: 180px;
-  padding: 2rem;
-}
 
 /* ─── Collectible Isolation Modal ────────────────────────────────────────────────────── */
 .collectible-modal-overlay {
@@ -4054,11 +3688,9 @@ body {
   color: #4a7c8c;
 }
 
-/* ══ Library page: text contrast + collectible card palette ══════════════════════════
+/* ══ Library page: text contrast ══════════════════════════════════════════════════════
    Gradient: --coastal-2 (#FAF3E0) → --coastal-6 (#1A6B5A)
-   • section_1 sits on the lighter upper half  → #0F3D35 text
-   • library-paper has white bg (inside the dark lower half) → #0F3D35 text
-   • Collectible cards: rgba(61,139,122,0.2) bg, #3D8B7A border, #0F3D35 text          */
+   • section_1 sits on the lighter upper half → #0F3D35 text                          */
 
 /* ── section_1 (light upper area) ────────────────────────────────────────── */
 .page-theme--library .section_1 h2,
@@ -4067,77 +3699,8 @@ body {
   color: #0f3d35;
 }
 
-/* ── library-paper internals (white surface) ──────────────────────────────── */
-.page-theme--library .library-paper-header h2 {
-  color: #0f3d35;
-}
-
-.page-theme--library .library-paper-subtitle {
-  color: #3d8b7a;
-}
-
-.page-theme--library .library-paper-header {
-  border-bottom-color: rgba(61, 139, 122, 0.25);
-}
-
-.page-theme--library .library-founder-label {
-  color: #3d8b7a;
-}
-
-.page-theme--library .library-hunts-divider span {
-  color: #3d8b7a;
-}
-
-.page-theme--library .library-hunts-divider::before,
-.page-theme--library .library-hunts-divider::after {
-  background: rgba(61, 139, 122, 0.3);
-}
-
-.page-theme--library .library-no-hunts {
-  color: #0f3d35;
-  border-color: rgba(61, 139, 122, 0.3);
-}
-
-.page-theme--library .library-paper-footer {
-  border-top-color: rgba(61, 139, 122, 0.25);
-}
-
-.page-theme--library .library-paper-footer p {
-  color: #3d8b7a;
-}
-
-/* ── Collectible empty state (inside white paper) ─────────────────────────────────── */
+/* ── Collectible empty state ──────────────────────────────────────────────────────── */
 .page-theme--library .collectible-empty {
-  color: #0f3d35;
-}
-
-/* ── Collectible card backgrounds, borders, text ─────────────────────────────────── */
-.page-theme--library .collectible-card {
-  background:   rgba(61, 139, 122, 0.2);
-  border-color: #3d8b7a;
-}
-
-.page-theme--library .collectible-card--founder,
-.page-theme--library .collectible-card--location {
-  border-color: #3d8b7a;
-  box-shadow:   0 3px 14px rgba(61, 139, 122, 0.25);
-}
-
-.page-theme--library .collectible-card--founder:hover,
-.page-theme--library .collectible-card--location:hover {
-  border-color: #1a6b5a;
-  box-shadow:   0 10px 30px rgba(61, 139, 122, 0.45);
-}
-
-.page-theme--library .collectible-card-image-wrapper {
-  background: rgba(61, 139, 122, 0.08);
-}
-
-.page-theme--library .collectible-card-info {
-  border-top-color: rgba(61, 139, 122, 0.2);
-}
-
-.page-theme--library .collectible-card-name {
   color: #0f3d35;
 }
 
@@ -4655,8 +4218,8 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   OPAQUE CONTENT AREAS — solid/near-solid backgrounds so watermark does not
-   show through content, only in negative space between blocks
+   OPAQUE CONTENT AREAS — solid/near-solid backgrounds so text panels stay
+   legible against the page gradient behind them
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 /* ── Text blocks, forms, info panels ──────────────────────────────────────── */
@@ -4741,16 +4304,6 @@ body {
 .page-theme--account .acct-stat-card {
   background: rgba(196, 176, 142, 0.92);
   border-color: rgba(74, 124, 140, 0.5);
-}
-
-/* ── Library collectible cards — Palette 2 mid ────────────────────────────────────── */
-.page-theme--library .collectible-card {
-  background: rgba(139, 168, 136, 0.92) !important;
-}
-
-/* ── Library paper — solid white ──────────────────────────────────────────── */
-.page-theme--library .library-paper {
-  background: rgba(255, 255, 255, 0.95);
 }
 
 /* ── Map sidebar — solid white ────────────────────────────────────────────── */

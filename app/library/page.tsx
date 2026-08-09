@@ -116,14 +116,13 @@ export default async function LibraryPage() {
         </div>
       </section>
 
+      {/* No .container here — the grid is full bleed, edge to edge. */}
       <section className="library-section">
-        <div className="container">
-          <LibraryClient
-            collectibles={collectibles}
-            userId={user?.id ?? null}
-            walletAddress={walletAddress}
-          />
-        </div>
+        <LibraryClient
+          collectibles={collectibles}
+          userId={user?.id ?? null}
+          walletAddress={walletAddress}
+        />
       </section>
     </div>
   )

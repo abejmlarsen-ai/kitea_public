@@ -49,13 +49,13 @@ export default async function Header() {
           {/* ── Centre: nav links (absolutely centred) ── */}
           <nav className="main-nav">
             <ul>
-              <li><Link href="/how-it-works">How It Works</Link></li>
-              <li><Link href="/map">Map</Link></li>
+              <li><Link href="/how-it-works" style={{ color: '#0B2838' }}>How It Works</Link></li>
+              <li><Link href="/map" style={{ color: '#0B2838' }}>Map</Link></li>
 
               {user && (
                 <>
-                  <li><Link href="/library">Library</Link></li>
-                  <li><Link href="/shop">Shop</Link></li>
+                  <li><Link href="/library" style={{ color: '#0B2838' }}>Library</Link></li>
+                  <li><Link href="/shop" style={{ color: '#0B2838' }}>Shop</Link></li>
                   {isAdmin && <AdminDropdown />}
                 </>
               )}

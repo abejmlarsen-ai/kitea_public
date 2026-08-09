@@ -2,6 +2,8 @@
 
 // ─── Library Client — Collectible collection display ────────────────────
 // Wrapped in Suspense so useSearchParams() works with static rendering.
+// Single continuous grid, newest-first — no section split between hunt and
+// founder collectibles, no headings above the grid.
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -128,14 +130,14 @@ function CollectibleModal({ collectible, onClose }: ModalProps) {
   )
 }
 
-// ─── Collectible Card ──────────────────────────────────────────────────────
+// ─── Collectible Tile — square, edge-to-edge grid item ────────────────────
 
-type CardProps = {
+type TileProps = {
   collectible: MintedCollectible
   onClick: () => void
 }
 
-function CollectibleCard({ collectible, onClick }: CardProps) {
+function CollectibleTile({ collectible, onClick }: TileProps) {
   const isFounder     = collectible.hunt_location_id === null
   const isPlaceholder = !isFounder && isPlaceholderArtwork(collectible.hunt_locations?.art_image_url ?? null)
   const name = isFounder
@@ -145,104 +147,65 @@ function CollectibleCard({ collectible, onClick }: CardProps) {
   const imageSrc = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
 
   return (
-    <article
+    <button
       onClick={onClick}
+      aria-label={name}
       style={{
-        background:    '#FFFFFF',
-        border:        '1px solid #000000',
-        borderRadius:  '12px',
-        padding:       '16px',
-        cursor:        'pointer',
-        display:       'flex',
-        flexDirection: 'column',
-        gap:           '12px',
-        transition:    'transform 0.2s ease, box-shadow 0.2s ease',
+        position:   'relative',
+        display:    'block',
+        width:      '100%',
+        aspectRatio: '1 / 1',
+        background: '#F8F8F8',
+        border:     'none',
+        padding:    0,
+        margin:     0,
+        cursor:     'pointer',
+        overflow:   'hidden',
+        transition: 'opacity 0.15s ease',
       }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.transform  = 'translateY(-3px)'
-        ;(e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.transform  = ''
-        ;(e.currentTarget as HTMLElement).style.boxShadow = ''
-      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
     >
-      {/* Fixed-height image container — contain, never stretch or crop */}
-      <div style={{
-        position:        'relative',
-        height:          '200px',
-        width:           '100%',
-        background:      '#F8F8F8',
-        borderRadius:    '8px',
-        overflow:        'hidden',
-        display:         'flex',
-        alignItems:      'center',
-        justifyContent:  'center',
+      <Image
+        src={imageSrc}
+        alt={name}
+        fill
+        style={{ objectFit: 'contain' }}
+        sizes="(max-width: 600px) 33vw, (max-width: 900px) 25vw, (max-width: 1200px) 20vw, 16vw"
+      />
+
+      <span style={{
+        position:      'absolute',
+        top:           '6px',
+        right:         '6px',
+        background:    'rgba(0,0,0,0.75)',
+        color:         '#FFFFFF',
+        borderRadius:  '99px',
+        padding:       '2px 8px',
+        fontSize:      '0.65rem',
+        fontWeight:    700,
+        letterSpacing: '0.02em',
+        lineHeight:    1.6,
       }}>
-        <Image
-          src={imageSrc}
-          alt={name}
-          fill
-          style={{ objectFit: 'contain' }}
-          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 280px"
-        />
-        {/* Edition badge */}
-        <span style={{
-          position:      'absolute',
-          top:           '8px',
-          right:         '8px',
-          background:    '#000000',
-          color:         '#FFFFFF',
-          borderRadius:  '99px',
-          padding:       '2px 10px',
-          fontSize:      '0.72rem',
-          fontWeight:    700,
-          letterSpacing: '0.04em',
-          lineHeight:    1.6,
-        }}>
-          #{collectible.edition_number}
-        </span>
-      </div>
+        #{collectible.edition_number}
+      </span>
 
       {isPlaceholder && (
-        <div style={{
+        <span style={{
           ...PLACEHOLDER_CAPTION_STYLE,
-          textAlign: 'center', fontSize: '0.72rem', fontWeight: 700,
-          padding: '0.3rem', borderRadius: '6px',
+          position:  'absolute',
+          left:      0,
+          right:     0,
+          bottom:    0,
+          textAlign: 'center',
+          fontSize:  '0.62rem',
+          fontWeight: 700,
+          padding:   '3px 4px',
         }}>
           Placeholder design
-        </div>
+        </span>
       )}
-
-      {/* Card name */}
-      <p style={{
-        margin:     0,
-        fontSize:   '0.85rem',
-        fontWeight: 700,
-        color:      '#000000',
-        textAlign:  'center',
-        lineHeight: 1.35,
-      }}>
-        {name}
-      </p>
-    </article>
-  )
-}
-
-// ─── Section heading ──────────────────────────────────────────────────────────
-
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 style={{
-      fontSize:      '0.7rem',
-      fontWeight:    700,
-      color:         '#8A7A5E',
-      textTransform: 'uppercase',
-      letterSpacing: '0.1em',
-      margin:        '0 0 1rem',
-    }}>
-      {children}
-    </h3>
+    </button>
   )
 }
 
@@ -275,41 +238,27 @@ function LibraryClientInner({ collectibles, userId, walletAddress }: Props) {
     return () => clearTimeout(t)
   }, [showBanner])
 
-  // Hunt collectibles first (hunt_location_id NOT NULL), ordered by minted_at desc
-  // (server already returns minted_at desc, so filter preserves that order)
-  const huntCollectibles   = collectibles.filter((c) => c.hunt_location_id !== null)
-  // Founder / origin collectibles second (hunt_location_id IS NULL)
-  const founderCollectibles = collectibles.filter((c) => c.hunt_location_id === null)
-
   // ── Empty state: only when truly no collectibles ───────────────────────
   if (collectibles.length === 0) {
     return (
-      <div className="library-paper">
-        <div className="library-paper-header">
-          <h2>My Collection</h2>
-          <p className="library-paper-subtitle">Adventure Log</p>
-        </div>
-        <div className="collectible-empty">
-          <Image
-            src="/images/Kitea Logo Only.png"
-            alt="Kitea star"
-            width={64}
-            height={64}
-            className="collectible-empty__logo"
-          />
-          <p>
-            Your collection is empty. Find a Kitea tag and scan it to earn
-            your first collectible.
-          </p>
-        </div>
-        <div className="library-paper-footer">
-          <p>Kitea Adventure Log &middot; Proof of your journey</p>
-        </div>
+      <div className="collectible-empty">
+        <Image
+          src="/images/Kitea Logo Only.png"
+          alt="Kitea star"
+          width={64}
+          height={64}
+          className="collectible-empty__logo"
+        />
+        <p>
+          Your collection is empty. Find a Kitea tag and scan it to earn
+          your first collectible.
+        </p>
       </div>
     )
   }
 
-  // ── Full collection view ─────────────────────────────────────────────────
+  // ── Full collection view — one continuous grid, newest first ──────────────
+  // collectibles already arrives ordered by minted_at desc from the server query.
   return (
     <>
       {/* Scan-success congratulations banner */}
@@ -330,49 +279,14 @@ function LibraryClientInner({ collectibles, userId, walletAddress }: Props) {
         </div>
       )}
 
-      <div className="library-paper">
-        {/* Paper header */}
-        <div className="library-paper-header">
-          <h2>My Collection</h2>
-          <p className="library-paper-subtitle">Adventure Log</p>
-        </div>
-
-        {/* ── DISCOVERIES — hunt collectibles first ──────────────────────── */}
-        {huntCollectibles.length > 0 && (
-          <div style={{ marginBottom: founderCollectibles.length > 0 ? '2.5rem' : 0 }}>
-            <SectionHeading>Discoveries</SectionHeading>
-            <div className="library-hunts-grid">
-              {huntCollectibles.map((collectible) => (
-                <CollectibleCard
-                  key={collectible.id}
-                  collectible={collectible}
-                  onClick={() => setSelectedCollectible(collectible)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── ORIGIN — founder collectibles below ────────────────────────── */}
-        {founderCollectibles.length > 0 && (
-          <div>
-            <SectionHeading>Origin</SectionHeading>
-            <div className="library-hunts-grid">
-              {founderCollectibles.map((collectible) => (
-                <CollectibleCard
-                  key={collectible.id}
-                  collectible={collectible}
-                  onClick={() => setSelectedCollectible(collectible)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Paper footer */}
-        <div className="library-paper-footer">
-          <p>Kitea Adventure Log &middot; Proof of your journey</p>
-        </div>
+      <div className="library-grid">
+        {collectibles.map((collectible) => (
+          <CollectibleTile
+            key={collectible.id}
+            collectible={collectible}
+            onClick={() => setSelectedCollectible(collectible)}
+          />
+        ))}
       </div>
 
       {/* Collectible isolation modal */}
