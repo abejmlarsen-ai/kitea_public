@@ -1,38 +1,46 @@
 'use client'
 
-// ─── Library Client — NFT collection display ────────────────────────────
+// ─── Library Client — Collectible collection display ────────────────────
 // Wrapped in Suspense so useSearchParams() works with static rendering.
+// Single continuous grid, newest-first — no section split between hunt and
+// founder collectibles, no headings above the grid.
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import type { MintedNFT } from './page'
+import type { MintedCollectible } from './page'
+import { isPlaceholderArtwork, PLACEHOLDER_CAPTION_STYLE } from '@/lib/hunts/placeholderArtwork'
 
 type Props = {
-  nfts: MintedNFT[]
+  collectibles: MintedCollectible[]
   userId?: string | null
   walletAddress?: string | null
 }
 
-// ─── NFT Modal ───────────────────────────────────────────────────────────
+// ─── Collectible Modal ───────────────────────────────────────────────────
 
 type ModalProps = {
-  nft: MintedNFT
+  collectible: MintedCollectible
   onClose: () => void
 }
 
-function NFTModal({ nft, onClose }: ModalProps) {
-  const isFounder = nft.hunt_location_id === null
+function CollectibleModal({ collectible, onClose }: ModalProps) {
+  const isFounder     = collectible.hunt_location_id === null
+  // Founders have no hunt_locations row at all — they show the logo like
+  // any other missing-art case, but never the "Placeholder design" caption,
+  // since a founder edition isn't "art not ready yet", it just has no art field.
+  const isPlaceholder = !isFounder && isPlaceholderArtwork(collectible.hunt_locations?.art_image_url ?? null)
+  const imageSrc       = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
   const name = isFounder
-    ? `Kitea Founder #${nft.edition_number}`
-    : `Kitea — ${nft.hunt_locations?.name ?? 'Unknown'} #${nft.edition_number}`
+    ? `Kitea Founder #${collectible.edition_number}`
+    : `Kitea — ${collectible.hunt_locations?.name ?? 'Unknown'} #${collectible.edition_number}`
 
   const locationLabel = isFounder
     ? 'Origin Collection'
-    : (nft.hunt_locations?.name ?? 'Unknown')
+    : (collectible.hunt_locations?.name ?? 'Unknown')
 
-  const dateEarned = nft.minted_at
-    ? new Date(nft.minted_at).toLocaleDateString('en-AU', {
+  const dateEarned = collectible.minted_at
+    ? new Date(collectible.minted_at).toLocaleDateString('en-AU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -50,14 +58,14 @@ function NFTModal({ nft, onClose }: ModalProps) {
 
   return (
     <div
-      className="nft-modal-overlay"
+      className="collectible-modal-overlay"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
-      <div className="nft-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="collectible-modal" onClick={(e) => e.stopPropagation()}>
         <button
-          className="nft-modal-close"
+          className="collectible-modal-close"
           onClick={onClose}
           aria-label="Close"
         >
@@ -65,44 +73,53 @@ function NFTModal({ nft, onClose }: ModalProps) {
         </button>
 
         {/* Fixed-height container — objectFit:contain preserves natural aspect ratio */}
-        <div className="nft-modal-image" style={{ position: 'relative', height: '220px', width: '100%' }}>
+        <div className="collectible-modal-image" style={{ position: 'relative', height: '220px', width: '100%' }}>
           <Image
-            src={nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'}
+            src={imageSrc}
             alt={name}
             fill
             style={{ objectFit: 'contain' }}
             sizes="(max-width: 600px) 90vw, 440px"
           />
         </div>
+        {isPlaceholder && (
+          <div style={{
+            ...PLACEHOLDER_CAPTION_STYLE,
+            textAlign: 'center', fontSize: '0.8rem', fontWeight: 700,
+            padding: '0.4rem', borderRadius: '6px', margin: '0.75rem 0 0',
+          }}>
+            Placeholder design
+          </div>
+        )}
 
-        <div className="nft-modal-body">
+        <div className="collectible-modal-body">
           <span
-            className={`nft-badge ${
-              isFounder ? 'nft-badge--founder' : 'nft-badge--location'
+            className={`collectible-badge ${
+              isFounder ? 'collectible-badge--founder' : 'collectible-badge--location'
             }`}
           >
             {isFounder ? 'Founder' : 'Location'}
           </span>
 
-          <h2 className="nft-modal-name">{name}</h2>
+          <h2 className="collectible-modal-name">{name}</h2>
 
-          <div className="nft-modal-details">
-            <div className="nft-modal-detail-row">
-              <span className="nft-modal-detail-label">Location</span>
-              <span className="nft-modal-detail-value">{locationLabel}</span>
+          <div className="collectible-modal-details">
+            <div className="collectible-modal-detail-row">
+              <span className="collectible-modal-detail-label">Location</span>
+              <span className="collectible-modal-detail-value">{locationLabel}</span>
             </div>
-            <div className="nft-modal-detail-row">
-              <span className="nft-modal-detail-label">Date Earned</span>
-              <span className="nft-modal-detail-value">{dateEarned}</span>
+            <div className="collectible-modal-detail-row">
+              <span className="collectible-modal-detail-label">Date Earned</span>
+              <span className="collectible-modal-detail-value">{dateEarned}</span>
             </div>
           </div>
 
-          {nft.transaction_hash && (
+          {collectible.transaction_hash && (
             <a
-              href={`https://sepolia.basescan.org/tx/${nft.transaction_hash}`}
+              href={`https://sepolia.basescan.org/tx/${collectible.transaction_hash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="nft-modal-basescan"
+              className="collectible-modal-basescan"
             >
               View on BaseScan ↗
             </a>
@@ -113,118 +130,95 @@ function NFTModal({ nft, onClose }: ModalProps) {
   )
 }
 
-// ─── NFT Card ──────────────────────────────────────────────────────────────
+// ─── Collectible Tile — square, edge-to-edge grid item ────────────────────
 
-type CardProps = {
-  nft: MintedNFT
+type TileProps = {
+  collectible: MintedCollectible
   onClick: () => void
 }
 
-function NFTCard({ nft, onClick }: CardProps) {
-  const isFounder = nft.hunt_location_id === null
+function CollectibleTile({ collectible, onClick }: TileProps) {
+  const isFounder     = collectible.hunt_location_id === null
+  const isPlaceholder = !isFounder && isPlaceholderArtwork(collectible.hunt_locations?.art_image_url ?? null)
   const name = isFounder
-    ? `Kitea Founder #${nft.edition_number}`
-    : `Kitea — ${nft.hunt_locations?.name ?? 'Unknown'} #${nft.edition_number}`
+    ? `Kitea Founder #${collectible.edition_number}`
+    : `Kitea — ${collectible.hunt_locations?.name ?? 'Unknown'} #${collectible.edition_number}`
 
-  const imageSrc = nft.nft_signed_image_url ?? '/images/Kitea Logo Only.png'
+  const imageSrc = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
 
   return (
-    <article
+    <button
       onClick={onClick}
+      aria-label={name}
       style={{
-        background:    '#FFFFFF',
-        border:        '1px solid #000000',
-        borderRadius:  '12px',
-        padding:       '16px',
-        cursor:        'pointer',
-        display:       'flex',
-        flexDirection: 'column',
-        gap:           '12px',
-        transition:    'transform 0.2s ease, box-shadow 0.2s ease',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.transform  = 'translateY(-3px)'
-        ;(e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.transform  = ''
-        ;(e.currentTarget as HTMLElement).style.boxShadow = ''
-      }}
-    >
-      {/* Fixed-height image container — contain, never stretch or crop */}
-      <div style={{
-        position:        'relative',
-        height:          '200px',
-        width:           '100%',
-        background:      '#F8F8F8',
-        borderRadius:    '8px',
-        overflow:        'hidden',
-        display:         'flex',
-        alignItems:      'center',
-        justifyContent:  'center',
-      }}>
-        <Image
-          src={imageSrc}
-          alt={name}
-          fill
-          style={{ objectFit: 'contain' }}
-          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 280px"
-        />
-        {/* Edition badge */}
-        <span style={{
-          position:      'absolute',
-          top:           '8px',
-          right:         '8px',
-          background:    '#000000',
-          color:         '#FFFFFF',
-          borderRadius:  '99px',
-          padding:       '2px 10px',
-          fontSize:      '0.72rem',
-          fontWeight:    700,
-          letterSpacing: '0.04em',
-          lineHeight:    1.6,
-        }}>
-          #{nft.edition_number}
-        </span>
-      </div>
-
-      {/* Card name */}
-      <p style={{
+        position:   'relative',
+        display:    'block',
+        width:      '100%',
+        aspectRatio: '1 / 1',
+        background: '#F8F8F8',
+        border:     'none',
+        padding:    0,
         margin:     0,
-        fontSize:   '0.85rem',
-        fontWeight: 700,
-        color:      '#000000',
-        textAlign:  'center',
-        lineHeight: 1.35,
+        cursor:     'pointer',
+        overflow:   'hidden',
+        transition: 'opacity 0.15s ease',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+    >
+      <Image
+        src={imageSrc}
+        alt={name}
+        fill
+        style={{ objectFit: 'contain' }}
+        sizes="(max-width: 600px) 33vw, (max-width: 900px) 25vw, (max-width: 1200px) 20vw, 16vw"
+      />
+
+      <span style={{
+        position:      'absolute',
+        top:           '6px',
+        right:         '6px',
+        background:    'rgba(0,0,0,0.75)',
+        color:         '#FFFFFF',
+        borderRadius:  '99px',
+        padding:       '2px 8px',
+        fontSize:      '0.65rem',
+        fontWeight:    700,
+        letterSpacing: '0.02em',
+        lineHeight:    1.6,
       }}>
-        {name}
-      </p>
-    </article>
-  )
-}
+        #{collectible.edition_number}
+      </span>
 
-// ─── Section heading ──────────────────────────────────────────────────────────
-
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 style={{
-      fontSize:      '0.7rem',
-      fontWeight:    700,
-      color:         '#8A7A5E',
-      textTransform: 'uppercase',
-      letterSpacing: '0.1em',
-      margin:        '0 0 1rem',
-    }}>
-      {children}
-    </h3>
+      {isPlaceholder && (
+        <span style={{
+          ...PLACEHOLDER_CAPTION_STYLE,
+          position:  'absolute',
+          left:      0,
+          right:     0,
+          bottom:    0,
+          textAlign: 'center',
+          fontSize:  '0.62rem',
+          fontWeight: 700,
+          padding:   '3px 4px',
+        }}>
+          Placeholder design
+        </span>
+      )}
+    </button>
   )
 }
 
 // ─── Inner component (uses useSearchParams + modal state) ────────────────────
 
-function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
+function LibraryClientInner({ collectibles, userId, walletAddress }: Props) {
   const searchParams    = useSearchParams()
-  const [selectedNFT, setSelectedNFT] = useState<MintedNFT | null>(null)
+  // Deep link from the map's "View in Library" overlay: /library?hunt={hunt_location_id}
+  // opens that hunt's collectible directly instead of landing on the grid.
+  const huntParam = searchParams.get('hunt')
+  const [selectedCollectible, setSelectedCollectible] = useState<MintedCollectible | null>(
+    () => (huntParam ? collectibles.find((c) => c.hunt_location_id === huntParam) ?? null : null)
+  )
   const [bannerDismissed, setBannerDismissed] = useState(false)
 
   const scanParam     = searchParams.get('scan')
@@ -244,41 +238,27 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
     return () => clearTimeout(t)
   }, [showBanner])
 
-  // Hunt collectibles first (hunt_location_id NOT NULL), ordered by minted_at desc
-  // (server already returns minted_at desc, so filter preserves that order)
-  const huntNFTs   = nfts.filter((n) => n.hunt_location_id !== null)
-  // Founder / origin collectibles second (hunt_location_id IS NULL)
-  const founderNFTs = nfts.filter((n) => n.hunt_location_id === null)
-
-  // ── Empty state: only when truly no NFTs ───────────────────────────────
-  if (nfts.length === 0) {
+  // ── Empty state: only when truly no collectibles ───────────────────────
+  if (collectibles.length === 0) {
     return (
-      <div className="library-paper">
-        <div className="library-paper-header">
-          <h2>My Collection</h2>
-          <p className="library-paper-subtitle">Adventure Log</p>
-        </div>
-        <div className="nft-empty">
-          <Image
-            src="/images/Kitea Logo Only.png"
-            alt="Kitea star"
-            width={64}
-            height={64}
-            className="nft-empty__logo"
-          />
-          <p>
-            Your collection is empty. Find a Kitea tag and scan it to earn
-            your first collectible.
-          </p>
-        </div>
-        <div className="library-paper-footer">
-          <p>Kitea Adventure Log &middot; Proof of your journey</p>
-        </div>
+      <div className="collectible-empty">
+        <Image
+          src="/images/Kitea Logo Only.png"
+          alt="Kitea star"
+          width={64}
+          height={64}
+          className="collectible-empty__logo"
+        />
+        <p>
+          Your collection is empty. Find a Kitea tag and scan it to earn
+          your first collectible.
+        </p>
       </div>
     )
   }
 
-  // ── Full collection view ─────────────────────────────────────────────────
+  // ── Full collection view — one continuous grid, newest first ──────────────
+  // collectibles already arrives ordered by minted_at desc from the server query.
   return (
     <>
       {/* Scan-success congratulations banner */}
@@ -299,54 +279,19 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
         </div>
       )}
 
-      <div className="library-paper">
-        {/* Paper header */}
-        <div className="library-paper-header">
-          <h2>My Collection</h2>
-          <p className="library-paper-subtitle">Adventure Log</p>
-        </div>
-
-        {/* ── DISCOVERIES — hunt collectibles first ──────────────────────── */}
-        {huntNFTs.length > 0 && (
-          <div style={{ marginBottom: founderNFTs.length > 0 ? '2.5rem' : 0 }}>
-            <SectionHeading>Discoveries</SectionHeading>
-            <div className="library-hunts-grid">
-              {huntNFTs.map((nft) => (
-                <NFTCard
-                  key={nft.id}
-                  nft={nft}
-                  onClick={() => setSelectedNFT(nft)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── ORIGIN — founder collectibles below ────────────────────────── */}
-        {founderNFTs.length > 0 && (
-          <div>
-            <SectionHeading>Origin</SectionHeading>
-            <div className="library-hunts-grid">
-              {founderNFTs.map((nft) => (
-                <NFTCard
-                  key={nft.id}
-                  nft={nft}
-                  onClick={() => setSelectedNFT(nft)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Paper footer */}
-        <div className="library-paper-footer">
-          <p>Kitea Adventure Log &middot; Proof of your journey</p>
-        </div>
+      <div className="library-grid">
+        {collectibles.map((collectible) => (
+          <CollectibleTile
+            key={collectible.id}
+            collectible={collectible}
+            onClick={() => setSelectedCollectible(collectible)}
+          />
+        ))}
       </div>
 
-      {/* NFT isolation modal */}
-      {selectedNFT && (
-        <NFTModal nft={selectedNFT} onClose={() => setSelectedNFT(null)} />
+      {/* Collectible isolation modal */}
+      {selectedCollectible && (
+        <CollectibleModal collectible={selectedCollectible} onClose={() => setSelectedCollectible(null)} />
       )}
     </>
   )
@@ -355,14 +300,14 @@ function LibraryClientInner({ nfts, userId, walletAddress }: Props) {
 // ─── Default export — wraps inner in Suspense for useSearchParams ─────────────
 
 export default function LibraryClient({
-  nfts,
+  collectibles,
   userId,
   walletAddress,
 }: Props) {
   return (
     <Suspense fallback={null}>
       <LibraryClientInner
-        nfts={nfts}
+        collectibles={collectibles}
         userId={userId}
         walletAddress={walletAddress}
       />

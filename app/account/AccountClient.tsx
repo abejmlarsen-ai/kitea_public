@@ -16,10 +16,10 @@ interface Profile {
 }
 
 interface Stats {
-  tagsScanned:    number
-  nftsEarned:     number
-  huntsCompleted: number
-  memberSince:    string
+  tagsScanned:        number
+  collectiblesEarned: number
+  huntsCompleted:     number
+  memberSince:        string
 }
 
 interface Props {
@@ -260,8 +260,8 @@ export default function AccountClient({ userId, email, profile: initialProfile, 
         <section>
           <h2 className="acct-section-heading acct-section-heading--dark">Adventure Stats</h2>
           <div className="acct-stats-grid">
-            <StatCard value={stats.tagsScanned}   label="Tags scanned"    />
-            <StatCard value={stats.nftsEarned}    label="Collectibles earned"     />
+            <StatCard value={stats.tagsScanned}         label="Tags scanned"        />
+            <StatCard value={stats.collectiblesEarned}  label="Collectibles earned" />
             <StatCard value={stats.huntsCompleted} label="Hunts completed" />
             <StatCard value={stats.memberSince}   label="Member since"    />
           </div>

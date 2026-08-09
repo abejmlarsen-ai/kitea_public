@@ -73,24 +73,24 @@ export default async function ShopPage() {
         .eq('hunt_location_id', locId)
 
       // Check collectibles table
-      const { count: nftCount } = await serviceClient
+      const { count: collectibleCount } = await serviceClient
         .from('collectibles')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('hunt_location_id', locId)
         .eq('status', 'minted')
 
-      const hasScan = (scanCount ?? 0) > 0
-      const hasNft = (nftCount ?? 0) > 0
+      const hasScan       = (scanCount ?? 0) > 0
+      const hasCollectible = (collectibleCount ?? 0) > 0
 
-      if (hasScan !== hasNft) {
+      if (hasScan !== hasCollectible) {
         console.warn(
-          `[shop] scan/nft discrepancy for user=${user.id} hunt=${locId}: scans=${scanCount} collectibles=${nftCount}`
+          `[shop] scan/collectible discrepancy for user=${user.id} hunt=${locId}: scans=${scanCount} collectibles=${collectibleCount}`
         )
       }
 
       // Grant access if either confirms the scan
-      if (!hasScan && !hasNft) continue
+      if (!hasScan && !hasCollectible) continue
 
       // Compute scan number: count distinct users who scanned at or before this user
       let computedScanNumber = 1

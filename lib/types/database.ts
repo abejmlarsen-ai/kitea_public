@@ -112,6 +112,7 @@ export type Database = {
           answer: string | null
           code_type_hint: string | null
           created_at: string | null
+          hint_text: string | null
           hunt_location_id: string | null
           hunt_name: string | null
           id: string
@@ -122,6 +123,7 @@ export type Database = {
           answer?: string | null
           code_type_hint?: string | null
           created_at?: string | null
+          hint_text?: string | null
           hunt_location_id?: string | null
           hunt_name?: string | null
           id?: string
@@ -132,6 +134,7 @@ export type Database = {
           answer?: string | null
           code_type_hint?: string | null
           created_at?: string | null
+          hint_text?: string | null
           hunt_location_id?: string | null
           hunt_name?: string | null
           id?: string
@@ -152,13 +155,10 @@ export type Database = {
         Row: {
           created_at: string | null
           hint_1_answer: string | null
-          hint_1_location_clue: string | null
           hint_1_text: string | null
           hint_2_answer: string | null
-          hint_2_location_clue: string | null
           hint_2_text: string | null
           hint_3_answer: string | null
-          hint_3_location_clue: string | null
           hint_3_text: string | null
           hunt_location_id: string | null
           hunt_name: string | null
@@ -168,13 +168,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           hint_1_answer?: string | null
-          hint_1_location_clue?: string | null
           hint_1_text?: string | null
           hint_2_answer?: string | null
-          hint_2_location_clue?: string | null
           hint_2_text?: string | null
           hint_3_answer?: string | null
-          hint_3_location_clue?: string | null
           hint_3_text?: string | null
           hunt_location_id?: string | null
           hunt_name?: string | null
@@ -184,13 +181,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           hint_1_answer?: string | null
-          hint_1_location_clue?: string | null
           hint_1_text?: string | null
           hint_2_answer?: string | null
-          hint_2_location_clue?: string | null
           hint_2_text?: string | null
           hint_3_answer?: string | null
-          hint_3_location_clue?: string | null
           hint_3_text?: string | null
           hunt_location_id?: string | null
           hunt_name?: string | null
@@ -209,7 +203,9 @@ export type Database = {
       }
       hunt_locations: {
         Row: {
+          art_image_url: string | null
           city: string | null
+          collectible_id: number | null
           created_at: string | null
           description: string | null
           id: string
@@ -217,15 +213,15 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
-          nft_image_url: string | null
-          nft_token_id: number | null
           page_path: string | null
           region: string | null
           total_scans: number | null
           updated_at: string | null
         }
         Insert: {
+          art_image_url?: string | null
           city?: string | null
+          collectible_id?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -233,15 +229,15 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
-          nft_image_url?: string | null
-          nft_token_id?: number | null
           page_path?: string | null
           region?: string | null
           total_scans?: number | null
           updated_at?: string | null
         }
         Update: {
+          art_image_url?: string | null
           city?: string | null
+          collectible_id?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -249,8 +245,6 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
-          nft_image_url?: string | null
-          nft_token_id?: number | null
           page_path?: string | null
           region?: string | null
           total_scans?: number | null
@@ -260,29 +254,44 @@ export type Database = {
       }
       hunt_progress: {
         Row: {
+          coded_clue_solved: boolean
           completed_at: string | null
           current_question_index: number | null
           hunt_location_id: string | null
           id: string
+          location_hint_1_solved: boolean
+          location_hint_2_solved: boolean
+          location_hint_3_solved: boolean
           location_revealed: boolean | null
+          selected_path: string | null
           started_at: string | null
           user_id: string | null
         }
         Insert: {
+          coded_clue_solved?: boolean
           completed_at?: string | null
           current_question_index?: number | null
           hunt_location_id?: string | null
           id?: string
+          location_hint_1_solved?: boolean
+          location_hint_2_solved?: boolean
+          location_hint_3_solved?: boolean
           location_revealed?: boolean | null
+          selected_path?: string | null
           started_at?: string | null
           user_id?: string | null
         }
         Update: {
+          coded_clue_solved?: boolean
           completed_at?: string | null
           current_question_index?: number | null
           hunt_location_id?: string | null
           id?: string
+          location_hint_1_solved?: boolean
+          location_hint_2_solved?: boolean
+          location_hint_3_solved?: boolean
           location_revealed?: boolean | null
+          selected_path?: string | null
           started_at?: string | null
           user_id?: string | null
         }

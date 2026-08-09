@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import AdminDropdown from './AdminDropdown'
 import LogoutButton from '@/components/auth/LogoutButton'
+import ReturnToMapButton from './ReturnToMapButton'
 
 export default async function Header() {
   const supabase = await createClient()
@@ -17,7 +18,7 @@ export default async function Header() {
   if (user) {
     const { data: profileRaw, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('is_admin')
       .eq('id', user.id)
       .single()
 
@@ -40,7 +41,7 @@ export default async function Header() {
               alt=""
               width={40}
               height={40}
-              style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+              style={{ objectFit: 'contain', filter: 'brightness(0)' }}
             />
             Kitea
           </Link>
@@ -48,21 +49,22 @@ export default async function Header() {
           {/* ── Centre: nav links (absolutely centred) ── */}
           <nav className="main-nav">
             <ul>
-              <li><Link href="/how-it-works">How It Works</Link></li>
-              <li><Link href="/map">Map</Link></li>
+              <li><Link href="/how-it-works" style={{ color: '#0B2838' }}>How It Works</Link></li>
+              <li><Link href="/map" style={{ color: '#0B2838' }}>Map</Link></li>
 
               {user && (
                 <>
-                  <li><Link href="/library">Library</Link></li>
-                  <li><Link href="/shop">Shop</Link></li>
+                  <li><Link href="/library" style={{ color: '#0B2838' }}>Library</Link></li>
+                  <li><Link href="/shop" style={{ color: '#0B2838' }}>Shop</Link></li>
                   {isAdmin && <AdminDropdown />}
                 </>
               )}
             </ul>
           </nav>
 
-          {/* ── Right: settings icon + logout/login ── */}
+          {/* ── Right: return to map + settings icon + logout/login ── */}
           <div className="header-row1-right">
+            <ReturnToMapButton />
             {user && (
               <Link href="/account" className="header-settings-link" aria-label="Account settings">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"

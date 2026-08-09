@@ -33,14 +33,14 @@ export default function LoginForm() {
       return
     }
 
-    // Fire-and-forget: queue the founder NFT pending row insert.
-    // /api/nft/mint runs in its own serverless invocation and is fully
-    // idempotent — safe to call on every login.  We intentionally do NOT
-    // await so the redirect to /library happens immediately.
+    // Fire-and-forget: queue the founder collectible pending row insert.
+    // /api/collectible/mint runs in its own serverless invocation and is
+    // fully idempotent — safe to call on every login.  We intentionally do
+    // NOT await so the redirect to /library happens immediately.
     // The library page detects any pending row and triggers the actual
     // blockchain mint once the user has a connected wallet.
     if (data.user) {
-      fetch('/api/nft/mint', {
+      fetch('/api/collectible/mint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

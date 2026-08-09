@@ -1,18 +1,25 @@
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import HuntPageClient from './HuntPageClient'
+import HuntNotFound from './HuntNotFound'
+import HuntEntryClient from './HuntEntryClient'
+import HuntBackButton from '@/components/layout/HuntBackButton'
 
-// Clue/hint/reveal content and scan status must be read fresh on every visit,
-// not baked in at build/deploy time. createClient() already calls cookies()
-// which implicitly forces dynamic rendering — this makes that guarantee explicit.
+// This is the entry gate for a hunt: it decides whether to show the two-path
+// options screen or skip straight to the user's previously selected path.
+// That decision depends on live hunt_progress state, so it must never be
+// cached/prerendered — createClient() already calls cookies() which forces
+// dynamic rendering, this makes that guarantee explicit.
 export const dynamic = 'force-dynamic'
 
 export default async function HuntPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ select?: string; scanned?: string }>
 }) {
   const { id } = await params
+  const { select, scanned } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -21,61 +28,46 @@ export default async function HuntPage({
 
   const { data: huntLocation } = await db
     .from('hunt_locations')
-    .select('id, name, description, total_scans, latitude, longitude')
+    .select('id, name')
     .eq('id', id)
     .single()
 
   if (!huntLocation) {
-    return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', minHeight: '100vh',
-        background: '#F5F0E8', color: '#0B2838', padding: '2rem', textAlign: 'center',
-        position: 'relative', zIndex: 2,
-      }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Hunt not found</h1>
-        <a href="/map" style={{
-          padding: '0.75rem 1.5rem', background: '#4A7C8C', color: '#FFFFFF',
-          borderRadius: '6px', textDecoration: 'none', fontWeight: 600,
-        }}>
-          Return to Map
-        </a>
-      </div>
-    )
+    return <HuntNotFound />
   }
 
-  const [clueRes, hintsRes, revealsRes, scansRes] = await Promise.all([
-    db.from('hunt_clues').select('text_content, answer, image_url').eq('hunt_location_id', id).maybeSingle(),
-    db.from('hunt_hints')
-      .select('hint_1_text, hint_1_answer, hint_2_text, hint_2_answer, hint_3_text, hint_3_answer')
-      .eq('hunt_location_id', id).maybeSingle(),
-    db.from('hunt_reveals').select('reveal_directions, reveal_image_url').eq('hunt_location_id', id).maybeSingle(),
-    db.from('scans').select('id').eq('hunt_location_id', id).eq('user_id', user.id).maybeSingle(),
-  ])
+  // The scan flow lands here with ?scanned=true to trigger the "Tag Found!"
+  // celebration on whichever path page the user ends up on — carry it
+  // through every redirect below instead of dropping it at this gate.
+  const scannedSuffix = scanned === 'true' ? '?scanned=true' : ''
 
-  const clue    = clueRes.data
-  const hints   = hintsRes.data
-  const reveals = revealsRes.data
+  // "Back to selection" links here with ?select=1 to force the options
+  // screen regardless of any previously saved selected_path.
+  const forceReselect = select === '1'
 
-  const [clueImageUrl, revealImageUrl] = await Promise.all([
-    clue?.image_url
-      ? db.storage.from('hunt-assets-private').createSignedUrl(clue.image_url, 3600).then((r) => r.data?.signedUrl ?? null)
-      : Promise.resolve(null),
-    reveals?.reveal_image_url
-      ? db.storage.from('hunt-assets-private').createSignedUrl(reveals.reveal_image_url, 3600).then((r) => r.data?.signedUrl ?? null)
-      : Promise.resolve(null),
-  ])
+  if (!forceReselect) {
+    const { data: progress } = await db
+      .from('hunt_progress')
+      .select('selected_path')
+      .eq('user_id', user.id)
+      .eq('hunt_location_id', id)
+      .maybeSingle()
+
+    if (progress?.selected_path === 'coded')    redirect(`/hunts/${id}/coded${scannedSuffix}`)
+    if (progress?.selected_path === 'location') redirect(`/hunts/${id}/location${scannedSuffix}`)
+    // No row, or selected_path not set yet — first visit, fall through to
+    // the options screen below.
+  }
 
   return (
-    <HuntPageClient
-      huntLocation={huntLocation}
-      userId={user.id}
-      clue={clue}
-      hints={hints}
-      reveals={reveals}
-      clueImageUrl={clueImageUrl as string | null}
-      revealImageUrl={revealImageUrl as string | null}
-      hasScanned={!!scansRes.data}
-    />
+    <div className="page-theme page-theme--hunt">
+      <HuntBackButton />
+      <HuntEntryClient
+        huntLocationId={huntLocation.id}
+        huntName={huntLocation.name}
+        userId={user.id}
+        scanned={scanned === 'true'}
+      />
+    </div>
   )
 }

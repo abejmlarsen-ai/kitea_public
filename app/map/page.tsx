@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createServiceRoleClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import HuntsClient from '../hunts/HuntsClient'
 
 export const metadata: Metadata = { title: 'Map | Kitea' }
@@ -19,16 +19,34 @@ export default async function MapPage() {
   const baseQuery = db
     .from('hunt_locations')
     .select('id, name, description, latitude, longitude, total_scans, region, city')
-  const { data: locations, error: locError } = await (
-    isProd ? baseQuery.eq('is_active', true) : baseQuery
-  )
+  const locationsQuery = isProd ? baseQuery.eq('is_active', true) : baseQuery
 
-  console.log('[map/page] locations count:', locations?.length ?? 0, '| error:', locError?.message ?? null)
-  if (locations && locations.length > 0) {
-    console.log('[map/page] first location sample:', JSON.stringify(locations[0]))
+  // The locations query and the auth check are independent — run them
+  // concurrently instead of one after another. Which hunts the current user
+  // has already scanned (regardless of clue progress) is a bonus for logged-in
+  // users only; anonymous visitors get an empty set and the map stays public.
+  const [{ data: locations }, { data: { user }, supabase }] = await Promise.all([
+    locationsQuery,
+    createClient().then(async (sb) => ({ ...(await sb.auth.getUser()), supabase: sb })),
+  ])
+
+  let scannedLocationIds: string[] = []
+  if (user) {
+    const { data: scans } = await supabase
+      .from('scans')
+      .select('hunt_location_id')
+      .eq('user_id', user.id)
+
+    scannedLocationIds = Array.from(
+      new Set(
+        (scans ?? [])
+          .map((s) => s.hunt_location_id)
+          .filter((id): id is string => id != null)
+      )
+    )
   }
 
   return (
-    <HuntsClient locations={locations ?? []} />
+    <HuntsClient locations={locations ?? []} scannedLocationIds={scannedLocationIds} />
   )
 }

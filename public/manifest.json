@@ -1,7 +1,7 @@
 {
   "name": "Kitea",
   "short_name": "Kitea",
-  "description": "Adventure hunt platform. Find NFC tags, earn NFTs, unlock merch.",
+  "description": "Adventure hunt platform. Find NFC tags, earn collectibles, unlock merch.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
