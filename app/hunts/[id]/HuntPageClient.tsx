@@ -16,14 +16,15 @@ interface ClueData {
 }
 
 interface Props {
-  huntLocation:    HuntLocation
-  userId:          string
-  clue:            ClueData | null
-  clueImageUrl:    string | null
-  hasScanned:      boolean
-  hasRevealData:   boolean
-  initialRevealed: boolean
-  clueIsReal:      boolean
+  huntLocation:          HuntLocation
+  userId:                string
+  clue:                  ClueData | null
+  clueImageUrl:          string | null
+  hasScanned:            boolean
+  hasRevealData:         boolean
+  initialRevealed:       boolean
+  initialRevealContent:  { directions: string | null; imageUrl: string | null } | null
+  clueIsReal:            boolean
 }
 
 export default function HuntPageClient(props: Props) {

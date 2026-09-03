@@ -143,6 +143,8 @@ function CollectibleTile({ collectible, onClick }: TileProps) {
   const name = isFounder
     ? `Kitea Founder #${collectible.edition_number}`
     : `Kitea — ${collectible.hunt_locations?.name ?? 'Unknown'} #${collectible.edition_number}`
+  // "Hunt name" for the text box — founders have no hunt_locations row.
+  const huntLabel = isFounder ? 'Founder' : (collectible.hunt_locations?.name ?? 'Unknown')
 
   const imageSrc = isPlaceholder ? '/images/Kitea Logo Only.png' : (collectible.art_signed_image_url ?? '/images/Kitea Logo Only.png')
 
@@ -151,60 +153,90 @@ function CollectibleTile({ collectible, onClick }: TileProps) {
       onClick={onClick}
       aria-label={name}
       style={{
-        position:   'relative',
-        display:    'block',
-        width:      '100%',
-        aspectRatio: '1 / 1',
-        background: '#F8F8F8',
-        border:     'none',
-        padding:    0,
-        margin:     0,
-        cursor:     'pointer',
-        overflow:   'hidden',
-        transition: 'opacity 0.15s ease',
+        position:      'relative',
+        display:       'flex',
+        flexDirection: 'column',
+        width:         '100%',
+        boxSizing:     'border-box',
+        border:        '10px solid #C9A84C',
+        background:    '#FFFFFF',
+        padding:       0,
+        margin:        0,
+        cursor:        'pointer',
+        overflow:      'hidden',
+        transition:    'opacity 0.15s ease',
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
     >
-      <Image
-        src={imageSrc}
-        alt={name}
-        fill
-        style={{ objectFit: 'contain' }}
-        sizes="(max-width: 600px) 33vw, (max-width: 900px) 25vw, (max-width: 1200px) 20vw, 16vw"
-      />
+      {/* Artwork — stays square regardless of the text box beneath it */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: '#F8F8F8', flexShrink: 0 }}>
+        <Image
+          src={imageSrc}
+          alt={name}
+          fill
+          style={{ objectFit: 'contain' }}
+          sizes="(max-width: 600px) 33vw, (max-width: 900px) 25vw, (max-width: 1200px) 20vw, 16vw"
+        />
 
-      <span style={{
-        position:      'absolute',
-        top:           '6px',
-        right:         '6px',
-        background:    'rgba(0,0,0,0.75)',
-        color:         '#FFFFFF',
-        borderRadius:  '99px',
-        padding:       '2px 8px',
-        fontSize:      '0.65rem',
-        fontWeight:    700,
-        letterSpacing: '0.02em',
-        lineHeight:    1.6,
-      }}>
-        #{collectible.edition_number}
-      </span>
-
-      {isPlaceholder && (
         <span style={{
-          ...PLACEHOLDER_CAPTION_STYLE,
-          position:  'absolute',
-          left:      0,
-          right:     0,
-          bottom:    0,
-          textAlign: 'center',
-          fontSize:  '0.62rem',
-          fontWeight: 700,
-          padding:   '3px 4px',
+          position:      'absolute',
+          top:           '6px',
+          right:         '6px',
+          background:    'rgba(0,0,0,0.75)',
+          color:         '#FFFFFF',
+          borderRadius:  '99px',
+          padding:       '2px 8px',
+          fontSize:      '0.65rem',
+          fontWeight:    700,
+          letterSpacing: '0.02em',
+          lineHeight:    1.6,
         }}>
-          Placeholder design
+          #{collectible.edition_number}
         </span>
-      )}
+
+        {isPlaceholder && (
+          <span style={{
+            ...PLACEHOLDER_CAPTION_STYLE,
+            position:  'absolute',
+            left:      0,
+            right:     0,
+            bottom:    0,
+            textAlign: 'center',
+            fontSize:  '0.62rem',
+            fontWeight: 700,
+            padding:   '3px 4px',
+          }}>
+            Placeholder design
+          </span>
+        )}
+      </div>
+
+      {/* Text box — directly beneath the artwork, still inside the gold frame */}
+      <div style={{ background: '#FFFFFF', padding: '6px 8px 8px', textAlign: 'center' }}>
+        <p style={{
+          margin:        0,
+          fontSize:      '0.72rem',
+          fontWeight:    700,
+          color:         '#0B2838',
+          lineHeight:    1.3,
+          whiteSpace:    'nowrap',
+          overflow:      'hidden',
+          textOverflow:  'ellipsis',
+        }}>
+          {huntLabel}
+        </p>
+        <p style={{
+          margin:     '2px 0 0',
+          fontSize:   '0.62rem',
+          fontWeight: 500,
+          color:      '#0B2838',
+          opacity:    0.7,
+          lineHeight: 1.2,
+        }}>
+          #{collectible.edition_number}
+        </p>
+      </div>
     </button>
   )
 }

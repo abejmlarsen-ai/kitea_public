@@ -63,7 +63,7 @@ export default async function HuntRevealPage({
       {/* ── BACK TO SELECTION ────────────────────────────────────────────── */}
       <div style={{ background: '#F5F0E8', padding: '1rem 1.5rem 0', textAlign: 'center' }}>
         <a
-          href={`/hunts/${huntLocation.id}?select=1`}
+          href={`/hunts/${huntLocation.id}`}
           style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
         >
           ← Back

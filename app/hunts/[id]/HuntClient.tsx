@@ -18,14 +18,15 @@ interface ClueData {
   text_content: string | null; answer: string | null; image_url: string | null; hint_text: string | null
 }
 interface Props {
-  huntLocation:    HuntLocation
-  userId:          string
-  clue:            ClueData | null
-  clueImageUrl:    string | null
-  hasScanned:      boolean
-  hasRevealData:   boolean
-  initialRevealed: boolean
-  clueIsReal:      boolean
+  huntLocation:          HuntLocation
+  userId:                string
+  clue:                  ClueData | null
+  clueImageUrl:          string | null
+  hasScanned:            boolean
+  hasRevealData:         boolean
+  initialRevealed:       boolean
+  initialRevealContent:  { directions: string | null; imageUrl: string | null } | null
+  clueIsReal:            boolean
 }
 interface CollectibleData {
   scan_number:    number
@@ -51,7 +52,7 @@ const INPUT_STYLE: React.CSSProperties = {
 const SECTION: React.CSSProperties = { position: 'relative', zIndex: 2 }
 
 export default function HuntClient({
-  huntLocation, userId, clue, clueImageUrl, hasScanned, hasRevealData, initialRevealed, clueIsReal,
+  huntLocation, userId, clue, clueImageUrl, hasScanned, hasRevealData, initialRevealed, initialRevealContent, clueIsReal,
 }: Props) {
   const router = useRouter()
 
@@ -261,7 +262,7 @@ export default function HuntClient({
       {/* ── BACK TO SELECTION ────────────────────────────────────────────── */}
       <div style={{ ...SECTION, background: '#F5F0E8', padding: '1rem 1.5rem 0', textAlign: 'center' }}>
         <a
-          href={`/hunts/${huntLocation.id}?select=1`}
+          href={`/hunts/${huntLocation.id}`}
           style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
         >
           ← Back
@@ -293,6 +294,7 @@ export default function HuntClient({
                   src={clueImageUrl}
                   alt="Hunt clue"
                   fill
+                  priority
                   style={{ objectFit: 'contain' }}
                   sizes="(max-width: 600px) 100vw, 600px"
                 />
@@ -424,6 +426,7 @@ export default function HuntClient({
         userId={userId}
         hasRevealData={hasRevealData}
         initialRevealed={initialRevealed}
+        initialRevealContent={initialRevealContent}
         clueIsReal={clueIsReal}
       />
 

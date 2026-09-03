@@ -7,7 +7,10 @@ import { usePathname } from 'next/navigation'
 // "Return to map" control makes no sense on the homepage, shop, account, etc.
 export default function ReturnToMapButton() {
   const pathname = usePathname()
-  const inHuntFlow = pathname.startsWith('/hunts') || pathname === '/scan'
+  // The bare hunt entry route (/hunts/{id}) renders its own "Return to map"
+  // link inline on the page — showing this one too would duplicate it.
+  const isHuntEntryPage = /^\/hunts\/[^/]+\/?$/.test(pathname)
+  const inHuntFlow = (pathname.startsWith('/hunts') && !isHuntEntryPage) || pathname === '/scan'
 
   if (!inHuntFlow) return null
 

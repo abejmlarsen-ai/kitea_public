@@ -2470,9 +2470,9 @@ body {
   background: #F2EDE3;
 }
 
-/* ── Library: Palette 2 ── */
+/* ── Library: single flat white panel, no section break ── */
 .page-theme--library {
-  background: #FAF3E0;
+  background: #FFFFFF;
 }
 
 /* ── Shop: Palette 1 ─────────────────── */
@@ -2550,9 +2550,9 @@ body {
 /* ── Signup ────────────────────────────────────────────────────────────────── */
 .page-theme--signup .signup-section  { background: #F2EDE3;  color: #0B2838; }
 
-/* ── Library ───────────────────────────────────────────────────────────────── */
-.page-theme--library .section_1      { background: #FAF3E0;  color: #0B2838; }
-.page-theme--library .library-section { background: #D4C5A0; color: #0B2838; }
+/* ── Library — single flat white panel, no section break ─────────────────── */
+.page-theme--library .section_1       { background: #FFFFFF; color: #0B2838; }
+.page-theme--library .library-section { background: #FFFFFF; color: #0B2838; }
 
 /* ── Hunt / Scan ───────────────────────────────────────────────────────────── */
 .page-theme--hunt .hunt-layout       { background: #E8DCC8; }
@@ -3688,20 +3688,16 @@ body {
   color: #4a7c8c;
 }
 
-/* ══ Library page: text contrast ══════════════════════════════════════════════════════
-   Gradient: --coastal-2 (#FAF3E0) → --coastal-6 (#1A6B5A)
-   • section_1 sits on the lighter upper half → #0F3D35 text                          */
-
-/* ── section_1 (light upper area) ────────────────────────────────────────── */
+/* ══ Library page: text contrast — flat white panel, navy text throughout ══════════ */
 .page-theme--library .section_1 h2,
 .page-theme--library .section_1 p,
 .page-theme--library #user-greeting {
-  color: #0f3d35;
+  color: #0B2838;
 }
 
 /* ── Collectible empty state ──────────────────────────────────────────────────────── */
 .page-theme--library .collectible-empty {
-  color: #0f3d35;
+  color: #0B2838;
 }
 
 /* ── Collectible badges (edition + type) — coastal palette ───────────────────────── */
@@ -3859,48 +3855,27 @@ body {
 
 /* ── Hunt entry / path-selection screen ─────────────────────────────────────── */
 
-/* Title/subtitle card — self-contained, sized to content, sits above the
-   two-tone split rather than spanning full width on a flat band. */
-.hunt-entry-title-card {
-  display:      inline-block;
-  max-width:    90%;
-  background:   var(--dune-1);
-  border-radius: 16px;
-  padding:      1.5rem 2.5rem;
-  box-shadow:   0 6px 20px rgba(11, 40, 56, 0.18);
-  text-align:   center;
-}
-.hunt-entry-title {
-  font-size:   clamp(1.75rem, 6vw, 2.5rem);
-  font-weight: 700;
-  margin:      0 0 0.5rem;
-  color:       var(--dune-7);
-}
-.hunt-entry-subtitle {
-  font-size: 1rem;
-  margin:    0;
-  color:     var(--dune-4);
-}
-
+/* Stacked top/bottom (not side-by-side) so there's a single horizontal seam
+   for the heading bubble below to straddle. */
 .hunt-entry-split {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: calc(100vh - 65px);
 }
 
 .hunt-entry-half {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1.25rem;
   padding: 3rem 1.5rem;
   text-align: center;
+  background: var(--dune-7);
 }
-/* Left — Coded Clue: sandy background, solid blue bubble */
-.hunt-entry-half:first-child { background: var(--dune-2); border-right: 1px solid var(--dune-4); }
-/* Right — Location based Clue: blue background, solid sandy bubble (inverse of the left half) */
-.hunt-entry-half:last-child  { background: var(--dune-7); }
+.hunt-entry-half:first-child { border-bottom: 1px solid var(--dune-6); }
 
 .hunt-entry-bubble {
   width: min(240px, 60vw);
@@ -3914,38 +3889,64 @@ body {
   padding: 1.75rem;
   border: none;
   cursor: pointer;
+  background: var(--dune-3);
   box-shadow: 0 6px 20px rgba(11, 40, 56, 0.18);
   transition: transform 0.15s ease;
 }
 .hunt-entry-bubble:hover:not(:disabled) { transform: scale(1.03); }
 .hunt-entry-bubble:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.hunt-entry-half:first-child .hunt-entry-bubble { background: var(--dune-6); }
-.hunt-entry-half:last-child  .hunt-entry-bubble { background: var(--dune-3); }
-
-/* Bubble's own text label — always visible, coloured to match that half's
-   background (not the bubble's own fill) so it reads clearly against the
-   bubble. */
 .hunt-entry-bubble-label {
   font-size: 1.15rem;
   font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--dune-7);
 }
-.hunt-entry-half:first-child .hunt-entry-bubble-label { color: var(--dune-2); }
-.hunt-entry-half:last-child  .hunt-entry-bubble-label { color: var(--dune-7); }
 
-/* Explanation text — lives inside the bubble now, hidden until hover. Same
-   background-matching colour logic as the label, just lighter weight/size
-   to read as secondary. */
+/* Explanation text — lives inside the bubble, hidden until hover. */
 .hunt-entry-bubble-desc {
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.4;
+  color: var(--dune-7);
   opacity: 0;
   transition: opacity 0.18s ease;
 }
 .hunt-entry-bubble:hover .hunt-entry-bubble-desc { opacity: 1; }
-.hunt-entry-half:first-child .hunt-entry-bubble-desc { color: var(--dune-2); }
-.hunt-entry-half:last-child  .hunt-entry-bubble-desc { color: var(--dune-7); }
+
+/* White bubble carrying the hunt name — pinned to the exact centre of
+   .hunt-entry-split so its own vertical centreline lands precisely on the
+   seam between the two (equal-height, flex:1) halves above. */
+.hunt-entry-heading-bubble {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 90%;
+  background: #FFFFFF;
+  border-radius: 28px;
+  padding: 1.5rem 2.75rem;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(11, 40, 56, 0.25);
+}
+.hunt-entry-heading-name {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-weight: 700;
+  color: var(--dune-7);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.hunt-entry-heading-sub {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dune-4);
+}
 
 /* ══ Account page ═════════════════════════════════════════════════════════════ */
 
@@ -4189,19 +4190,17 @@ body {
   color: #FFFFFF;
 }
 
-/* ── Palette 2 upper: dark text ───────────────────────────────────────────── */
+/* ── Library — flat white panel, navy text throughout ─────────────────────── */
 .page-theme--library .section_1 {
-  color: #0F3D35;
+  color: #0B2838;
 }
 .page-theme--library .section_1 h2,
 .page-theme--library .section_1 p,
 .page-theme--library #user-greeting {
-  color: #0F3D35;
+  color: #0B2838;
 }
-
-/* ── Palette 2 lower: white text ──────────────────────────────────────────── */
 .page-theme--library .library-section {
-  color: #FFFFFF;
+  color: #0B2838;
 }
 
 /* ── Palette 3 (hunt / scan): dark text throughout ────────────────────────── */
