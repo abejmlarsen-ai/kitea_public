@@ -7,7 +7,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createServiceRoleClient } from '@/lib/supabase/server'
+import { awardFounderCollectible } from '@/lib/collectibles/founder'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -38,8 +38,6 @@ export async function GET(request: NextRequest) {
       if (user) {
         console.log('[auth/callback] user authenticated:', user.id)
 
-        const db = createServiceRoleClient()
-
         // ── 1. Upsert profile row ──────────────────────────────────────────
         const { error: upsertError } = await supabase
           .from('profiles')
@@ -51,49 +49,11 @@ export async function GET(request: NextRequest) {
           console.log('[auth/callback] profile upserted for:', user.id)
         }
 
-        // ── 2. Idempotency — skip if founder collectible already exists ────
-        const { data: existing } = await db
-          .from('collectibles')
-          .select('id, status')
-          .eq('user_id', user.id)
-          .is('hunt_location_id', null)
-          .eq('status', 'minted')
-          .maybeSingle()
-
-        if (existing) {
-          console.log('[auth/callback] founder collectible already exists — skipping')
-        } else {
-          // ── 3. Count existing founder collectibles for edition number ────
-          const { count } = await db
-            .from('collectibles')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'minted')
-            .is('hunt_location_id', null)
-
-          const edition_number = (count ?? 0) + 1
-          console.log('[auth/callback] inserting founder collectible — edition_number:', edition_number)
-
-          const { error: insertError } = await db
-            .from('collectibles')
-            .insert({
-              user_id:          user.id,
-              hunt_location_id: null,
-              scan_id:          null,
-              token_id:         null,
-              edition_number,
-              status:           'minted',
-              chain:            null,
-              contract_address: null,
-              transaction_hash: null,
-              minted_at:        new Date().toISOString(),
-            })
-
-          if (insertError) {
-            console.error('[auth/callback] founder collectible insert failed:', insertError.message)
-          } else {
-            console.log('[auth/callback] founder collectible inserted — edition_number:', edition_number)
-          }
-        }
+        // ── 2. Grant the Founder collectible ──────────────────────────────
+        // Magic link and email-confirmation land here. Same consolidated,
+        // idempotent, awaited path as signup and login; a failure is logged
+        // inside and left for the next login to retry.
+        await awardFounderCollectible(user.id)
       }
 
       return NextResponse.redirect(`${origin}${next}`)

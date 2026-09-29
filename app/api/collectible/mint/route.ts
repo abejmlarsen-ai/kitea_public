@@ -2,8 +2,10 @@
 // No blockchain calls. Records a collectible directly in collectibles as 'minted'.
 // Mint logic itself lives in lib/collectibles/mint.ts, shared with
 // /api/nfc/scan (which mints inline, server-side, before reporting success).
-// This route stays standalone for the founder-collectible mint fired from
-// LoginForm.tsx.
+// Founder-collectible awarding no longer runs through here — the auth forms
+// and callback all use the consolidated /api/collectible/founder path
+// (lib/collectibles/founder.ts). This route is kept for any generic db-only
+// mint call and is not wired to a first-party client.
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { mintCollectible } from '@/lib/collectibles/mint'

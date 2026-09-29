@@ -1,7 +1,11 @@
 'use client'
 
 // ─── Shop Client Component ────────────────────────────────────────────────────
-// Hunt-reward shop: every product is tied to a hunt, visible only after scanning.
+// Two kinds of product:
+//   • 'scan'   — tied to a hunt, shown only after the user scans that hunt,
+//                grouped under a hunt heading with a "You are #N" line.
+//   • 'signup' — tied to nothing, shown to any signed-in user, in a single
+//                ungrouped section with no hunt heading and no scan number.
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -10,6 +14,7 @@ import type { ShopProduct, HuntGroup } from './page'
 
 type Props = {
   huntGroups: HuntGroup[]
+  signupProducts: ShopProduct[]
   userId: string | null
 }
 
@@ -17,7 +22,7 @@ function isComingSoon(product: ShopProduct): boolean {
   return product.image_url === null || product.price === null || product.stripe_price_id === null
 }
 
-export default function ShopClient({ huntGroups, userId }: Props) {
+export default function ShopClient({ huntGroups, signupProducts, userId }: Props) {
   const router = useRouter()
   const [checkingOut, setCheckingOut] = useState<string | null>(null)
 
@@ -36,6 +41,8 @@ export default function ShopClient({ huntGroups, userId }: Props) {
         body: JSON.stringify({
           price_id: product.stripe_price_id,
           product_id: product.id,
+          // Null for signup products; the checkout endpoint tolerates either.
+          hunt_location_id: product.hunt_location_id,
         }),
       })
       const data = (await res.json()) as { url?: string; error?: string }
@@ -51,53 +58,16 @@ export default function ShopClient({ huntGroups, userId }: Props) {
     }
   }
 
-  // ── Empty state ─────────────────────────────────────────────────────────────
+  const hasSignup = signupProducts.length > 0
+  const hasHunts  = huntGroups.length > 0
 
-  if (huntGroups.length === 0) {
+  // ── Empty state — nothing of either kind to show ───────────────────────────
+  // Unchanged: unauthenticated visitors and signed-in users with nothing
+  // unlocked both land here.
+  if (!hasSignup && !hasHunts) {
     return (
       <div className="shop-page">
-        <div
-          style={{
-            minHeight: '60vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            padding: '48px 24px',
-            background: '#0B2838',
-            color: '#F2EDE3',
-            borderRadius: '16px',
-            margin: '32px auto',
-            maxWidth: '560px',
-          }}
-        >
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px', color: '#F2EDE3' }}>
-            The Shop
-          </h1>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px', color: '#C9A84C' }}>
-            No items unlocked
-          </h2>
-          <p style={{ fontSize: '1rem', color: '#A8C4CC', marginBottom: '32px', maxWidth: '360px' }}>
-            Complete a hunt to unlock exclusive products
-          </p>
-          <Link
-            href="/map"
-            style={{
-              display: 'inline-block',
-              padding: '12px 32px',
-              background: '#4A7C8C',
-              color: '#FFFFFF',
-              borderRadius: '8px',
-              fontWeight: 600,
-              fontSize: '1rem',
-              textDecoration: 'none',
-              transition: 'background 0.2s',
-            }}
-          >
-            Explore the Map
-          </Link>
-        </div>
+        <HuntEmptyState />
       </div>
     )
   }
@@ -112,6 +82,46 @@ export default function ShopClient({ huntGroups, userId }: Props) {
       </section>
 
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 16px 64px' }}>
+        {/* Signup rewards — ungrouped, no hunt heading, no scan number */}
+        {hasSignup && (
+          <div style={{ marginBottom: '48px' }}>
+            <h2
+              style={{
+                fontSize: '1.4rem',
+                fontWeight: 700,
+                color: '#0B2838',
+                marginBottom: '20px',
+                paddingBottom: '8px',
+                borderBottom: '2px solid #C4B08E',
+              }}
+            >
+              Member Rewards
+            </h2>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '24px',
+              }}
+            >
+              {signupProducts.map((product) =>
+                isComingSoon(product) ? (
+                  <ComingSoonCard key={product.id} product={product} />
+                ) : (
+                  <PurchasableCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                    isLoading={checkingOut === product.id}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Hunt groups — existing behaviour, unchanged */}
         {huntGroups.map((group) => (
           <div key={group.hunt_location_id} style={{ marginBottom: '48px' }}>
             {/* Hunt section heading */}
@@ -156,7 +166,60 @@ export default function ShopClient({ huntGroups, userId }: Props) {
             </div>
           </div>
         ))}
+
+        {/* A signed-in user with signup rewards but no unlocked hunts still
+            sees the hunt call-to-action rather than a truncated page. */}
+        {hasSignup && !hasHunts && <HuntEmptyState />}
       </div>
+    </div>
+  )
+}
+
+// ── Hunt empty-state message ──────────────────────────────────────────────────
+
+function HuntEmptyState() {
+  return (
+    <div
+      style={{
+        minHeight: '60vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '48px 24px',
+        background: '#0B2838',
+        color: '#F2EDE3',
+        borderRadius: '16px',
+        margin: '32px auto',
+        maxWidth: '560px',
+      }}
+    >
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px', color: '#F2EDE3' }}>
+        The Shop
+      </h1>
+      <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px', color: '#C9A84C' }}>
+        No items unlocked
+      </h2>
+      <p style={{ fontSize: '1rem', color: '#A8C4CC', marginBottom: '32px', maxWidth: '360px' }}>
+        Complete a hunt to unlock exclusive products
+      </p>
+      <Link
+        href="/map"
+        style={{
+          display: 'inline-block',
+          padding: '12px 32px',
+          background: '#4A7C8C',
+          color: '#FFFFFF',
+          borderRadius: '8px',
+          fontWeight: 600,
+          fontSize: '1rem',
+          textDecoration: 'none',
+          transition: 'background 0.2s',
+        }}
+      >
+        Explore the Map
+      </Link>
     </div>
   )
 }
@@ -168,7 +231,8 @@ function ComingSoonCard({
   scanNumber,
 }: {
   product: ShopProduct
-  scanNumber: number
+  // Omitted for signup products — no scan number, no tag language.
+  scanNumber?: number
 }) {
   return (
     <article
@@ -231,9 +295,11 @@ function ComingSoonCard({
         Product unlocked. Available for purchase shortly.
       </p>
 
-      <p style={{ color: '#4A7C8C', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
-        You are #{scanNumber} to find this tag
-      </p>
+      {scanNumber != null && (
+        <p style={{ color: '#4A7C8C', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
+          You are #{scanNumber} to find this tag
+        </p>
+      )}
     </article>
   )
 }
@@ -247,7 +313,8 @@ function PurchasableCard({
   isLoading,
 }: {
   product: ShopProduct
-  scanNumber: number
+  // Omitted for signup products — no scan number, no tag language.
+  scanNumber?: number
   onAddToCart: (product: ShopProduct) => void
   isLoading: boolean
 }) {
@@ -295,9 +362,11 @@ function PurchasableCard({
         </p>
       )}
 
-      <p style={{ color: '#4A7C8C', fontSize: '0.85rem', fontStyle: 'italic', margin: '0 0 12px' }}>
-        You are #{scanNumber} to find this tag
-      </p>
+      {scanNumber != null && (
+        <p style={{ color: '#4A7C8C', fontSize: '0.85rem', fontStyle: 'italic', margin: '0 0 12px' }}>
+          You are #{scanNumber} to find this tag
+        </p>
+      )}
 
       <p style={{ fontWeight: 700, color: '#0B2838', fontSize: '1.1rem', margin: '0 0 16px' }}>
         ${product.price!.toFixed(2)}

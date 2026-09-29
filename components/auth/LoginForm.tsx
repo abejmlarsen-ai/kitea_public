@@ -33,24 +33,19 @@ export default function LoginForm() {
       return
     }
 
-    // Fire-and-forget: queue the founder collectible pending row insert.
-    // /api/collectible/mint runs in its own serverless invocation and is
-    // fully idempotent — safe to call on every login.  We intentionally do
-    // NOT await so the redirect to /library happens immediately.
-    // The library page detects any pending row and triggers the actual
-    // blockchain mint once the user has a connected wallet.
-    if (data.user) {
-      fetch('/api/collectible/mint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: data.user.id,
-          hunt_location_id: null,
-          scan_number: 1,
-          scan_id: null,
-          is_founder: true,
-        }),
-      }).catch(console.error)
+    // Backstop for accounts created before signup granted the Founder
+    // collectible. Awaited and idempotent — same server-side path as signup.
+    // Any failure is logged server-side and left for the next login; it is
+    // never surfaced here and must not block the redirect.
+    if (data.session) {
+      try {
+        await fetch('/api/collectible/founder', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${data.session.access_token}` },
+        })
+      } catch {
+        // Login still succeeds.
+      }
     }
 
     // Honour ?redirect= param (e.g. from /scan auth flow), fall back to /library

@@ -475,6 +475,7 @@ export type Database = {
           requires_scan: boolean | null
           stock_quantity: number | null
           stripe_price_id: string | null
+          unlock_type: string
         }
         Insert: {
           created_at?: string | null
@@ -489,6 +490,7 @@ export type Database = {
           requires_scan?: boolean | null
           stock_quantity?: number | null
           stripe_price_id?: string | null
+          unlock_type?: string
         }
         Update: {
           created_at?: string | null
@@ -503,6 +505,7 @@ export type Database = {
           requires_scan?: boolean | null
           stock_quantity?: number | null
           stripe_price_id?: string | null
+          unlock_type?: string
         }
         Relationships: [
           {

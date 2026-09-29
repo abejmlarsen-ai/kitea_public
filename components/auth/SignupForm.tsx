@@ -66,7 +66,20 @@ export default function SignupForm() {
     }
 
     if (data.session) {
-      // Email confirmation disabled — user is immediately signed in
+      // Email confirmation disabled — user is immediately signed in.
+      // Grant the Founder collectible (awaited, idempotent, server-side) before
+      // navigating so /library never renders ahead of the row. Best-effort:
+      // any failure is logged server-side and retried on next login — it must
+      // not block signup.
+      try {
+        await fetch('/api/collectible/founder', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${data.session.access_token}` },
+        })
+      } catch {
+        // Signup still succeeds; the login backstop will retry.
+      }
+
       setSuccess(`Welcome, ${form.first_name}! Account created. Taking you to your library…`)
       setTimeout(() => {
         router.push('/library')
