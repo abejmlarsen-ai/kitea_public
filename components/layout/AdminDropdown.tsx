@@ -9,7 +9,8 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const SECTIONS = [
+// Also listed in the collapsed header menu (HeaderMenu)
+export const ADMIN_SECTIONS = [
   { label: 'Locations', tab: 'locations' },
   { label: 'Products',  tab: 'products'  },
   { label: 'NFC Tags',  tab: 'nfc_tags'  },
@@ -67,7 +68,7 @@ export default function AdminDropdown() {
 
       {open && (
         <ul className="nav-admin-menu" role="menu">
-          {SECTIONS.map(s => (
+          {ADMIN_SECTIONS.map(s => (
             <li key={s.tab} role="none">
               <Link
                 href={`/admin?tab=${s.tab}`}

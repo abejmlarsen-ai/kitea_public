@@ -7,6 +7,20 @@
       "runtimeArgs": ["next", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "nextdev-webpack",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "--webpack"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "nextdev-webpack-placeholder-key",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "SUPABASE_SERVICE_ROLE_KEY=placeholder-no-data npx next dev --webpack"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

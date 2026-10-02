@@ -22,7 +22,7 @@ interface Props {
 
 export default function HuntsClient({ locations, scannedLocationIds }: Props) {
   return (
-    <div className="page-theme page-theme--map" style={{ padding: '2rem', paddingTop: '6.5rem' }}>
+    <div className="page-theme page-theme--map map-page">
       <MapComponent locations={locations} scannedLocationIds={scannedLocationIds} />
     </div>
   )
