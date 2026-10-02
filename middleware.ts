@@ -5,7 +5,7 @@
 // AUTH pages (/login, /signup) redirect logged-in users to /library.
 //
 // Public (never gated):
-//   /  /about  /how-it-works  /map  /scan  /contact  /shop
+//   /  /about  /how-it-works  /opportunities  /faq  /map  /scan  /contact  /shop
 //   /api/nfc/*  /auth/*  + static assets
 //
 // Protected (valid session required):

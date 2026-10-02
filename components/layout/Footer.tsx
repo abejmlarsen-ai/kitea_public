@@ -29,6 +29,8 @@ export default function Footer() {
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/about" style={{ color: '#0B2838', opacity: 1 }}>About</a>
           <a href="/our-story" style={{ color: '#0B2838', opacity: 1 }}>Our Story</a>
+          <a href="/opportunities" style={{ color: '#0B2838', opacity: 1 }}>Opportunities</a>
+          <a href="/faq" style={{ color: '#0B2838', opacity: 1 }}>FAQ</a>
           <a href="mailto:kiteaao@gmail.com" style={{ color: '#0B2838', opacity: 1 }}>Contact</a>
         </nav>
       </div>
