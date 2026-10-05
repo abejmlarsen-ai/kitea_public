@@ -8,14 +8,24 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { awardFounderCollectible } from '@/lib/collectibles/founder'
+import { safeRedirect } from '@/lib/auth/safeRedirect'
+import { PENDING_CLAIM_COOKIE, pendingClaimScanPath } from '@/lib/auth/pendingClaim'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/library'
 
   if (code) {
     const cookieStore = await cookies()
+
+    // Where to land: a valid ?next (internal paths only), else a pending
+    // claim from a signed-out scan, else /library.
+    const nextParam = searchParams.get('next')
+    const next =
+      (nextParam ? safeRedirect(nextParam, '') : '') ||
+      pendingClaimScanPath(cookieStore.get(PENDING_CLAIM_COOKIE)?.value) ||
+      safeRedirect(null)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

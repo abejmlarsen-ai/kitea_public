@@ -3014,6 +3014,16 @@ body {
   margin: 0;
 }
 
+/* Honeypot field — off-screen rather than display:none, which some bots skip */
+.contact-hp {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .contact-error {
   padding: 0.7rem 1rem;
   background: rgba(231, 76, 60, 0.1);

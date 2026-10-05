@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import PasswordInput from '@/components/auth/PasswordInput'
+import { safeRedirect } from '@/lib/auth/safeRedirect'
 
 export default function LoginForm() {
   const [email, setEmail]       = useState('')
@@ -15,6 +16,14 @@ export default function LoginForm() {
   const [loading, setLoading]   = useState(false)
   const router                  = useRouter()
   const searchParams            = useSearchParams()
+
+  // A validated ?redirect, or '' if there isn't one. Forwarded to /signup so
+  // a user who switches to creating an account still returns to it.
+  const redirectParam = searchParams.get('redirect')
+  const forwardRedirect = redirectParam ? safeRedirect(redirectParam, '') : ''
+  const signupHref = forwardRedirect
+    ? `/signup?redirect=${encodeURIComponent(forwardRedirect)}`
+    : '/signup'
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -48,9 +57,9 @@ export default function LoginForm() {
       }
     }
 
-    // Honour ?redirect= param (e.g. from /scan auth flow), fall back to /library
-    const redirect = searchParams.get('redirect')
-    router.push(redirect && redirect.startsWith('/') ? redirect : '/library')
+    // Honour ?redirect= (e.g. from the /scan auth flow) — internal paths only,
+    // anything else falls back to /library
+    router.push(safeRedirect(searchParams.get('redirect')))
     router.refresh()
   }
 
@@ -105,7 +114,7 @@ export default function LoginForm() {
             {error && <p className="error-message">{error}</p>}
           </form>
 
-          <Link href="/signup" className="auth-link">
+          <Link href={signupHref} className="auth-link">
             Don&apos;t have an account? Sign up
           </Link>
         </div>

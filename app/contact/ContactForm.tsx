@@ -1,20 +1,39 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import {
+  CONTACT_HONEYPOT_FIELD,
+  CONTACT_MAX_EMAIL,
+  CONTACT_MAX_MESSAGE,
+  CONTACT_MAX_NAME,
+  CONTACT_QUERY_TYPES,
+  type ContactQueryType,
+} from '@/lib/contact/limits'
 
-type QueryType = 'customer' | 'collaborator' | 'company'
+// Message for a failed response. 400s carry a specific, user-facing reason
+// from the server (e.g. "Please enter a valid email address.").
+function errorFor(status: number, serverError?: string): string {
+  if (status === 400) return serverError ?? 'Please check your details and try again.'
+  if (status === 429) return 'You’ve sent a few messages in a short time. Please wait a few minutes and try again.'
+  return 'Something went wrong. Please try again.'
+}
 
 export default function ContactForm() {
   const [name, setName]         = useState('')
   const [email, setEmail]       = useState('')
-  const [queryType, setQueryType] = useState<QueryType>('customer')
+  const [queryType, setQueryType] = useState<ContactQueryType>('customer')
   const [message, setMessage]   = useState('')
+  const [honeypot, setHoneypot] = useState('')
   const [status, setStatus]     = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !email.trim() || !message.trim()) return
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      setErrorMsg('Please fill in your name, email and message.')
+      setStatus('error')
+      return
+    }
 
     setStatus('sending')
     setErrorMsg('')
@@ -23,15 +42,15 @@ export default function ContactForm() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, queryType, message }),
+        body: JSON.stringify({ name, email, queryType, message, [CONTACT_HONEYPOT_FIELD]: honeypot }),
       })
 
       if (res.ok) {
         setStatus('success')
-        setName(''); setEmail(''); setMessage(''); setQueryType('customer')
+        setName(''); setEmail(''); setMessage(''); setQueryType('customer'); setHoneypot('')
       } else {
-        const data = await res.json() as { error?: string }
-        setErrorMsg(data.error ?? 'Something went wrong. Please try again.')
+        const data = await res.json().catch(() => ({})) as { error?: string }
+        setErrorMsg(errorFor(res.status, data.error))
         setStatus('error')
       }
     } catch {
@@ -64,6 +83,8 @@ export default function ContactForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
+            maxLength={CONTACT_MAX_NAME}
+            autoComplete="name"
             required
           />
         </div>
@@ -75,6 +96,8 @@ export default function ContactForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
+            maxLength={CONTACT_MAX_EMAIL}
+            autoComplete="email"
             required
           />
         </div>
@@ -85,11 +108,11 @@ export default function ContactForm() {
         <select
           id="contact-type"
           value={queryType}
-          onChange={(e) => setQueryType(e.target.value as QueryType)}
+          onChange={(e) => setQueryType(e.target.value as ContactQueryType)}
         >
-          <option value="customer">Customer</option>
-          <option value="collaborator">Collaborator</option>
-          <option value="company">Company / Brand</option>
+          {Object.entries(CONTACT_QUERY_TYPES).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
       </div>
 
@@ -101,7 +124,22 @@ export default function ContactForm() {
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Tell us what's on your mind…"
           rows={6}
+          maxLength={CONTACT_MAX_MESSAGE}
           required
+        />
+      </div>
+
+      {/* Honeypot — hidden from people and assistive tech; bots fill it in. */}
+      <div className="contact-hp" aria-hidden="true">
+        <label htmlFor={`contact-${CONTACT_HONEYPOT_FIELD}`}>Leave this field empty</label>
+        <input
+          id={`contact-${CONTACT_HONEYPOT_FIELD}`}
+          type="text"
+          name={CONTACT_HONEYPOT_FIELD}
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
         />
       </div>
 
