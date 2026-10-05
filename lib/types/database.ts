@@ -475,6 +475,7 @@ export type Database = {
           requires_scan: boolean | null
           stock_quantity: number | null
           stripe_price_id: string | null
+          unlock_type: string
         }
         Insert: {
           created_at?: string | null
@@ -489,6 +490,7 @@ export type Database = {
           requires_scan?: boolean | null
           stock_quantity?: number | null
           stripe_price_id?: string | null
+          unlock_type?: string
         }
         Update: {
           created_at?: string | null
@@ -503,6 +505,7 @@ export type Database = {
           requires_scan?: boolean | null
           stock_quantity?: number | null
           stripe_price_id?: string | null
+          unlock_type?: string
         }
         Relationships: [
           {
@@ -616,7 +619,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      // Hand-written from supabase/migrations/20261002120000_atomic_scan_and_mint.sql
+      // until types are regenerated after that migration is applied.
+      mint_hunt_collectible: {
+        Args: {
+          p_user_id: string
+          p_hunt_location_id: string
+          p_scan_id: string
+        }
+        Returns: {
+          collectible_id: string
+          edition_number: number
+          minted_now: boolean
+        }[]
+      }
+      record_scan: {
+        Args: {
+          p_user_id: string
+          p_hunt_location_id: string
+          p_nfc_tag_id: string
+          p_tag_uid: string
+        }
+        Returns: {
+          scan_id: string
+          scan_number: number
+          created: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

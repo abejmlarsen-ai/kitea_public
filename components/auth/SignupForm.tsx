@@ -3,11 +3,12 @@
 // ─── Sign-up Form (Client Component) ─────────────────────────────────────────
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import PasswordInput from '@/components/auth/PasswordInput'
+import { safeRedirect } from '@/lib/auth/safeRedirect'
 
 export default function SignupForm() {
   const [form, setForm] = useState({
@@ -23,6 +24,17 @@ export default function SignupForm() {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const router                = useRouter()
+  const searchParams          = useSearchParams()
+
+  // Where to go once signed in: a validated ?redirect (e.g. /scan?tag=… from a
+  // signed-out scan), else /library. `forwardRedirect` is '' when there's no
+  // valid ?redirect, so it is only forwarded when there's something to forward.
+  const redirectParam   = searchParams.get('redirect')
+  const forwardRedirect = redirectParam ? safeRedirect(redirectParam, '') : ''
+  const afterAuth       = forwardRedirect || safeRedirect(null)
+  const loginHref       = forwardRedirect
+    ? `/login?redirect=${encodeURIComponent(forwardRedirect)}`
+    : '/login'
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -44,11 +56,18 @@ export default function SignupForm() {
 
     setLoading(true)
 
+    // Email-confirmation link target. With a ?redirect, the callback is told
+    // where to go via ?next; without one it falls back to the pending-claim
+    // cookie (if any) and then /library.
+    const callbackUrl = new URL('/auth/callback', window.location.origin)
+    if (forwardRedirect) callbackUrl.searchParams.set('next', forwardRedirect)
+
     const supabase = createClient()
     const { data, error: authError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
+        emailRedirectTo: callbackUrl.toString(),
         data: {
           first_name: form.first_name,
           last_name: form.last_name,
@@ -66,19 +85,37 @@ export default function SignupForm() {
     }
 
     if (data.session) {
-      // Email confirmation disabled — user is immediately signed in
-      setSuccess(`Welcome, ${form.first_name}! Account created. Taking you to your library…`)
+      // Email confirmation disabled — user is immediately signed in.
+      // Grant the Founder collectible (awaited, idempotent, server-side) before
+      // navigating so /library never renders ahead of the row. Best-effort:
+      // any failure is logged server-side and retried on next login — it must
+      // not block signup.
+      try {
+        await fetch('/api/collectible/founder', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${data.session.access_token}` },
+        })
+      } catch {
+        // Signup still succeeds; the login backstop will retry.
+      }
+
+      setSuccess(
+        forwardRedirect
+          ? `Welcome, ${form.first_name}! Account created. Taking you back…`
+          : `Welcome, ${form.first_name}! Account created. Taking you to your library…`
+      )
       setTimeout(() => {
-        router.push('/library')
+        router.push(afterAuth)
         router.refresh()
       }, 1500)
     } else {
-      // Email confirmation required
+      // Email confirmation required. The emailed link returns them via
+      // /auth/callback; the login page keeps ?redirect in case they log in here.
       setSuccess(
         `Account created! A verification email has been sent to ${form.email}. ` +
         `Please check your inbox, then log in.`
       )
-      setTimeout(() => router.push('/login'), 4000)
+      setTimeout(() => router.push(loginHref), 4000)
     }
   }
 
@@ -201,7 +238,7 @@ export default function SignupForm() {
             {success && <p className="success-message">{success}</p>}
           </form>
 
-          <Link href="/login" className="auth-link">
+          <Link href={loginHref} className="auth-link">
             Already have an account? Log in
           </Link>
         </div>

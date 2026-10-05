@@ -61,6 +61,9 @@
   --kitea-warm:  var(--horizon-4);
   --kitea-light: var(--dune-2);
   --kitea-dark:  var(--dune-7);
+
+  /* Highlight accent — icons, junctions, title underlines */
+  --accent-gold: #C9A84C;
 }
 
 
@@ -2143,73 +2146,255 @@ body {
   }
 }
 
-/* ─── How It Works — Flow Diagram ───────────────────────────────────────────── */
-.hiw-flow {
+/* ─── How It Works — single section: title, tagline, flow diagram ───────────── */
+.hiw-section {
   padding: var(--section-padding) 0;
-  background: var(--color-surface);
-}
-.flow-steps {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0;
-  margin-top: 2.5rem;
-}
-.flow-step {
-  flex: 1;
-  min-width: 150px;
-  max-width: 190px;
+  background: var(--dune-1);
+  color: var(--dune-7);
   text-align: center;
-  padding: 1.25rem 0.75rem;
 }
-.flow-step-number {
+.hiw-section h2 {
   font-family: var(--font-heading);
-  font-size: 0.7rem;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 700;
-  color: #0169aa;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  color: var(--dune-7);
+  margin-bottom: 1rem;
 }
-.flow-step-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.75rem;
+.hiw-section h2::after {
+  content: '';
   display: block;
-}
-.flow-step h3 {
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--color-text);
-}
-.flow-step p {
-  font-size: 0.82rem;
-  line-height: 1.55;
-  color: #555;
-}
-.flow-connector {
-  font-size: 1.8rem;
-  color: #0169aa;
-  padding: 2.5rem 0.25rem 0;
-  font-weight: 700;
-  flex-shrink: 0;
+  width: 64px;
+  height: 3px;
+  margin: 0.85rem auto 0;
+  border-radius: 2px;
+  background: var(--accent-gold);
 }
 
-/* ─── How It Works — Opportunities ─────────────────────────────────────────── */
-.hiw-opportunities {
-  padding: var(--section-padding) 0;
-  background: #1B4965;
-  color: #FFFFFF;
+/* ─── How It Works — Flow diagram (components/how-it-works/HowItWorksFlow) ── */
+.hiw-flow {
+  max-width: calc(1480px + 4rem);
+  margin: 3.5rem auto 0;
+  padding: 0 2rem;
+  text-align: left;
 }
-.hiw-opportunities h2 {
+.hiw-flow ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hiw-flow__icon {
+  display: block;
+  flex-shrink: 0;
+  color: var(--accent-gold);
+}
+
+/* Tiles — shared by desktop and mobile */
+.hiw-flow__tile {
+  display: flex;
+  background: var(--dune-6);
+  color: var(--dune-1);
+}
+.hiw-flow__tile--branch {
+  background: var(--dune-1);
+  color: var(--dune-7);
+  border: 2px dashed var(--dune-6);
+}
+.hiw-flow__tile-text {
+  display: flex;
+  flex-direction: column;
+}
+.hiw-flow__label {
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+.hiw-flow__tile--branch .hiw-flow__label { color: var(--dune-6); }
+.hiw-flow__title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+/* Desktop — 1480×490 design canvas; --u = 1 design px, scaled to fit */
+.hiw-flow__desktop { container-type: inline-size; }
+.hiw-flow__canvas {
+  --u: calc(min(100cqw, 1480px) / 1480);
+  position: relative;
+  width: calc(1480 * var(--u));
+  height: calc(490 * var(--u));
+  margin: 0 auto;
+}
+.hiw-flow__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--dune-7);
+  stroke-width: 2;
+}
+.hiw-flow__arrowhead { fill: var(--dune-7); stroke: none; }
+.hiw-flow__halo      { fill: var(--dune-1); stroke: none; }
+.hiw-flow__junction  { fill: var(--accent-gold); stroke: none; }
+.hiw-flow__step {
+  position: absolute;
+  width: calc(132 * var(--u));
+}
+.hiw-flow__step--branch { width: calc(160 * var(--u)); }
+.hiw-flow__canvas .hiw-flow__tile {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(10 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(128 * var(--u));
+  padding: calc(14 * var(--u));
+  border-radius: calc(12 * var(--u));
+}
+.hiw-flow__canvas .hiw-flow__tile--branch {
+  width: 100%;
+  border-width: calc(2 * var(--u));
+}
+.hiw-flow__canvas .hiw-flow__icon {
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
+}
+.hiw-flow__canvas .hiw-flow__label {
+  font-size: calc(11 * var(--u));
+  line-height: calc(18 * var(--u));
+}
+.hiw-flow__canvas .hiw-flow__title {
+  font-size: calc(15 * var(--u));
+  line-height: calc(19 * var(--u));
+}
+.hiw-flow__canvas .hiw-flow__text--mobile { display: none; }
+.hiw-flow__caption {
+  margin: calc(12 * var(--u)) 0 0;
+  font-size: calc(14 * var(--u));
+  line-height: calc(20 * var(--u));
+  color: var(--dune-6);
+}
+.hiw-flow__or {
+  position: absolute;
+  width: calc(40 * var(--u));
+  text-align: center;
+  font-size: calc(14 * var(--u));
+  line-height: calc(16 * var(--u));
+  font-style: italic;
+  color: var(--dune-6);
+}
+
+/* Mobile — vertical stack, connectors drawn with borders and pseudo-elements.
+   Scoped under .hiw-flow so the auto margins outrank `.hiw-flow ol { margin: 0 }`. */
+.hiw-flow .hiw-flow__mobile {
+  display: none;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.hiw-flow__mobile .hiw-flow__tile {
+  align-items: center;
+  gap: 14px;
+  min-height: 104px;
+  padding: 18px 16px;
+  border-radius: 14px;
+}
+.hiw-flow__mobile .hiw-flow__tile--branch {
+  flex-direction: column;
+  align-items: flex-start;
+  height: 100%;
+  padding: 14px;
+}
+.hiw-flow__mobile .hiw-flow__icon  { width: 32px; height: 32px; }
+.hiw-flow__mobile .hiw-flow__label { font-size: 11px; line-height: 18px; }
+.hiw-flow__mobile .hiw-flow__title { font-size: 16px; line-height: 22px; }
+.hiw-flow__text--mobile {
+  font-size: 13px;
+  line-height: 18px;
+  color: rgba(255, 255, 255, 0.86);
+}
+.hiw-flow__tile--branch .hiw-flow__text--mobile { color: var(--dune-6); }
+
+.hiw-flow__mstep,
+.hiw-flow__mbranch { position: relative; }
+.hiw-flow__mstep + .hiw-flow__mstep,
+.hiw-flow__mfork + .hiw-flow__mstep { margin-top: 44px; }
+/* Arrow shaft into a step */
+.hiw-flow__mstep + .hiw-flow__mstep::before,
+.hiw-flow__mfork + .hiw-flow__mstep::before,
+.hiw-flow__mfork::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -44px;
+  width: 2px;
+  height: 34px;
+  margin-left: -1px;
+  background: var(--dune-7);
+}
+/* Arrowhead */
+.hiw-flow__mstep + .hiw-flow__mstep::after,
+.hiw-flow__mfork + .hiw-flow__mstep::after,
+.hiw-flow__mbranch::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  margin-left: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 10px solid var(--dune-7);
+}
+.hiw-flow__mfork {
+  position: relative;
+  padding: 76px 0 40px;
+}
+.hiw-flow__mfork::before { top: 0; height: 32px; }
+.hiw-flow__mbranches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+/* Split (∏) and join (∐) brackets between the two branch columns' centres */
+.hiw-flow__msplit,
+.hiw-flow__mjoin {
+  position: absolute;
+  left: calc((100% - 14px) / 4 - 1px);
+  right: calc((100% - 14px) / 4 - 1px);
+  border: 2px solid var(--dune-7);
+}
+.hiw-flow__msplit { top: 32px; height: 34px; border-bottom: none; }
+.hiw-flow__mjoin  { bottom: 0; height: 42px; border-top: none; }
+.hiw-flow__mdot {
+  position: absolute;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 0 4px var(--dune-1);
+}
+.hiw-flow__mdot--split { top: 26px; }
+.hiw-flow__mdot--join  { bottom: -6px; }
+
+@media (max-width: 1199px) {
+  .hiw-flow__desktop { display: none; }
+  .hiw-flow .hiw-flow__mobile { display: block; }
+}
+
+/* ─── Opportunities (/opportunities) ───────────────────────────────────────── */
+.opportunities-section {
+  padding: var(--section-padding) 0;
+  background: #FFFFFF;
+  color: var(--dune-7);
+}
+.opportunities-section h2 {
   font-family: var(--font-heading);
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 700;
   text-align: center;
   margin-bottom: 2rem;
-  color: var(--color-text);
+  color: var(--dune-7);
 }
 .opportunity-grid {
   display: grid;
@@ -2222,16 +2407,16 @@ body {
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
-.opportunity-card--people  { border-top: 4px solid #0169aa; }
-.opportunity-card--business { border-top: 4px solid #c9a227; }
+.opportunity-card--people  { border-top: 4px solid var(--dune-6); }
+.opportunity-card--business { border-top: 4px solid #C9A84C; }
 .opportunity-card h3 {
   font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1.1rem;
 }
-.opportunity-card--people  h3 { color: #0169aa; }
-.opportunity-card--business h3 { color: #c9a227; }
+.opportunity-card--people  h3 { color: var(--dune-6); }
+.opportunity-card--business h3 { color: #C9A84C; }
 .opportunity-card ul {
   list-style: none;
   padding: 0;
@@ -2252,21 +2437,22 @@ body {
   left: 0;
   font-weight: 700;
 }
-.opportunity-card--people   ul li::before { color: #0169aa; }
-.opportunity-card--business ul li::before { color: #c9a227; }
+.opportunity-card--people   ul li::before { color: var(--dune-6); }
+.opportunity-card--business ul li::before { color: #C9A84C; }
 
-/* ─── How It Works — FAQs ───────────────────────────────────────────────────── */
-.hiw-faqs {
+/* ─── FAQ (/faq) ────────────────────────────────────────────────────────────── */
+.faq-section {
   padding: var(--section-padding) 0;
-  background: var(--color-bg);
+  background: #FFFFFF;
+  color: var(--dune-7);
 }
-.hiw-faqs h2 {
+.faq-section h2 {
   font-family: var(--font-heading);
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 700;
   text-align: center;
   margin-bottom: 2rem;
-  color: var(--color-text);
+  color: var(--dune-7);
 }
 .faq-list {
   max-width: 720px;
@@ -2287,7 +2473,7 @@ body {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  color: var(--color-text);
+  color: var(--dune-7);
   list-style: none;
   display: flex;
   justify-content: space-between;
@@ -2300,7 +2486,7 @@ body {
 .faq-item summary::after {
   content: '+';
   font-size: 1.3rem;
-  color: #0169aa;
+  color: var(--dune-7);
   flex-shrink: 0;
   line-height: 1;
 }
@@ -2316,8 +2502,6 @@ body {
 }
 
 @media (max-width: 768px) {
-  .flow-steps     { flex-direction: column; align-items: center; }
-  .flow-connector { padding: 0; transform: rotate(90deg); font-size: 1.4rem; }
   .opportunity-grid { grid-template-columns: 1fr; }
   .faq-list { max-width: 100%; }
 }
@@ -2462,7 +2646,7 @@ body {
 
 /* ── How It Works: Palette 1 ───────── */
 .page-theme--hiw {
-  background: #F2EDE3;
+  background: var(--dune-1);
 }
 
 /* ── Map: Palette 1 ───────────────────── */
@@ -2470,9 +2654,15 @@ body {
   background: #F2EDE3;
 }
 
-/* ── Library: Palette 2 ── */
+/* ── Opportunities & FAQ: flat white panel ── */
+.page-theme--opportunities,
+.page-theme--faq {
+  background: #FFFFFF;
+}
+
+/* ── Library: single flat white panel, no section break ── */
 .page-theme--library {
-  background: #FAF3E0;
+  background: #FFFFFF;
 }
 
 /* ── Shop: Palette 1 ─────────────────── */
@@ -2535,11 +2725,11 @@ body {
 /* section_1 covered above. about-narrative is Our Story's second section. */
 .page-theme--about .about-narrative { background: #8A7A5E; color: #FFFFFF; }
 
-/* ── How It Works ──────────────────────────────────────────────────────────── */
-.page-theme--hiw .section_1          { background: #F2EDE3;  color: #0B2838; }
-.page-theme--hiw .hiw-flow           { background: #C4B08E;  color: #0B2838; }
-.page-theme--hiw .hiw-opportunities  { background: #1B4965;  color: #FFFFFF; }
-.page-theme--hiw .hiw-faqs           { background: #0B2838;  color: #FFFFFF; }
+/* ── Opportunities ─────────────────────────────────────────────────────────── */
+.page-theme--opportunities .opportunities-section { background: #FFFFFF; color: var(--dune-7); }
+
+/* ── FAQ ───────────────────────────────────────────────────────────────────── */
+.page-theme--faq .faq-section        { background: #FFFFFF;  color: var(--dune-7); }
 
 /* ── Map ───────────────────────────────────────────────────────────────────── */
 .page-theme--map .map-section        { background: #4A7C8C;  color: #FFFFFF; }
@@ -2550,9 +2740,9 @@ body {
 /* ── Signup ────────────────────────────────────────────────────────────────── */
 .page-theme--signup .signup-section  { background: #F2EDE3;  color: #0B2838; }
 
-/* ── Library ───────────────────────────────────────────────────────────────── */
-.page-theme--library .section_1      { background: #FAF3E0;  color: #0B2838; }
-.page-theme--library .library-section { background: #D4C5A0; color: #0B2838; }
+/* ── Library — single flat white panel, no section break ─────────────────── */
+.page-theme--library .section_1       { background: #FFFFFF; color: #0B2838; }
+.page-theme--library .library-section { background: #FFFFFF; color: #0B2838; }
 
 /* ── Hunt / Scan ───────────────────────────────────────────────────────────── */
 .page-theme--hunt .hunt-layout       { background: #E8DCC8; }
@@ -2822,6 +3012,16 @@ body {
   color: #555;
   font-size: 0.95rem;
   margin: 0;
+}
+
+/* Honeypot field — off-screen rather than display:none, which some bots skip */
+.contact-hp {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .contact-error {
@@ -3126,86 +3326,6 @@ body {
   font-size: clamp(1.8rem, 3.5vw, 2.5rem);
 }
 
-/* ── HIW: normalise all section heading sizes ─────────────── */
-.page-theme--hiw .section_1 h2,
-.hiw-opportunities h2,
-.hiw-faqs h2 {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-}
-
-/* ── HIW: new 6-step flow diagram ─────────────────────────── */
-.hiw-step-flow {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 0;
-  padding: 2.5rem 0;
-  -webkit-overflow-scrolling: touch;
-}
-
-.hiw-step-box {
-  flex: 1;
-  min-width: 110px;
-  background: rgba(8, 20, 15, 0.72);
-  border: 1px solid rgba(80, 175, 135, 0.22);
-  border-radius: 0.75rem;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-}
-
-.hiw-step-num {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: rgba(80, 175, 135, 0.9);
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-.hiw-step-text {
-  font-size: 0.875rem;
-  color: rgba(220, 235, 225, 0.9);
-  line-height: 1.45;
-}
-
-.hiw-step-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  align-self: center;
-  padding: 0 0.4rem;
-  font-size: 1.35rem;
-  color: rgba(80, 175, 135, 0.65);
-}
-
-/* Mobile: stack vertically */
-@media (max-width: 768px) {
-  .hiw-step-flow {
-    flex-direction: column;
-    overflow-x: visible;
-    padding: 1.5rem 0;
-    gap: 0;
-  }
-
-  .hiw-step-arrow {
-    align-self: center;
-    padding: 0.3rem 0;
-    transform: rotate(90deg);
-  }
-
-  .hiw-step-box {
-    min-width: unset;
-    width: 100%;
-  }
-}
-
-
 /* ============================================================
    PWA Install Banner
    ============================================================ */
@@ -3448,63 +3568,6 @@ body {
   display: inline-block;
 }
 
-/* ── HIW: text contrast on dark lower gradient ────────────────────────────────
-   logo-hero is light — no text there.
-   section_1, hiw-flow, hiw-opportunities, hiw-faqs all sit on the dark half
-   of the #F2EDE3 → #0B2838 gradient → section-level headings need white.
-   Card interiors retain a white/light card bg so text inside stays dark.      */
-
-.page-theme--hiw .section_1 h2,
-.page-theme--hiw .section_1 p,
-.page-theme--hiw .hiw-opportunities h2,
-.page-theme--hiw .hiw-faqs h2 {
-  color: #ffffff;
-}
-
-/* ── HIW: step-flow boxes — palette colours ───────────────────────────────── */
-.page-theme--hiw .hiw-step-box {
-  background: rgba(27, 73, 101, 0.85);
-  border-color: #4a7c8c;
-}
-
-.page-theme--hiw .hiw-step-num {
-  color: #8ba888;
-}
-
-.page-theme--hiw .hiw-step-arrow {
-  color: #4a7c8c;
-}
-
-/* ── HIW: opportunity card borders & accent colours — palette only ─────────── */
-.page-theme--hiw .opportunity-card--people {
-  border-top-color: #4a7c8c;
-}
-
-.page-theme--hiw .opportunity-card--business {
-  border-top-color: #3d8b7a;
-}
-
-.page-theme--hiw .opportunity-card--people h3 {
-  color: #4a7c8c;
-}
-
-.page-theme--hiw .opportunity-card--business h3 {
-  color: #3d8b7a;
-}
-
-.page-theme--hiw .opportunity-card--people ul li::before {
-  color: #4a7c8c;
-}
-
-.page-theme--hiw .opportunity-card--business ul li::before {
-  color: #3d8b7a;
-}
-
-/* ── HIW: FAQ expand icon — palette colour ────────────────────────────────── */
-.page-theme--hiw .faq-item summary::after {
-  color: #4a7c8c;
-}
-
 /* ── Map sidebar: region & city buttons — brand palette + hover ───────────── */
 .map-region-btn {
   width:          100%;
@@ -3541,6 +3604,94 @@ body {
   background:   #4a7c8c;
   color:        #ffffff;
   border-color: #4a7c8c;
+}
+
+/* ── Map page layout (app/hunts/MapComponent) ─────────────────────────────────
+   Desktop: regions sidebar beside the map. Mobile (≤ 768px): a compact,
+   horizontally scrollable regions row above a full-viewport-width map. */
+.map-page {
+  padding: 6.5rem 2rem 2rem;
+}
+.map-layout {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: calc(100vh - 8.5rem);
+}
+.map-regions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  padding: 0.75rem;
+  background: #F2EDE3;
+  border-radius: 8px;
+}
+.map-regions-title { margin: 0 0 0.2rem; }
+.map-city-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  padding-left: 0.5rem;
+}
+.map-frame {
+  border: 2px solid #000000;
+  border-radius: 8px;
+  overflow: hidden;
+  /* Contain Leaflet's pane z-indices (400+) so the fixed header and its
+     mobile menu stay above the map. */
+  isolation: isolate;
+}
+
+@media (max-width: 768px) {
+  .map-page {
+    padding: 6rem 0 1rem;
+  }
+  .map-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    height: auto;
+  }
+  .map-regions {
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 0 1.1rem;
+    padding: 0.5rem 0.6rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .map-regions-header,
+  .map-region,
+  .map-city-list { flex-shrink: 0; }
+  .map-regions-title { margin: 0; }
+  .map-regions-hint  { display: none; }
+  .map-region {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .map-region-btn { width: auto; white-space: nowrap; }
+  .map-city-list {
+    flex-direction: row;
+    gap: 0.4rem;
+    margin-top: 0;
+    padding-left: 0;
+  }
+  .map-city-btn { white-space: nowrap; }
+  .map-frame {
+    height: 65vh;
+    min-height: 320px;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+}
+@media (max-width: 480px) {
+  .map-regions { margin: 0 0.9rem; }
 }
 
 /* ══ Login page restyling ═════════════════════════════════════════════════════
@@ -3688,20 +3839,16 @@ body {
   color: #4a7c8c;
 }
 
-/* ══ Library page: text contrast ══════════════════════════════════════════════════════
-   Gradient: --coastal-2 (#FAF3E0) → --coastal-6 (#1A6B5A)
-   • section_1 sits on the lighter upper half → #0F3D35 text                          */
-
-/* ── section_1 (light upper area) ────────────────────────────────────────── */
+/* ══ Library page: text contrast — flat white panel, navy text throughout ══════════ */
 .page-theme--library .section_1 h2,
 .page-theme--library .section_1 p,
 .page-theme--library #user-greeting {
-  color: #0f3d35;
+  color: #0B2838;
 }
 
 /* ── Collectible empty state ──────────────────────────────────────────────────────── */
 .page-theme--library .collectible-empty {
-  color: #0f3d35;
+  color: #0B2838;
 }
 
 /* ── Collectible badges (edition + type) — coastal palette ───────────────────────── */
@@ -3859,48 +4006,27 @@ body {
 
 /* ── Hunt entry / path-selection screen ─────────────────────────────────────── */
 
-/* Title/subtitle card — self-contained, sized to content, sits above the
-   two-tone split rather than spanning full width on a flat band. */
-.hunt-entry-title-card {
-  display:      inline-block;
-  max-width:    90%;
-  background:   var(--dune-1);
-  border-radius: 16px;
-  padding:      1.5rem 2.5rem;
-  box-shadow:   0 6px 20px rgba(11, 40, 56, 0.18);
-  text-align:   center;
-}
-.hunt-entry-title {
-  font-size:   clamp(1.75rem, 6vw, 2.5rem);
-  font-weight: 700;
-  margin:      0 0 0.5rem;
-  color:       var(--dune-7);
-}
-.hunt-entry-subtitle {
-  font-size: 1rem;
-  margin:    0;
-  color:     var(--dune-4);
-}
-
+/* Stacked top/bottom (not side-by-side) so there's a single horizontal seam
+   for the heading bubble below to straddle. */
 .hunt-entry-split {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: calc(100vh - 65px);
 }
 
 .hunt-entry-half {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1.25rem;
   padding: 3rem 1.5rem;
   text-align: center;
+  background: var(--dune-7);
 }
-/* Left — Coded Clue: sandy background, solid blue bubble */
-.hunt-entry-half:first-child { background: var(--dune-2); border-right: 1px solid var(--dune-4); }
-/* Right — Location based Clue: blue background, solid sandy bubble (inverse of the left half) */
-.hunt-entry-half:last-child  { background: var(--dune-7); }
+.hunt-entry-half:first-child { border-bottom: 1px solid var(--dune-6); }
 
 .hunt-entry-bubble {
   width: min(240px, 60vw);
@@ -3914,38 +4040,64 @@ body {
   padding: 1.75rem;
   border: none;
   cursor: pointer;
+  background: var(--dune-3);
   box-shadow: 0 6px 20px rgba(11, 40, 56, 0.18);
   transition: transform 0.15s ease;
 }
 .hunt-entry-bubble:hover:not(:disabled) { transform: scale(1.03); }
 .hunt-entry-bubble:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.hunt-entry-half:first-child .hunt-entry-bubble { background: var(--dune-6); }
-.hunt-entry-half:last-child  .hunt-entry-bubble { background: var(--dune-3); }
-
-/* Bubble's own text label — always visible, coloured to match that half's
-   background (not the bubble's own fill) so it reads clearly against the
-   bubble. */
 .hunt-entry-bubble-label {
   font-size: 1.15rem;
   font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--dune-7);
 }
-.hunt-entry-half:first-child .hunt-entry-bubble-label { color: var(--dune-2); }
-.hunt-entry-half:last-child  .hunt-entry-bubble-label { color: var(--dune-7); }
 
-/* Explanation text — lives inside the bubble now, hidden until hover. Same
-   background-matching colour logic as the label, just lighter weight/size
-   to read as secondary. */
+/* Explanation text — lives inside the bubble, hidden until hover. */
 .hunt-entry-bubble-desc {
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.4;
+  color: var(--dune-7);
   opacity: 0;
   transition: opacity 0.18s ease;
 }
 .hunt-entry-bubble:hover .hunt-entry-bubble-desc { opacity: 1; }
-.hunt-entry-half:first-child .hunt-entry-bubble-desc { color: var(--dune-2); }
-.hunt-entry-half:last-child  .hunt-entry-bubble-desc { color: var(--dune-7); }
+
+/* White bubble carrying the hunt name — pinned to the exact centre of
+   .hunt-entry-split so its own vertical centreline lands precisely on the
+   seam between the two (equal-height, flex:1) halves above. */
+.hunt-entry-heading-bubble {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 90%;
+  background: #FFFFFF;
+  border-radius: 28px;
+  padding: 1.5rem 2.75rem;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(11, 40, 56, 0.25);
+}
+.hunt-entry-heading-name {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-weight: 700;
+  color: var(--dune-7);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.hunt-entry-heading-sub {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dune-4);
+}
 
 /* ══ Account page ═════════════════════════════════════════════════════════════ */
 
@@ -4102,6 +4254,131 @@ body {
 }
 .header-settings-link:hover { opacity: 1; }
 
+/* ─── Collapsed header menu (components/layout/HeaderMenu) ────────────────────
+   Hidden while the full header fits. HeaderMenu adds .site-header--compact
+   whenever the centred nav would overlap the logo or the right cluster, at any
+   width; at ≤ 768px the header is always compact (no flash before hydration).
+   Compact mode hides the nav and right cluster with visibility (not display)
+   so HeaderMenu can keep measuring their real widths. */
+.header-menu {
+  display: none;
+  position: relative;
+}
+.header-menu__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  margin-right: -0.75rem; /* align the label with the header's right padding */
+  padding: 0 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--dune-7);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.header-menu__caret { transition: transform 0.15s ease; }
+.header-menu__toggle[aria-expanded="true"] .header-menu__caret { transform: rotate(180deg); }
+.header-menu__toggle:focus-visible,
+.header-menu__link:focus-visible {
+  outline: 2px solid var(--dune-6);
+  outline-offset: -2px;
+}
+/* Dropdown anchored under the "Menu" label */
+.header-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: -0.75rem;
+  min-width: 220px;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.4rem 0;
+  background: var(--dune-1);
+  border: 1px solid rgba(11, 40, 56, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(11, 40, 56, 0.12);
+  max-height: calc(100vh - 6rem);
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  animation: adminMenuIn 0.15s ease;
+}
+.header-menu__panel[hidden] { display: none; }
+.header-menu__panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.header-menu__link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: none;
+  border-left: 3px solid transparent;
+  background: none;
+  color: var(--dune-7);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.header-menu__link:hover { background: var(--dune-2); }
+.header-menu__link--active {
+  border-left-color: var(--accent-gold);
+  background: var(--dune-2);
+}
+.header-menu__link--sub {
+  padding-left: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.header-menu__link--return { color: var(--dune-6); }
+.header-menu__group {
+  margin: 0;
+  padding: 0.35rem 1.1rem 0.15rem;
+  color: var(--dune-6);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.header-menu__divider {
+  margin: 0.4rem 1.1rem;
+  border: none;
+  border-top: 1px solid rgba(11, 40, 56, 0.12);
+}
+
+.site-header--compact .main-nav,
+.site-header--compact .header-row1-right {
+  visibility: hidden;
+  pointer-events: none;
+}
+.site-header--compact .header-row1-right {
+  position: absolute;
+  right: 2rem;
+}
+.site-header--compact .header-menu { display: block; }
+
+@media (max-width: 768px) {
+  .site-header .main-nav,
+  .site-header .header-row1-right {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .site-header .header-row1-right {
+    position: absolute;
+    right: 2rem;
+  }
+  .site-header .header-menu { display: block; }
+}
+
 /* ── Password show/hide toggle ───────────────────────────────────────────── */
 .pw-toggle-btn {
   position: absolute;
@@ -4128,7 +4405,6 @@ body {
 /* ── Palette 1 upper sections: dark text ──────────────────────────────────── */
 .page-theme--home .section_1,
 .page-theme--about .section_1,
-.page-theme--hiw .section_1,
 .page-theme--map .section_1,
 .page-theme--login .login-section,
 .page-theme--signup .signup-section,
@@ -4138,13 +4414,11 @@ body {
 }
 .page-theme--home .section_1 h2,
 .page-theme--about .section_1 h2,
-.page-theme--hiw .section_1 h2,
 .page-theme--contact .section_1 h2 {
   color: #0B2838;
 }
 .page-theme--home .section_1 p,
-.page-theme--about .section_1 p,
-.page-theme--hiw .section_1 p {
+.page-theme--about .section_1 p {
   color: #0B2838;
 }
 
@@ -4178,30 +4452,17 @@ body {
   color: #0B2838;
 }
 
-/* ── Palette 1 — HIW lower sections: white text ──────────────────────────── */
-.page-theme--hiw .hiw-opportunities,
-.page-theme--hiw .hiw-faqs {
-  color: #FFFFFF;
-}
-.page-theme--hiw .hiw-opportunities h2,
-.page-theme--hiw .hiw-opportunities h3,
-.page-theme--hiw .hiw-faqs h2 {
-  color: #FFFFFF;
-}
-
-/* ── Palette 2 upper: dark text ───────────────────────────────────────────── */
+/* ── Library — flat white panel, navy text throughout ─────────────────────── */
 .page-theme--library .section_1 {
-  color: #0F3D35;
+  color: #0B2838;
 }
 .page-theme--library .section_1 h2,
 .page-theme--library .section_1 p,
 .page-theme--library #user-greeting {
-  color: #0F3D35;
+  color: #0B2838;
 }
-
-/* ── Palette 2 lower: white text ──────────────────────────────────────────── */
 .page-theme--library .library-section {
-  color: #FFFFFF;
+  color: #0B2838;
 }
 
 /* ── Palette 3 (hunt / scan): dark text throughout ────────────────────────── */
@@ -4240,49 +4501,6 @@ body {
   background: rgba(255, 255, 255, 0.10);
   border-radius: 12px;
   padding: 2rem;
-}
-
-/* ── HIW step boxes ───────────────────────────────────────────────────────── */
-.page-theme--hiw .hiw-step-box {
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 10px;
-  color: #0B2838;
-}
-.page-theme--hiw .hiw-step-num {
-  color: #4A7C8C;
-}
-.page-theme--hiw .hiw-step-text {
-  color: #0B2838;
-}
-
-/* ── HIW opportunity cards ────────────────────────────────────────────────── */
-.page-theme--hiw .opportunity-card {
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 12px;
-  padding: 2rem;
-  color: #0B2838;
-}
-.page-theme--hiw .opportunity-card h3 {
-  color: #0B2838;
-}
-.page-theme--hiw .opportunity-card li {
-  color: #0B2838;
-}
-
-/* ── HIW FAQ items ────────────────────────────────────────────────────────── */
-.page-theme--hiw .faq-item {
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 0.75rem;
-  color: #0B2838;
-}
-.page-theme--hiw .faq-item summary {
-  color: #0B2838;
-  font-weight: 600;
-}
-.page-theme--hiw .faq-item p {
-  color: #333;
 }
 
 /* ── Values bubbles (about page) — mid palette shade ──────────────────────── */
@@ -4325,8 +4543,7 @@ body {
 
 /* ── Palette 1 light sections: teal button ────────────────────────────────── */
 .page-theme--home .section_1 .btn-secondary,
-.page-theme--about .section_1 .btn-secondary,
-.page-theme--hiw .section_1 .btn-secondary {
+.page-theme--about .section_1 .btn-secondary {
   background: #4A7C8C;
   color: #FFFFFF;
   border-color: #4A7C8C;

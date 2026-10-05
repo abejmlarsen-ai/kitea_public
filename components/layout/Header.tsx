@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import AdminDropdown from './AdminDropdown'
 import LogoutButton from '@/components/auth/LogoutButton'
 import ReturnToMapButton from './ReturnToMapButton'
+import HeaderMenu from './HeaderMenu'
 
 export default async function Header() {
   const supabase = await createClient()
@@ -81,6 +82,9 @@ export default async function Header() {
               : <Link href="/login" className="nav-login-link">Login</Link>
             }
           </div>
+
+          {/* ── Collapsed "Menu" dropdown: replaces nav + right cluster whenever they'd overlap ── */}
+          <HeaderMenu isLoggedIn={!!user} isAdmin={isAdmin} />
 
       </div>
     </header>

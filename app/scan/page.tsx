@@ -32,8 +32,22 @@ function ScanContent() {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session) {
-        // Not logged in — send them to login then back here after
-        router.push(`/login?redirect=/scan?tag=${encodeURIComponent(tag_uid)}`)
+        // Not logged in. Remember the tag in an httpOnly cookie first, so any
+        // auth path (login, signup, email confirmation) can bring them back
+        // here even if ?redirect is lost. Best-effort: ?redirect still works.
+        try {
+          await fetch('/api/nfc/pending-claim', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ tag_uid }),
+          })
+        } catch {
+          // Fall through to the ?redirect path.
+        }
+
+        // Send them to log in, then back here to finish the claim.
+        const returnTo = `/scan?tag=${encodeURIComponent(tag_uid)}`
+        router.push(`/login?redirect=${encodeURIComponent(returnTo)}`)
         return
       }
 

@@ -3,7 +3,15 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LogoutButton() {
+interface Props {
+  // Defaults render the desktop header button (#logout-btn). Other placements
+  // (e.g. the mobile menu) pass their own class and label, and get no id so the
+  // two buttons never share one.
+  className?: string
+  label?: string
+}
+
+export default function LogoutButton({ className, label = 'Logout' }: Props) {
   const router = useRouter()
 
   async function handleLogout() {
@@ -14,8 +22,12 @@ export default function LogoutButton() {
   }
 
   return (
-    <button id="logout-btn" className="nav-logout-btn" onClick={handleLogout}>
-      Logout
+    <button
+      id={className ? undefined : 'logout-btn'}
+      className={className ?? 'nav-logout-btn'}
+      onClick={handleLogout}
+    >
+      {label}
     </button>
   )
 }

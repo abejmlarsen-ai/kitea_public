@@ -20,6 +20,12 @@ interface Props {
   userId:          string
   hasRevealData:   boolean
   initialRevealed: boolean
+  // Pre-fetched + pre-signed server-side by the page when initialRevealed is
+  // true, so an already-revealed user doesn't pay for a client-side
+  // hunt_reveals query plus a separate signing round trip on every mount.
+  // Null when not yet revealed (or, as a safety net, if the server somehow
+  // didn't have it) — loadContent() below still covers that case.
+  initialRevealContent: { directions: string | null; imageUrl: string | null } | null
   // True once the hunt has a real (non-[PLACEHOLDER]) clue/answer — once the
   // puzzle is actually solvable, this manual shortcut goes away and players
   // have to earn the reveal by playing the clue.
@@ -33,10 +39,10 @@ async function signImage(path: string): Promise<string | null> {
 }
 
 export default function RevealLocationButton({
-  huntLocationId, userId, hasRevealData, initialRevealed, clueIsReal,
+  huntLocationId, userId, hasRevealData, initialRevealed, initialRevealContent, clueIsReal,
 }: Props) {
   const [revealed, setRevealed] = useState(initialRevealed)
-  const [content,  setContent]  = useState<RevealContent | null>(null)
+  const [content,  setContent]  = useState<RevealContent | null>(initialRevealContent)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState<string | null>(null)
 
@@ -60,10 +66,12 @@ export default function RevealLocationButton({
     setContent({ directions: data.reveal_directions, imageUrl })
   }, [huntLocationId])
 
-  // Already revealed in a previous session — load the content on mount.
+  // Already revealed in a previous session — content state above already
+  // seeds from initialRevealContent. Only fall back to fetching client-side
+  // if the server somehow didn't supply it.
   useEffect(() => {
-    if (initialRevealed) { void loadContent() }
-  }, [initialRevealed, loadContent])
+    if (initialRevealed && !initialRevealContent) { void loadContent() }
+  }, [initialRevealed, initialRevealContent, loadContent])
 
   async function handleReveal() {
     if (loading || revealed) return

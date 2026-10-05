@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="leaflet.css"><script src="leaflet.js"></script></head>
+<body style="margin:0"><div id="m" style="width:600px;height:400px"></div>
+<script>
+const map = L.map('m').setView([-33.87,151.2],12);
+// Same options MapComponent now passes (autoClose omitted => default true)
+window.markers = [[-33.86,151.18],[-33.88,151.22],[-33.87,151.20]].map((p,i)=>
+  L.marker(p).addTo(map).bindPopup('<b>Hunt '+i+'</b>', {closeButton:true, closeOnClick:false}));
+window.openCount = () => document.querySelectorAll('.leaflet-popup').length;
+</script></body></html>

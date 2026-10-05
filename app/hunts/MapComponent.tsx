@@ -73,6 +73,20 @@ function FlyTo({ centre, zoom, trigger }: FlyProps) {
   return null
 }
 
+// ── Keep Leaflet's size in sync with its container ───────────────────────────
+// The layout restacks at the mobile breakpoint (see .map-layout in globals.css);
+// without invalidateSize the map keeps its old dimensions and leaves blank tiles.
+
+function InvalidateOnResize() {
+  const map = useMap()
+  useEffect(() => {
+    const observer = new ResizeObserver(() => map.invalidateSize())
+    observer.observe(map.getContainer())
+    return () => observer.disconnect()
+  }, [map])
+  return null
+}
+
 // ── Scanned-state marker colours ────────────────────────────────────────────
 // Single source of truth for both the logo glow and the dashed circle, so
 // the two can't drift apart. Green marks a hunt the current user has scanned
@@ -143,85 +157,41 @@ export default function MapComponent({ locations, scannedLocationIds }: Props) {
   }
 
   return (
-    <div style={{
-      display:             'grid',
-      gridTemplateColumns: '190px 1fr',
-      gap:                 '1rem',
-      width:               '100%',
-      height:              'calc(100vh - 8.5rem)',
-    }}>
+    <div className="map-layout">
 
-      {/* ── Left sidebar: region / city nav ─────────────────────────── */}
-      <div style={{
-        overflowY:    'auto',
-        background:   '#F2EDE3',
-        borderRadius: 8,
-        padding:      '0.75rem',
-        display:      'flex',
-        flexDirection:'column',
-        gap:          '0.5rem',
-      }}>
-        {/* Primary region label — moved from above the map grid */}
-        <div>
-          <h2 style={{
+      {/* ── Region / city nav: left sidebar on desktop, scrollable row on mobile ── */}
+      <div className="map-regions">
+        <div className="map-regions-header">
+          <h2 className="map-regions-title" style={{
             fontFamily:    'var(--font-heading, inherit)',
             fontSize:      '1rem',
             fontWeight:    700,
             color:         '#0b2838',
-            margin:        '0 0 0.2rem 0',
             letterSpacing: '0.04em',
           }}>
             Regions
           </h2>
-          <p style={{
+          <p className="map-regions-hint" style={{
             fontSize:     '12px',
             color:        '#4a7c8c',
-            margin:       '0 0 0.5rem 0',
+            margin:       0,
           }}>
             Select an area to explore
           </p>
-          {/* Australia sits directly below the subheading */}
-          {REGIONS.filter(r => r.label === 'Australia').map(region => (
-            <div key={region.label}>
-              <button
-                onClick={() => handleRegion(region)}
-                className="map-region-btn"
-              >
-                {region.label}
-              </button>
-              {expandedRegion === region.label && (
-                <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  {region.cities.map(city => (
-                    <button
-                      key={city.label}
-                      onClick={() => setFlyTarget((prev) => ({
-                        centre: city.centre,
-                        zoom: city.zoom,
-                        trigger: (prev?.trigger ?? 0) + 1,
-                      }))}
-                      className="map-city-btn"
-                    >
-                      {city.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
         </div>
 
-        {/* Remaining regions */}
-        {REGIONS.filter(r => r.label !== 'Australia').map(region => (
-          <div key={region.label}>
+        {REGIONS.map(region => (
+          <div key={region.label} className="map-region">
             <button
               onClick={() => handleRegion(region)}
               className="map-region-btn"
+              aria-expanded={expandedRegion === region.label}
             >
               {region.label}
             </button>
 
             {expandedRegion === region.label && (
-              <div style={{ paddingLeft: '0.5rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div className="map-city-list">
                 {region.cities.map(city => (
                   <button
                     key={city.label}
@@ -242,7 +212,7 @@ export default function MapComponent({ locations, scannedLocationIds }: Props) {
       </div>
 
       {/* ── Map ─────────────────────────────────────────────────────── */}
-      <div style={{ border: '2px solid black', borderRadius: 8, overflow: 'hidden' }}>
+      <div className="map-frame">
         <MapContainer
           center={defaultCentre}
           zoom={12}
@@ -253,6 +223,8 @@ export default function MapComponent({ locations, scannedLocationIds }: Props) {
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             attribution='&copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
           />
+
+          <InvalidateOnResize />
 
           {flyTarget && (
             <FlyTo
@@ -279,10 +251,10 @@ export default function MapComponent({ locations, scannedLocationIds }: Props) {
                 position={[loc.latitude, loc.longitude]}
                 icon={scannedSet.has(loc.id) ? kiteaIconScanned : kiteaIcon}
               >
+                {/* autoClose (Leaflet default) — opening this popup closes any other open one */}
                 <Popup
                   closeButton={true}
                   closeOnClick={false}
-                  autoClose={false}
                 >
                   <div style={{
                     textAlign:  'center',

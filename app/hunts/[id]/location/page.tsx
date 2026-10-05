@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import HuntNotFound from '../HuntNotFound'
 import HuntLocationClient from './HuntLocationClient'
 import HuntBackButton from '@/components/layout/HuntBackButton'
+import { getCachedSignedUrl } from '@/lib/storage/signedUrlCache'
 
 // Hint text and scan status must be read fresh on every visit, not baked in
 // at build/deploy time. createClient() already calls cookies() which
@@ -44,11 +45,24 @@ export default async function HuntLocationPage({
       .select('location_hint_1_solved, location_hint_2_solved, location_hint_3_solved, location_revealed')
       .eq('user_id', user.id).eq('hunt_location_id', id).maybeSingle(),
     db.from('scans').select('id').eq('hunt_location_id', id).eq('user_id', user.id).maybeSingle(),
-    db.from('hunt_reveals').select('id').eq('hunt_location_id', id).maybeSingle(),
+    // Pulling the actual reveal content here too (not just existence) costs
+    // nothing extra — same query — so an already-revealed user's reveal
+    // content can be handed to the client instead of it re-fetching on mount.
+    db.from('hunt_reveals').select('id, reveal_directions, reveal_image_url').eq('hunt_location_id', id).maybeSingle(),
   ])
 
   const hints    = hintsRes.data
   const progress = progressRes.data
+
+  const initialRevealed = !!progress?.location_revealed
+  let initialRevealContent: { directions: string | null; imageUrl: string | null } | null = null
+  if (initialRevealed && revealRes.data) {
+    let revealImageUrl = revealRes.data.reveal_image_url
+    if (revealImageUrl && !revealImageUrl.startsWith('http')) {
+      revealImageUrl = await getCachedSignedUrl(db.storage, 'hunt-assets-private', revealImageUrl)
+    }
+    initialRevealContent = { directions: revealRes.data.reveal_directions, imageUrl: revealImageUrl }
+  }
 
   return (
     <div className="page-theme page-theme--hunt">
@@ -64,7 +78,8 @@ export default async function HuntLocationPage({
         }}
         hasScanned={!!scansRes.data}
         hasRevealData={!!revealRes.data}
-        initialRevealed={!!progress?.location_revealed}
+        initialRevealed={initialRevealed}
+        initialRevealContent={initialRevealContent}
         clueIsReal={
           [hints?.hint_1_answer, hints?.hint_2_answer, hints?.hint_3_answer]
             .every((a) => a != null && a !== '[PLACEHOLDER]')

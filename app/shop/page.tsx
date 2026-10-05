@@ -5,14 +5,18 @@ import ShopClient from './ShopClient'
 
 export const metadata: Metadata = { title: 'Shop' }
 
+export type UnlockType = 'scan' | 'signup'
+
 export type ShopProduct = {
   id: string
   name: string
   description: string | null
   image_url: string | null
-  hunt_location_id: string
+  // Null for 'signup' products, which are not tied to a hunt.
+  hunt_location_id: string | null
   price: number | null
   stripe_price_id: string | null
+  unlock_type: UnlockType
 }
 
 export type HuntGroup = {
@@ -29,28 +33,60 @@ export default async function ShopPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Fetch all active products that are tied to a hunt
+  // Fetch every active product — both hunt-gated ('scan') and account-gated
+  // ('signup'). The hunt_location_id filter that used to live on this query is
+  // gone; the two categories are split below so signup products survive.
   const { data: rawProducts } = await serviceClient
     .from('products')
-    .select('id, name, description, image_url, hunt_location_id, price, stripe_price_id')
+    .select('id, name, description, image_url, hunt_location_id, price, stripe_price_id, unlock_type')
     .eq('is_active', true)
-    .not('hunt_location_id', 'is', null)
     .order('created_at', { ascending: true })
 
-  const products: ShopProduct[] = (rawProducts ?? [])
-    .filter((p): p is typeof p & { hunt_location_id: string } => p.hunt_location_id !== null)
-    .map((p) => ({
+  // ── Split into the two unlock categories ──────────────────────────────────
+  // Data errors are skipped with a warning rather than rendered or thrown:
+  //   • 'signup' product with a hunt_location_id
+  //   • 'scan'   product without a hunt_location_id
+  const scanProducts: ShopProduct[] = []
+  const signupProducts: ShopProduct[] = []
+
+  for (const p of rawProducts ?? []) {
+    const unlock_type: UnlockType = p.unlock_type === 'signup' ? 'signup' : 'scan'
+    const base = {
       id: p.id,
       name: p.name,
       description: p.description ?? null,
       image_url: p.image_url ?? null,
-      hunt_location_id: p.hunt_location_id,
       price: p.price ?? null,
       stripe_price_id: p.stripe_price_id ?? null,
-    }))
+    }
 
-  // Collect unique hunt_location_ids that have products
-  const huntLocationIds = [...new Set(products.map((p) => p.hunt_location_id))]
+    if (unlock_type === 'signup') {
+      if (p.hunt_location_id !== null) {
+        console.warn(
+          `[shop] skipping product ${p.id} (${p.name}): unlock_type='signup' but hunt_location_id is set`
+        )
+        continue
+      }
+      signupProducts.push({ ...base, hunt_location_id: null, unlock_type: 'signup' })
+    } else {
+      if (p.hunt_location_id === null) {
+        console.warn(
+          `[shop] skipping product ${p.id} (${p.name}): unlock_type='scan' but hunt_location_id is null`
+        )
+        continue
+      }
+      scanProducts.push({ ...base, hunt_location_id: p.hunt_location_id, unlock_type: 'scan' })
+    }
+  }
+
+  // Collect unique hunt_location_ids that have 'scan' products
+  const huntLocationIds = [
+    ...new Set(
+      scanProducts
+        .map((p) => p.hunt_location_id)
+        .filter((id): id is string => id !== null)
+    ),
+  ]
 
   // Fetch hunt location names
   const { data: rawLocations } = await serviceClient
@@ -120,7 +156,7 @@ export default async function ShopPage() {
         hunt_location_id: locId,
         hunt_name: locationMap.get(locId) ?? 'Hunt',
         scan_number: computedScanNumber,
-        products: products.filter((p) => p.hunt_location_id === locId),
+        products: scanProducts.filter((p) => p.hunt_location_id === locId),
       })
     }
   }
@@ -129,6 +165,7 @@ export default async function ShopPage() {
     <div className="page-theme page-theme--shop">
       <ShopClient
         huntGroups={huntGroups}
+        signupProducts={user ? signupProducts : []}
         userId={user?.id ?? null}
       />
     </div>

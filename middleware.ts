@@ -2,18 +2,21 @@
 //
 // PUBLIC routes pass straight through with NO Supabase call.
 // PROTECTED routes check the session and redirect to /login if unauthenticated.
-// AUTH pages (/login, /signup) redirect logged-in users to /library.
+// AUTH pages (/login, /signup) redirect logged-in users to their validated
+// ?redirect, else a pending scan claim, else /library.
 //
 // Public (never gated):
-//   /  /about  /how-it-works  /map  /scan  /contact  /shop
+//   /  /about  /how-it-works  /opportunities  /faq  /map  /scan  /contact  /shop
 //   /api/nfc/*  /auth/*  + static assets
 //
 // Protected (valid session required):
 //   /library  /profile  /hunts/*  /admin
-//   /api/collectible/mint  /api/hunt/*
+//   /api/hunt/*
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeRedirect } from '@/lib/auth/safeRedirect'
+import { PENDING_CLAIM_COOKIE, pendingClaimScanPath } from '@/lib/auth/pendingClaim'
 
 // Path prefixes that require an authenticated session.
 const PROTECTED_PREFIXES = [
@@ -21,7 +24,6 @@ const PROTECTED_PREFIXES = [
   '/profile',
   '/hunts',
   '/admin',
-  '/api/collectible/mint',
   '/api/hunt',
 ]
 
@@ -73,11 +75,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // ── Auth page, already logged in → /library ───────────────────────────
+  // ── Auth page, already logged in → where they were headed ─────────────
+  // A valid ?redirect, else a pending claim from a signed-out scan, else
+  // /library. (e.g. they confirmed their email in another tab, then came back
+  // to the login tab the scan sent them to.)
   if (isAuthPage && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/library'
-    return NextResponse.redirect(url)
+    const redirectParam = request.nextUrl.searchParams.get('redirect')
+    const target =
+      (redirectParam ? safeRedirect(redirectParam, '') : '') ||
+      pendingClaimScanPath(request.cookies.get(PENDING_CLAIM_COOKIE)?.value) ||
+      safeRedirect(null)
+    return NextResponse.redirect(new URL(target, request.nextUrl.origin))
   }
 
   return response

@@ -35,7 +35,10 @@ export default async function HuntCodedPage({
     db.from('hunt_clues').select('text_content, answer, image_url, hint_text').eq('hunt_location_id', id).maybeSingle(),
     db.from('scans').select('id').eq('hunt_location_id', id).eq('user_id', user.id).maybeSingle(),
     db.from('hunt_progress').select('location_revealed').eq('user_id', user.id).eq('hunt_location_id', id).maybeSingle(),
-    db.from('hunt_reveals').select('id').eq('hunt_location_id', id).maybeSingle(),
+    // Pulling the actual reveal content here too (not just existence) costs
+    // nothing extra — same query — so an already-revealed user's reveal
+    // content can be handed to the client instead of it re-fetching on mount.
+    db.from('hunt_reveals').select('id, reveal_directions, reveal_image_url').eq('hunt_location_id', id).maybeSingle(),
   ])
 
   const clue = clueRes.data
@@ -43,6 +46,16 @@ export default async function HuntCodedPage({
   const clueImageUrl = clue?.image_url
     ? await getCachedSignedUrl(db.storage, 'hunt-assets-private', clue.image_url)
     : null
+
+  const initialRevealed = !!progressRes.data?.location_revealed
+  let initialRevealContent: { directions: string | null; imageUrl: string | null } | null = null
+  if (initialRevealed && revealRes.data) {
+    let revealImageUrl = revealRes.data.reveal_image_url
+    if (revealImageUrl && !revealImageUrl.startsWith('http')) {
+      revealImageUrl = await getCachedSignedUrl(db.storage, 'hunt-assets-private', revealImageUrl)
+    }
+    initialRevealContent = { directions: revealRes.data.reveal_directions, imageUrl: revealImageUrl }
+  }
 
   return (
     <HuntPageClient
@@ -52,7 +65,8 @@ export default async function HuntCodedPage({
       clueImageUrl={clueImageUrl}
       hasScanned={!!scansRes.data}
       hasRevealData={!!revealRes.data}
-      initialRevealed={!!progressRes.data?.location_revealed}
+      initialRevealed={initialRevealed}
+      initialRevealContent={initialRevealContent}
       clueIsReal={clue?.answer != null && clue.answer !== '[PLACEHOLDER]'}
     />
   )

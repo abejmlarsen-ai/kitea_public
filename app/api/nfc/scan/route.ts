@@ -1,9 +1,57 @@
 // ─── NFC Scan Verification ───────────────────────────────────────────────────
 // POST /api/nfc/scan
-// Verifies a scanned NFC tag UID and records the scan in the database.
+// Verifies a scanned NFC tag UID, records the scan and mints the collectible.
+//
+// Retry-safe, idempotent and race-safe: each user ends up with exactly one
+// scan and one minted collectible per hunt location, however many times (or
+// how concurrently) this is called. A repeat call after a failed mint mints
+// now; a repeat call after success returns "already collected". scan_number
+// and edition_number are assigned atomically in Postgres (record_scan and
+// mint_hunt_collectible — supabase/migrations/20261002120000_atomic_scan_and_mint.sql).
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/types/database'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { mintCollectible } from '@/lib/collectibles/mint'
+import { isValidTagUid } from '@/lib/hunts/tagUid'
+import { PENDING_CLAIM_COOKIE, clearedPendingClaimCookieOptions } from '@/lib/auth/pendingClaim'
+
+// Postgres unique_violation — always means "already collected", never an error
+const UNIQUE_VIOLATION = '23505'
+
+/**
+ * Returns a JSON response that also clears the pending-claim cookie. Used once
+ * the claim is settled (claimed, already collected, or can never succeed), so
+ * the user isn't sent back to /scan on their next login. Not used for 401s
+ * (they still need to sign in) or 500s (worth retrying).
+ */
+function settled(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init)
+  response.cookies.set(PENDING_CLAIM_COOKIE, '', clearedPendingClaimCookieOptions)
+  return response
+}
+
+/** The user's scan for a hunt location, if any. Tolerates zero or more rows. */
+async function findScan(
+  db: SupabaseClient<Database>,
+  user_id: string,
+  hunt_location_id: string,
+): Promise<{ id: string; scan_number: number } | null> {
+  const { data, error } = await db
+    .from('scans')
+    .select('id, scan_number')
+    .eq('user_id', user_id)
+    .eq('hunt_location_id', hunt_location_id)
+    .order('scanned_at', { ascending: true, nullsFirst: false })
+    .limit(1)
+
+  if (error) {
+    console.error('[scan] scan lookup error:', error.message)
+    return null
+  }
+  const row = data?.[0]
+  return row ? { id: row.id, scan_number: row.scan_number as number } : null
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +64,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'No tag ID provided' },
         { status: 400 }
+      )
+    }
+
+    // Tag UIDs are hex with optional colons (test tags: "TEST:<id>"). Anything
+    // else is rejected before it reaches a database filter.
+    if (!isValidTagUid(tag_uid)) {
+      return settled(
+        { error: 'Tag not recognised. Make sure you are scanning an official Kitea tag.' },
+        { status: 404 }
       )
     }
 
@@ -50,32 +107,42 @@ export async function POST(request: NextRequest) {
     //   upper        e.g. "04:6A:61:22:49:68:80"  (uppercase)
     //   stripped     e.g. "046a61224968"           (colons removed)
     //   strippedUpper e.g. "046A61224968"          (uppercase + no colons)
-    // One OR query covers all four variants against both tag_uid and uid.
+    // One IN query covers all four variants. .in() passes them as values —
+    // never splice the UID into filter syntax (an .or() string would let a
+    // crafted UID add its own conditions and match someone else's tag).
     const uidVariants = Array.from(new Set([
       tag_uid,
       tag_uid.toUpperCase(),
       tag_uid.replace(/:/g, ''),
       tag_uid.toUpperCase().replace(/:/g, ''),
     ]))
-    const orFilter = uidVariants
-      .map((v) => `tag_uid.eq.${v}`)
-      .join(',')
 
     console.log('[scan] uid variants tried:', uidVariants)
 
-    const { data: tag, error: tagError } = await supabase
+    // Tolerates zero or more matches (e.g. the same chip stored in two UID
+    // formats): the oldest active tag wins.
+    const { data: tags, error: tagError } = await supabase
       .from('nfc_tags')
       .select('*, hunt_locations!hunt_location_id(*)')
-      .or(orFilter)
+      .in('tag_uid', uidVariants)
       .eq('is_active', true)
-      .single()
+      .order('created_at', { ascending: true })
+      .limit(1)
 
-    console.log('[scan] tag query result:', JSON.stringify(tag, null, 2))
-    console.log('[scan] tag query error:', tagError?.message ?? null)
-    console.log('[scan] tag.hunt_location_id:', tag?.hunt_location_id ?? 'undefined')
+    const tag = tags?.[0] ?? null
+    console.log('[scan] tag:', tag?.id ?? null, '| hunt_location_id:', tag?.hunt_location_id ?? null, '| tagError:', tagError?.message ?? null)
 
-    if (tagError || !tag) {
+    if (tagError) {
+      console.error('[scan] tag lookup failed:', tagError.message)
       return NextResponse.json(
+        { error: 'Something went wrong. Please try again.' },
+        { status: 500 }
+      )
+    }
+
+    // No active tag with this UID — unknown or deactivated. Terminal.
+    if (!tag) {
+      return settled(
         { error: 'Tag not recognised. Make sure you are scanning an official Kitea tag.' },
         { status: 404 }
       )
@@ -84,95 +151,84 @@ export async function POST(request: NextRequest) {
     const huntLocationId = tag.hunt_location_id
 
     if (!huntLocationId) {
-      return NextResponse.json(
+      return settled(
         { error: 'This tag is not yet linked to a hunt location.' },
         { status: 409 }
       )
     }
 
-    // ── Step 5 — Check if user has already scanned this location ──────────
-    const { data: existingScan, error: existingError } = await supabase
-      .from('scans')
-      .select('id, scan_number')
-      .eq('user_id', user.id)
-      .eq('hunt_location_id', huntLocationId)
-      .single()
-
-    console.log('[scan] existingScan:', JSON.stringify(existingScan, null, 2))
-    console.log('[scan] existingScan error:', existingError?.message ?? null)
-
-    if (existingScan) {
-      return NextResponse.json({
-        success: false,
-        already_scanned: true,
-        message: 'You have already scanned this location.',
-        scan_number: existingScan.scan_number,
-        location: tag.hunt_locations
-      })
+    // ── Step 5 — The hunt must be live ───────────────────────────────────
+    const location = tag.hunt_locations
+    if (location?.is_active === false) {
+      return settled(
+        { success: false, hunt_not_active: true, error: 'This hunt is not active right now.' },
+        { status: 403 }
+      )
     }
 
-    // ── Step 6 — Get current scan count to assign a scan number ──────────
-    const { data: locationData, error: locationError } = await supabase
-      .from('hunt_locations')
-      .select('total_scans, name')
-      .eq('id', huntLocationId)
-      .single()
+    // ── Step 6 — Record the scan (or find the existing one) ─────────────
+    // record_scan assigns scan_number atomically in the database and is
+    // idempotent per (user, hunt location). An existing scan does NOT end the
+    // request: if an earlier mint failed, Step 7 mints now.
+    let scan: { id: string; scan_number: number; created: boolean } | null = null
 
-    console.log('[scan] locationData:', JSON.stringify(locationData, null, 2))
-    console.log('[scan] locationError:', locationError?.message ?? null)
+    const { data: scanRows, error: scanError } = await supabase.rpc('record_scan', {
+      p_user_id:          user.id,
+      p_hunt_location_id: huntLocationId,
+      p_nfc_tag_id:       tag.id,
+      p_tag_uid:          tag_uid,
+    })
 
-    const scan_number = (locationData?.total_scans ?? 0) + 1
+    if (scanError?.code === UNIQUE_VIOLATION) {
+      // A concurrent request won the race on scans_user_hunt_uniq — use its row.
+      console.warn('[scan] concurrent scan insert detected for', user.id)
+      const existing = await findScan(supabase, user.id, huntLocationId)
+      if (existing) scan = { ...existing, created: false }
+    } else if (scanError) {
+      console.error('[scan] record_scan failed:', scanError.code, scanError.message)
+    } else if (scanRows?.[0]) {
+      const row = scanRows[0]
+      scan = { id: row.scan_id, scan_number: row.scan_number, created: row.created }
+    }
 
-    // ── Step 7 — Record the scan ──────────────────────────────────────────
-    const { data: scanData, error: scanError } = await supabase
-      .from('scans')
-      .insert({
-        user_id: user.id,
-        hunt_location_id: huntLocationId,
-        tag_uid: tag_uid,
-        scan_number: scan_number,
-        scanned_at: new Date().toISOString()
-      })
-      .select('id')
-      .single()
-
-    console.log('[scan] scanError:', scanError?.message ?? null)
-
-    if (scanError) {
-      console.error('[scan] scan insert error:', scanError)
+    if (!scan) {
       return NextResponse.json(
         { error: 'Failed to record scan. Please try again.' },
         { status: 500 }
       )
     }
 
-    // ── Step 7b — Increment total_scans on the location ──────────────────
-    const { error: incrementError } = await supabase
-      .from('hunt_locations')
-      .update({ total_scans: scan_number })
-      .eq('id', huntLocationId)
+    console.log('[scan] scan', scan.created ? 'recorded' : 'already existed', '— id:', scan.id, '| scan_number:', scan.scan_number)
 
-    if (incrementError) {
-      // Non-fatal: log but continue
-      console.error('[scan] total_scans increment error:', incrementError.message)
-    } else {
-      console.log('[scan] total_scans updated to', scan_number, 'for location', huntLocationId)
-    }
-
-    // ── Step 8 — Mint the collectible now, in this same request. Success is
-    // only reported once the reward actually exists — no more fire-and-forget
-    // client-side mint racing the redirect and the collectible popup.
+    // ── Step 7 — Mint (awaited). Returns only once the minted row exists:
+    // the existing one, a reused failed/pending row, or a new one.
     const mintResult = await mintCollectible(supabase, {
-      user_id: user.id,
+      user_id:          user.id,
       hunt_location_id: huntLocationId,
+      scan_id:          scan.id,
     })
 
     if (!mintResult.ok) {
       console.error('[scan] mint failed after scan was logged:', mintResult.error)
       return NextResponse.json(
-        { error: 'Your scan was recorded, but we could not create your collectible. Please try again or contact support.' },
+        { error: 'Your scan was recorded, but we could not create your collectible. Please scan again to retry.' },
         { status: 500 }
       )
+    }
+
+    // ── Step 8 — Already collected: both the scan and the collectible existed
+    if (!scan.created && mintResult.status === 'already_minted') {
+      return settled({
+        success:           false,
+        already_scanned:   true,
+        already_collected: true,
+        message:           'You have already collected this hunt.',
+        scan_number:       scan.scan_number,
+        hunt_location_id:  huntLocationId,
+        collectible_id:    mintResult.collectible_id,
+        edition_number:    mintResult.edition_number,
+        location,
+      })
     }
 
     // ── Step 9 — Sign the art image URL so the popup can render it directly
@@ -180,7 +236,7 @@ export async function POST(request: NextRequest) {
     // Left null if the hunt has no art yet; the client treats null as "show
     // the placeholder logo" exactly like it already does elsewhere.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let artImageUrl = (tag.hunt_locations as any)?.art_image_url ?? null
+    let artImageUrl = (location as any)?.art_image_url ?? null
     if (artImageUrl && !artImageUrl.startsWith('http')) {
       const { data: signed, error: signError } = await supabase.storage
         .from('hunt-assets-private')
@@ -193,15 +249,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[scan] success — scan_number:', scan_number, '| collectible:', mintResult.status, mintResult.edition_number)
-    return NextResponse.json({
+    console.log('[scan] success — scan_number:', scan.scan_number, '| collectible:', mintResult.status, mintResult.edition_number)
+    return settled({
       success: true,
-      message: `You are number ${scan_number} to scan ${locationData?.name}!`,
-      scan_number: scan_number,
-      total_scanners: scan_number,
-      hunt_name: locationData?.name ?? null,
+      message: `You are number ${scan.scan_number} to scan ${location?.name}!`,
+      scan_number: scan.scan_number,
+      total_scanners: scan.scan_number,
+      hunt_name: location?.name ?? null,
       hunt_location_id: huntLocationId,
-      location: tag.hunt_locations,
+      location,
+      collectible_id: mintResult.collectible_id,
       edition_number: mintResult.edition_number,
       art_image_url: artImageUrl,
     })

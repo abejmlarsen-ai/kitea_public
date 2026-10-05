@@ -23,14 +23,15 @@ interface HintsData {
   hint_3_text: string | null
 }
 interface Props {
-  huntLocation:    HuntLocation
-  userId:          string
-  hints:           HintsData | null
-  initialSolved:   Record<HintNum, boolean>
-  hasScanned:      boolean
-  hasRevealData:   boolean
-  initialRevealed: boolean
-  clueIsReal:      boolean
+  huntLocation:          HuntLocation
+  userId:                string
+  hints:                 HintsData | null
+  initialSolved:         Record<HintNum, boolean>
+  hasScanned:            boolean
+  hasRevealData:         boolean
+  initialRevealed:       boolean
+  initialRevealContent:  { directions: string | null; imageUrl: string | null } | null
+  clueIsReal:            boolean
 }
 interface CollectibleData {
   scan_number:    number
@@ -55,7 +56,7 @@ const INPUT_STYLE: React.CSSProperties = {
 const HINT_NUMBERS: HintNum[] = [1, 2, 3]
 
 export default function HuntLocationClient({
-  huntLocation, userId, hints, initialSolved, hasScanned, hasRevealData, initialRevealed, clueIsReal,
+  huntLocation, userId, hints, initialSolved, hasScanned, hasRevealData, initialRevealed, initialRevealContent, clueIsReal,
 }: Props) {
   const router = useRouter()
 
@@ -233,7 +234,7 @@ export default function HuntLocationClient({
       {/* ── BACK TO SELECTION ────────────────────────────────────────────── */}
       <div style={{ background: '#F5F0E8', padding: '1rem 1.5rem 0', textAlign: 'center' }}>
         <a
-          href={`/hunts/${huntLocation.id}?select=1`}
+          href={`/hunts/${huntLocation.id}`}
           style={{ fontSize: '0.85rem', color: '#4A7C8C', fontWeight: 600, textDecoration: 'underline' }}
         >
           ← Back
@@ -340,6 +341,7 @@ export default function HuntLocationClient({
         userId={userId}
         hasRevealData={hasRevealData}
         initialRevealed={initialRevealed}
+        initialRevealContent={initialRevealContent}
         clueIsReal={clueIsReal}
       />
 

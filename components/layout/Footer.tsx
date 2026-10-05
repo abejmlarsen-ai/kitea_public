@@ -1,6 +1,8 @@
 // ─── Site Footer ────────────────────────────────────────────────────────────────────────────────────
 // Per-page theming is handled in globals.css via body:has(.page-theme--X)
 
+import Link from 'next/link'
+
 export default function Footer() {
   return (
     <footer className="site-footer" style={{ background: '#FFFFFF', color: '#0B2838' }}>
@@ -29,7 +31,9 @@ export default function Footer() {
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/about" style={{ color: '#0B2838', opacity: 1 }}>About</a>
           <a href="/our-story" style={{ color: '#0B2838', opacity: 1 }}>Our Story</a>
-          <a href="mailto:kiteaao@gmail.com" style={{ color: '#0B2838', opacity: 1 }}>Contact</a>
+          <a href="/opportunities" style={{ color: '#0B2838', opacity: 1 }}>Opportunities</a>
+          <a href="/faq" style={{ color: '#0B2838', opacity: 1 }}>FAQ</a>
+          <Link href="/contact" style={{ color: '#0B2838', opacity: 1 }}>Contact</Link>
         </nav>
       </div>
     </footer>
